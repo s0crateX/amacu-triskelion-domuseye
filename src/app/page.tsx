@@ -1,103 +1,289 @@
-import Image from "next/image";
+import { 
+  Building2, 
+  Users, 
+  Settings, 
+  BarChart3, 
+  Shield, 
+  Clock, 
+  ArrowRight,
+  CheckCircle,
+  Star,
+  AirVent,
+  Search,
+  Wifi,
+  Bath,
+  Car,
+  MapPin,
+  Home as HomeIcon,
+  Bed
+} from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Navbar } from "@/components/layout/navbar"
+import { Footer } from "@/components/layout/footer"
+
+const features = [
+  {
+    icon: Building2,
+    title: "Property Management",
+    description: "Comprehensive property portfolio management with detailed analytics and reporting capabilities."
+  },
+  {
+    icon: Users,
+    title: "Tenant Portal",
+    description: "Self-service tenant portal for rent payments, maintenance requests, and communication."
+  },
+  {
+    icon: Settings,
+    title: "Maintenance Tracking",
+    description: "Streamlined maintenance workflow with automated scheduling and vendor management."
+  },
+  {
+    icon: BarChart3,
+    title: "Financial Reports",
+    description: "Real-time financial insights with customizable reports and expense tracking."
+  },
+  {
+    icon: Shield,
+    title: "Secure & Compliant",
+    description: "Bank-level security with compliance to industry standards and data protection."
+  },
+  {
+    icon: Clock,
+    title: "24/7 Support",
+    description: "Round-the-clock customer support with dedicated account management."
+  }
+]
+
+const benefits = [
+  "Reduce administrative overhead by 60%",
+  "Improve tenant satisfaction scores",
+  "Automate rent collection and late fees",
+  "Track maintenance costs and ROI",
+  "Generate compliance reports instantly",
+  "Scale your property portfolio efficiently"
+]
+
+const stats = [
+  { value: "10,000+", label: "Properties Managed" },
+  { value: "50,000+", label: "Happy Tenants" },
+  { value: "99.9%", label: "Uptime Guarantee" },
+  { value: "24/7", label: "Customer Support" }
+]
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      {/* Hero Section */}
+      <section className="relative py-20 lg:py-32 overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <Badge variant="secondary" className="w-fit">
+                  Modern Property Management
+                </Badge>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
+                  Streamline Your{" "}
+                  <span className="text-primary">Rental Business</span>
+                </h1>
+                <p className="text-xl text-muted-foreground max-w-2xl">
+                  DomusEye provides comprehensive property management solutions that help you 
+                  manage properties, tenants, and maintenance operations efficiently.
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button size="lg" className="text-lg px-8">
+                  Get Started
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl p-8 backdrop-blur-sm border border-border/50">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Property Dashboard</h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {stats.map((stat, index) => (
+                      <div key={index} className="text-center p-4 bg-background/50 rounded-lg border border-border/30">
+                        <div className="text-2xl font-bold text-primary">{stat.value}</div>
+                        <div className="text-sm text-muted-foreground">{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      {/* Property Search Section */}
+      <section className="relative py-20 lg:py-32 bg-gradient-to-br from-primary/5 to-secondary/10 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-secondary/20 rounded-full blur-3xl transform translate-x-1/2 translate-y-1/2"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center space-y-4 mb-16">
+            <Badge variant="secondary" className="w-fit mx-auto">
+              <Search className="w-3 h-3 mr-1" />
+              Property Search
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
+              Find Your Perfect Home
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Discover the best properties for rent in your area with our advanced search filters
+            </p>
+          </div>
+          
+          <div className="max-w-4xl mx-auto">
+            <Card className="bg-card/95 backdrop-blur-sm border border-border/50 shadow-2xl">
+              <CardContent className="p-6 sm:p-8">
+                {/* Search Input */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                  <div className="relative flex-1">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by location, property type, or keywords..."
+                      className="pl-10 h-12 text-base border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                  <Button size="lg" className="h-12 px-8 text-lg font-semibold">
+                    <Search className="mr-2 h-5 w-5" />
+                    Search
+                  </Button>
+                </div>
+                
+                {/* Quick Filters */}
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <span className="font-medium">Filters:</span>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="ac" className="h-4 w-4" />
+                    <label htmlFor="ac" className="cursor-pointer flex items-center">
+                      <AirVent className="h-4 w-4 mr-1" />
+                      Air Conditioning
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="wifi" className="h-4 w-4" />
+                    <label htmlFor="wifi" className="cursor-pointer flex items-center">
+                      <Wifi className="h-4 w-4 mr-1" />
+                      WiFi
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="baths" className="h-4 w-4" />
+                    <label htmlFor="baths" className="cursor-pointer flex items-center">
+                      <Bath className="h-4 w-4 mr-1" />
+                      2+ Baths
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="parking" className="h-4 w-4" />
+                    <label htmlFor="parking" className="cursor-pointer flex items-center">
+                      <Car className="h-4 w-4 mr-1" />
+                      Large Lot
+                    </label>
+                  </div>
+                </div>
+                
+                {/* Advanced Search Link */}
+                <div className="mt-6 pt-6 border-t border-border/50">
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Advanced Search Options
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 lg:py-32 bg-muted/30">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-4 mb-16">
+            <Badge variant="secondary" className="w-fit mx-auto">
+              Features
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+              Everything You Need to Manage Properties
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              From tenant management to financial reporting, DomusEye provides all the tools 
+              you need to run a successful rental business.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => {
+              const Icon = feature.icon
+              return (
+                <Card key={index} className="border-border/50 hover:border-border transition-colors">
+                  <CardHeader>
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                      <Icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-base">
+                      {feature.description}
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      
+
+      {/* CTA Section */}
+      <section className="py-20 lg:py-32 bg-primary text-primary-foreground">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="space-y-8 max-w-3xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+              Find Your Dream Property
+            </h2>
+            <p className="text-xl opacity-90">
+              This option is more benefit-oriented. It directly tells the user what they will achieve by clicking – finding the property they desire. This aligns well with your headline "Ready to Get Your Dream Property?
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" variant="secondary" className="text-lg px-8">
+                Sign Up
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button size="lg" variant="outline" className="text-lg px-8 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+                Browse More
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
     </div>
-  );
+  )
 }
