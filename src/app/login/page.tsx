@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Building2, Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -49,9 +49,10 @@ export default function LoginPage() {
       } else {
         router.push('/dashboard/landlord')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login error:', error)
-      toast.error(error.message || 'Login failed. Please check your credentials.')
+      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please check your credentials.'
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }

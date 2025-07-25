@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { 
-  Home, 
   Search, 
   Heart, 
   MessageSquare, 
@@ -12,7 +11,6 @@ import {
   Settings, 
   LogOut,
   MapPin,
-  Calendar,
   DollarSign,
   Star,
   Filter,
@@ -310,7 +308,7 @@ export default function TenantDashboard() {
               <CardHeader>
                 <CardTitle>Your Favorite Properties</CardTitle>
                 <CardDescription>
-                  Properties you've saved for later viewing
+                  Properties you&apos;ve saved for later viewing
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -331,7 +329,7 @@ export default function TenantDashboard() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground text-center py-8">
-                  No applications submitted yet. Apply to properties you're interested in!
+                  No applications submitted yet. Apply to properties you&apos;re interested in!
                 </p>
               </CardContent>
             </Card>

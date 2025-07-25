@@ -8,7 +8,6 @@ import {
   Users, 
   DollarSign, 
   TrendingUp, 
-  Calendar, 
   Settings, 
   LogOut,
   User,
@@ -144,6 +143,7 @@ export default function LandlordDashboard() {
       toast.success("Logged out successfully")
       router.push('/')
     } catch (error) {
+      console.error('Logout error:', error)
       toast.error("Failed to logout")
     }
   }

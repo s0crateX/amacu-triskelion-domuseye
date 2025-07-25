@@ -90,9 +90,10 @@ export const registerUser = async (userData: RegisterData): Promise<UserData> =>
     await setDoc(doc(db, 'users', user.uid), firestoreUserData);
 
     return firestoreUserData;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Registration error:', error);
-    throw new Error(error.message || 'Registration failed');
+    const errorMessage = error instanceof Error ? error.message : 'Registration failed';
+    throw new Error(errorMessage);
   }
 };
 
@@ -123,9 +124,10 @@ export const loginUser = async (loginData: LoginData): Promise<UserData> => {
     }, { merge: true });
 
     return userData;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Login error:', error);
-    throw new Error(error.message || 'Login failed');
+    const errorMessage = error instanceof Error ? error.message : 'Login failed';
+    throw new Error(errorMessage);
   }
 };
 
@@ -133,9 +135,10 @@ export const loginUser = async (loginData: LoginData): Promise<UserData> => {
 export const logoutUser = async (): Promise<void> => {
   try {
     await signOut(auth);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Logout error:', error);
-    throw new Error(error.message || 'Logout failed');
+    const errorMessage = error instanceof Error ? error.message : 'Logout failed';
+    throw new Error(errorMessage);
   }
 };
 
@@ -149,7 +152,7 @@ export const getCurrentUserData = async (user: User): Promise<UserData | null> =
     }
 
     return userDoc.data() as UserData;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get user data error:', error);
     return null;
   }
@@ -162,8 +165,9 @@ export const updateUserData = async (uid: string, updates: Partial<UserData>): P
       ...updates,
       updatedAt: new Date()
     }, { merge: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Update user data error:', error);
-    throw new Error(error.message || 'Update failed');
+    const errorMessage = error instanceof Error ? error.message : 'Update failed';
+    throw new Error(errorMessage);
   }
 };
