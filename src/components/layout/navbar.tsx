@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Menu, X, Home, Building2, Users, Settings, Phone } from "lucide-react"
+import { Menu, Home, Building2, Users, Settings, Phone } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"

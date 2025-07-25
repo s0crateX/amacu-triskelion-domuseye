@@ -6,16 +6,12 @@ import {
   Shield, 
   Clock, 
   ArrowRight,
-  CheckCircle,
-  Star,
   AirVent,
   Search,
   Wifi,
   Bath,
   Car,
-  MapPin,
-  Home as HomeIcon,
-  Bed
+  MapPin
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -57,15 +53,6 @@ const features = [
     title: "24/7 Support",
     description: "Round-the-clock customer support with dedicated account management."
   }
-]
-
-const benefits = [
-  "Reduce administrative overhead by 60%",
-  "Improve tenant satisfaction scores",
-  "Automate rent collection and late fees",
-  "Track maintenance costs and ROI",
-  "Generate compliance reports instantly",
-  "Scale your property portfolio efficiently"
 ]
 
 const stats = [
@@ -268,7 +255,7 @@ export default function Home() {
               Find Your Dream Property
             </h2>
             <p className="text-xl opacity-90">
-              This option is more benefit-oriented. It directly tells the user what they will achieve by clicking – finding the property they desire. This aligns well with your headline "Ready to Get Your Dream Property?
+              This option is more benefit-oriented. It directly tells the user what they will achieve by clicking &ndash; finding the property they desire. This aligns well with your headline &ldquo;Ready to Get Your Dream Property?&rdquo;
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" variant="secondary" className="text-lg px-8">
