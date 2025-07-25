@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Building2, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -48,7 +49,13 @@ export function Footer() {
             {/* Company info */}
             <div className="lg:col-span-2">
               <Link href="/" className="flex items-center space-x-2 mb-4">
-                <Building2 className="h-8 w-8 text-primary" />
+                <Image 
+                  src="/assets/images/logo.png" 
+                  alt="DomusEye Logo" 
+                  width={32} 
+                  height={32} 
+                  className="h-8 w-8 dark:invert"
+                />
                 <span className="text-xl font-bold text-foreground">DomusEye</span>
               </Link>
               <p className="text-muted-foreground mb-6 max-w-sm">
