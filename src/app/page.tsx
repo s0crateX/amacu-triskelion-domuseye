@@ -104,7 +104,7 @@ export default function Home() {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">
-                      Find Your Perfect Home
+                      Find Your Perfect Property
                     </h3>
                   </div>
                   <div className="max-w-4xl mx-auto">

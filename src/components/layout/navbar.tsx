@@ -19,7 +19,7 @@ const navigation = [
   { name: "Home", href: "/", icon: Home },
   { name: "Properties", href: "/properties", icon: Building2 },
   { name: "Search", href: "/search", icon: Search },
-  { name: "About Us", href: "/about", icon: Info },
+  { name: "About", href: "/about", icon: Info },
   { name: "Contact", href: "/contact", icon: Phone },
 ];
 

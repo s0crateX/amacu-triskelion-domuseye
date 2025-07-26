@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import { SlidersHorizontal, MapPin } from "lucide-react";
 import { PropertyCard } from "@/components/propertycard";
