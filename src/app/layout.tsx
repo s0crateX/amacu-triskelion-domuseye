@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { Toaster } from "sonner";
+import { Navbar } from "@/components/layout/navbar";
 
 const poppins = localFont({
   src: [
@@ -104,7 +105,8 @@ const poppins = localFont({
 
 export const metadata: Metadata = {
   title: "DomusEye - Modern Rental Management System",
-  description: "Streamline your property management with DomusEye's comprehensive rental management platform. Manage properties, tenants, and maintenance efficiently.",
+  description:
+    "Streamline your property management with DomusEye's comprehensive rental management platform. Manage properties, tenants, and maintenance efficiently.",
 };
 
 export default function RootLayout({
@@ -122,6 +124,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
+            <Navbar />
             {children}
             <Toaster />
           </AuthProvider>

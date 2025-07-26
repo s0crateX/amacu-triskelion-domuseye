@@ -1,13 +1,19 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Menu, Home, Building2, Search, Info, Phone } from "lucide-react"
+import * as React from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Menu, Home, Building2, Search, Info, Phone } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navigation = [
   { name: "Home", href: "/", icon: Home },
@@ -15,10 +21,10 @@ const navigation = [
   { name: "Search", href: "/search", icon: Search },
   { name: "About Us", href: "/about", icon: Info },
   { name: "Contact", href: "/contact", icon: Phone },
-]
+];
 
 export function Navbar() {
-  const [isOpen, setIsOpen] = React.useState(false)
+  const [isOpen, setIsOpen] = React.useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -27,14 +33,16 @@ export function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <Image 
-                src="/assets/images/logo.png" 
-                alt="DomusEye Logo" 
-                width={32} 
-                height={32} 
+              <Image
+                src="/assets/images/logo.png"
+                alt="DomusEye Logo"
+                width={32}
+                height={32}
                 className="h-8 w-8 dark:invert"
               />
-              <span className="text-xl font-bold text-foreground">DomusEye</span>
+              <span className="text-xl font-bold text-foreground">
+                DomusEye
+              </span>
             </Link>
           </div>
 
@@ -62,7 +70,7 @@ export function Navbar() {
                 <Link href="/register">Sign Up</Link>
               </Button>
             </div>
-            
+
             {/* Mobile menu button */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild className="md:hidden">
@@ -75,19 +83,21 @@ export function Navbar() {
                 <SheetHeader className="mb-6">
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                   <div className="flex items-center justify-center space-x-2 mb-4">
-                    <Image 
-                      src="/assets/images/logo.png" 
-                      alt="DomusEye Logo" 
-                      width={32} 
-                      height={32} 
+                    <Image
+                      src="/assets/images/logo.png"
+                      alt="DomusEye Logo"
+                      width={32}
+                      height={32}
                       className="h-8 w-8 dark:invert"
                     />
-                    <span className="text-xl font-bold text-foreground">DomusEye</span>
+                    <span className="text-xl font-bold text-foreground">
+                      DomusEye
+                    </span>
                   </div>
                 </SheetHeader>
                 <div className="flex flex-col space-y-4">
                   {navigation.map((item) => {
-                    const Icon = item.icon
+                    const Icon = item.icon;
                     return (
                       <Link
                         key={item.name}
@@ -98,14 +108,18 @@ export function Navbar() {
                         <Icon className="h-5 w-5" />
                         <span>{item.name}</span>
                       </Link>
-                    )
+                    );
                   })}
                   <div className="pt-4 border-t space-y-2">
                     <Button variant="ghost" className="w-full" asChild>
-                      <Link href="/login" onClick={() => setIsOpen(false)}>Login</Link>
+                      <Link href="/login" onClick={() => setIsOpen(false)}>
+                        Login
+                      </Link>
                     </Button>
                     <Button className="w-full" asChild>
-                      <Link href="/register" onClick={() => setIsOpen(false)}>Sign Up</Link>
+                      <Link href="/register" onClick={() => setIsOpen(false)}>
+                        Sign Up
+                      </Link>
                     </Button>
                   </div>
                 </div>
@@ -115,5 +129,5 @@ export function Navbar() {
         </div>
       </div>
     </header>
-  )
+  );
 }
