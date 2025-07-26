@@ -143,7 +143,7 @@ const PropertiesPage = () => {
   return (
     <div className="bg-background min-h-screen">
       {/* --- Hero Section: Search & Advanced Filters --- */}
-      <div className="py-12 px-4 mx-10">
+      <div className="py-12 px-4 mx-4 xl:mx-10">
         <div className="container mx-auto">
           <h1 className="text-3xl font-bold  mb-4">
             Find Your Perfect Property
@@ -169,8 +169,10 @@ const PropertiesPage = () => {
       {/* --- Main Content Section --- */}
       <div className="container mx-auto py-10 px-4">
         {/* Filter Controls */}
-        <div className="flex items-center justify-between mb-8 mx-10">
-          <h2 className="text-2xl font-bold text-gray-800">All Properties</h2>
+        <div className="flex items-center justify-between mb-8 mx-4 xl:mx-10">
+          <h2 className="text-2xl font-bold text-gray-800 hidden xl:block">
+            All Properties
+          </h2>
           <div className="flex items-center space-x-2">
             <span className="text-gray-600">Filter by:</span>
             <div className="flex bg-background rounded-lg shadow-sm overflow-hidden">
@@ -210,7 +212,7 @@ const PropertiesPage = () => {
         </div>
 
         {/* --- Properties Grid --- */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 m-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mx-4 xl:mx-10">
           {filteredProperties.map((property) => (
             <PropertyCard
               key={property.id}

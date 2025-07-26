@@ -43,7 +43,7 @@ export const PropertyCard = ({
         />
         <div className="absolute top-4 left-4 flex flex-col gap-2">
           {isNew && (
-            <div className="bg-[#cdb323] text-white px-2 py-1 text-xs font-bold rounded">
+            <div className="bg-green-600 text-white px-2 py-1 text-xs font-bold rounded">
               NEW
             </div>
           )}

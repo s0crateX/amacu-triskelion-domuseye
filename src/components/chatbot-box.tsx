@@ -187,7 +187,7 @@ export default function FloatingChatbot() {
 
       {/* Floating Chatbox */}
       {showChat && (
-        <div className="fixed bottom-24 right-6 z-50 w-full max-w-md rounded-xl shadow-2xl border bg-card overflow-hidden flex flex-col">
+        <div className="fixed bottom-24 right-6 z-50 w-[88%] xl:w-full xl:max-w-md rounded-xl shadow-2xl border bg-card overflow-hidden flex flex-col">
           <div className="bg-primary p-4 flex justify-between items-center">
             <h1 className="text-primary-foreground text-lg font-semibold">
               AI Helper
