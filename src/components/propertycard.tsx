@@ -6,6 +6,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import Image from "next/image";
 interface PropertyCardProps {
   image: string;
   title: string;
@@ -33,7 +34,13 @@ export const PropertyCard = ({
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative">
-        <img src={image} alt={title} className="w-full h-48 object-cover" />
+        <Image
+          src={image}
+          alt={title}
+          width={400}
+          height={192}
+          className="w-full h-48 object-cover"
+        />
         <div className="absolute top-4 left-4 flex flex-col gap-2">
           {isNew && (
             <div className="bg-[#cdb323] text-white px-2 py-1 text-xs font-bold rounded">

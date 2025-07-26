@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Filter, SlidersHorizontal, MapPin } from "lucide-react";
+import { SlidersHorizontal, MapPin } from "lucide-react";
 import { PropertyCard } from "@/components/propertycard";
 import { Input } from "@/components/ui/input";
-export const PropertiesPage = () => {
+const PropertiesPage = () => {
   const [activeFilter, setActiveFilter] = useState("all");
   const properties = [
     {

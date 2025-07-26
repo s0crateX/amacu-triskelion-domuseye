@@ -1,40 +1,46 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { 
-  Search, 
-  Heart, 
-  MessageSquare, 
-  User, 
-  Bell, 
-  Settings, 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Search,
+  Heart,
+  MessageSquare,
+  User,
+  Bell,
+  Settings,
   LogOut,
   MapPin,
   DollarSign,
   Star,
   Filter,
   Grid,
-  List
-} from "lucide-react"
+  List,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/lib/auth/auth-context"
-import { logoutUser } from "@/lib/auth/auth-utils"
-import { toast } from "sonner"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/auth/auth-context";
+import { logoutUser } from "@/lib/auth/auth-utils";
+import { toast } from "sonner";
 
 // Sample property data
 const sampleProperties = [
@@ -51,7 +57,7 @@ const sampleProperties = [
     rating: 4.8,
     reviews: 24,
     amenities: ["WiFi", "AC", "Parking", "Security"],
-    available: true
+    available: true,
   },
   {
     id: 2,
@@ -66,7 +72,7 @@ const sampleProperties = [
     rating: 4.6,
     reviews: 18,
     amenities: ["WiFi", "AC", "Gym", "Pool"],
-    available: true
+    available: true,
   },
   {
     id: 3,
@@ -81,32 +87,32 @@ const sampleProperties = [
     rating: 4.9,
     reviews: 31,
     amenities: ["WiFi", "Parking", "Garden", "Security"],
-    available: false
-  }
-]
+    available: false,
+  },
+];
 
 export default function TenantDashboard() {
-  const router = useRouter()
-  const { user, userData, loading } = useAuth()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-  const [activeTab, setActiveTab] = useState("browse")
+  const router = useRouter();
+  const { user, userData, loading } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [activeTab, setActiveTab] = useState("browse");
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login')
+      router.push("/login");
     }
-  }, [user, loading, router])
+  }, [user, loading, router]);
 
   const handleLogout = async () => {
     try {
-      await logoutUser()
-      toast.success("Logged out successfully")
-      router.push('/')
-    } catch (error) {
-      toast.error("Failed to logout")
+      await logoutUser();
+      toast.success("Logged out successfully");
+      router.push("/");
+    } catch {
+      toast.error("Failed to logout");
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -116,11 +122,11 @@ export default function TenantDashboard() {
           <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!user || !userData) {
-    return null
+    return null;
   }
 
   return (
@@ -133,18 +139,27 @@ export default function TenantDashboard() {
               <h1 className="text-2xl font-bold text-primary">DomusEye</h1>
               <Badge variant="secondary">Tenant</Badge>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="icon">
                 <Bell className="h-5 w-5" />
               </Button>
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 rounded-full"
+                  >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="/avatars/tenant.png" alt={userData.firstName} />
-                      <AvatarFallback>{userData.firstName[0]}{userData.lastName[0]}</AvatarFallback>
+                      <AvatarImage
+                        src="/avatars/tenant.png"
+                        alt={userData.firstName}
+                      />
+                      <AvatarFallback>
+                        {userData.firstName[0]}
+                        {userData.lastName[0]}
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
@@ -228,7 +243,11 @@ export default function TenantDashboard() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <TabsList>
             <TabsTrigger value="browse">Browse Properties</TabsTrigger>
             <TabsTrigger value="favorites">Favorites</TabsTrigger>
@@ -238,24 +257,41 @@ export default function TenantDashboard() {
 
           <TabsContent value="browse" className="space-y-6">
             {/* Properties Grid */}
-            <div className={`grid gap-6 ${viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}>
+            <div
+              className={`grid gap-6 ${
+                viewMode === "grid"
+                  ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                  : "grid-cols-1"
+              }`}
+            >
               {sampleProperties.map((property) => (
-                <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <Card
+                  key={property.id}
+                  className="overflow-hidden hover:shadow-lg transition-shadow"
+                >
                   <div className="aspect-video bg-muted relative">
                     <div className="absolute top-4 left-4">
-                      <Badge variant={property.available ? "default" : "secondary"}>
+                      <Badge
+                        variant={property.available ? "default" : "secondary"}
+                      >
                         {property.available ? "Available" : "Occupied"}
                       </Badge>
                     </div>
                     <div className="absolute top-4 right-4">
-                      <Button variant="ghost" size="icon" className="bg-background/80">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="bg-background/80"
+                      >
                         <Heart className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                   <CardContent className="p-4">
                     <div className="space-y-2">
-                      <h3 className="font-semibold text-lg">{property.title}</h3>
+                      <h3 className="font-semibold text-lg">
+                        {property.title}
+                      </h3>
                       <div className="flex items-center text-muted-foreground">
                         <MapPin className="h-4 w-4 mr-1" />
                         <span className="text-sm">{property.location}</span>
@@ -263,12 +299,18 @@ export default function TenantDashboard() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <DollarSign className="h-4 w-4 text-primary" />
-                          <span className="font-bold text-lg">{property.price}</span>
-                          <span className="text-muted-foreground">/{property.period}</span>
+                          <span className="font-bold text-lg">
+                            {property.price}
+                          </span>
+                          <span className="text-muted-foreground">
+                            /{property.period}
+                          </span>
                         </div>
                         <div className="flex items-center">
                           <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <span className="text-sm ml-1">{property.rating} ({property.reviews})</span>
+                          <span className="text-sm ml-1">
+                            {property.rating} ({property.reviews})
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center space-x-4 text-sm text-muted-foreground">
@@ -278,7 +320,11 @@ export default function TenantDashboard() {
                       </div>
                       <div className="flex flex-wrap gap-1">
                         {property.amenities.slice(0, 3).map((amenity) => (
-                          <Badge key={amenity} variant="outline" className="text-xs">
+                          <Badge
+                            key={amenity}
+                            variant="outline"
+                            className="text-xs"
+                          >
                             {amenity}
                           </Badge>
                         ))}
@@ -289,8 +335,13 @@ export default function TenantDashboard() {
                         )}
                       </div>
                       <div className="flex gap-2 pt-2">
-                        <Button className="flex-1" disabled={!property.available}>
-                          {property.available ? "View Details" : "Not Available"}
+                        <Button
+                          className="flex-1"
+                          disabled={!property.available}
+                        >
+                          {property.available
+                            ? "View Details"
+                            : "Not Available"}
                         </Button>
                         <Button variant="outline" size="icon">
                           <MessageSquare className="h-4 w-4" />
@@ -313,7 +364,8 @@ export default function TenantDashboard() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground text-center py-8">
-                  No favorite properties yet. Start browsing and save properties you like!
+                  No favorite properties yet. Start browsing and save properties
+                  you like!
                 </p>
               </CardContent>
             </Card>
@@ -329,7 +381,8 @@ export default function TenantDashboard() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground text-center py-8">
-                  No applications submitted yet. Apply to properties you&apos;re interested in!
+                  No applications submitted yet. Apply to properties you&apos;re
+                  interested in!
                 </p>
               </CardContent>
             </Card>
@@ -353,5 +406,5 @@ export default function TenantDashboard() {
         </Tabs>
       </main>
     </div>
-  )
+  );
 }

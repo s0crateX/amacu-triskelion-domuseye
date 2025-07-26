@@ -26,7 +26,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 
 const features = [
@@ -66,14 +65,6 @@ const features = [
     description:
       "Round-the-clock customer support with dedicated account management.",
   },
-];
-
-// Statistics for the Hero Section NOTE: These are just example stats, NOT USED FOR NOW
-const stats = [
-  { value: "10,000+", label: "Properties Managed" },
-  { value: "50,000+", label: "Happy Tenants" },
-  { value: "99.9%", label: "Uptime Guarantee" },
-  { value: "24/7", label: "Customer Support" },
 ];
 
 export default function Home() {

@@ -196,8 +196,8 @@ export const MobileNavMenu = ({
   children,
   className,
   isOpen,
-  onClose,
-}: MobileNavMenuProps) => {
+}: //onClose, is removed
+MobileNavMenuProps) => {
   return (
     <AnimatePresence>
       {isOpen && (
