@@ -60,7 +60,7 @@ export const PropertyCard = ({
       </div>
       <CardHeader className="p-4 pb-0">
         <div className="flex justify-between items-start">
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
           <p className="text-[#1e40af] font-bold">{price}</p>
         </div>
         <div className="flex items-center text-gray-600 mt-1">
@@ -83,7 +83,7 @@ export const PropertyCard = ({
             <span>{sqft} sqft</span>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 mb-3">
+        <div className="flex flex-wrap gap-2 mb-1">
           {features.map((feature, index) => (
             <span
               key={index}

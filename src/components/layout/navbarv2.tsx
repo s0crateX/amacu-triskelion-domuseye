@@ -17,11 +17,11 @@ export function Navbarv2() {
   const navItems = [
     {
       name: "Home",
-      link: "#features",
+      link: "/",
     },
     {
       name: "Properties",
-      link: "#properties",
+      link: "/properties",
     },
     {
       name: "Search",
@@ -29,11 +29,11 @@ export function Navbarv2() {
     },
     {
       name: "About Us",
-      link: "#about",
+      link: "/about",
     },
     {
       name: "Contact",
-      link: "#Contact",
+      link: "#contact",
     },
   ];
 
@@ -50,10 +50,10 @@ export function Navbarv2() {
             <NavbarButton className="p-0">
               <ThemeToggle />
             </NavbarButton>
-            <NavbarButton variant="primary" href="">
+            <NavbarButton variant="primary" href="/login">
               Login
             </NavbarButton>
-            <NavbarButton variant="primary" href="">
+            <NavbarButton variant="primary" href="/register">
               SignUp
             </NavbarButton>
           </div>
@@ -63,10 +63,15 @@ export function Navbarv2() {
         <MobileNav>
           <MobileNavHeader>
             <NavbarLogo />
-            <MobileNavToggle
-              isOpen={isMobileMenuOpen}
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            />
+            <div className="flex items-center gap-4">
+              <NavbarButton className="p-0">
+                <ThemeToggle />
+              </NavbarButton>
+              <MobileNavToggle
+                isOpen={isMobileMenuOpen}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              />
+            </div>
           </MobileNavHeader>
 
           <MobileNavMenu
@@ -78,11 +83,12 @@ export function Navbarv2() {
                 key={`mobile-link-${idx}`}
                 href={item.link}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="relative text-neutral-600 dark:text-neutral-300"
+                className="relative"
               >
                 <span className="block">{item.name}</span>
               </a>
             ))}
+
             <div className="flex w-full flex-col gap-4">
               <NavbarButton
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -96,7 +102,7 @@ export function Navbarv2() {
                 variant="primary"
                 className="w-full"
               >
-                Book a call
+                SignUp
               </NavbarButton>
             </div>
           </MobileNavMenu>

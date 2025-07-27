@@ -3,6 +3,29 @@ import React, { useState } from "react";
 import { SlidersHorizontal, MapPin } from "lucide-react";
 import { PropertyCard } from "@/components/propertycard";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
+const propertyTypes = [
+  { label: "All Properties", value: "all" },
+  { label: "Apartment", value: "apartment" },
+  { label: "House", value: "house" },
+  { label: "Condominium", value: "condo" },
+  { label: "Studio", value: "studio" },
+  { label: "Villa", value: "villa" },
+  { label: "Office Space", value: "office" },
+  { label: "Retail Space", value: "retail" },
+  { label: "Warehouse", value: "warehouse" },
+  { label: "Lot / Land", value: "lot" },
+  { label: "Farm", value: "farm" },
+  { label: "Dormitory", value: "dorm" },
+];
+
 const PropertiesPage = () => {
   const [activeFilter, setActiveFilter] = useState("all");
   const properties = [
@@ -144,7 +167,7 @@ const PropertiesPage = () => {
       {/* --- Hero Section: Search & Advanced Filters --- */}
       <div className="py-12 px-4 mx-4 xl:mx-10">
         <div className="container mx-auto">
-          <h1 className="text-3xl font-bold  mb-4">
+          <h1 className="text-3xl font-bold mb-10 mt-20">
             Find Your Perfect Property
           </h1>
           <div className="flex flex-col md:flex-row gap-4">
@@ -169,44 +192,23 @@ const PropertiesPage = () => {
       <div className="container mx-auto py-10 px-4">
         {/* Filter Controls */}
         <div className="flex items-center justify-between mb-8 mx-4 xl:mx-10">
-          <h2 className="text-2xl font-bold text-gray-800 hidden xl:block">
+          <h2 className="text-2xl font-bold text-foreground hidden xl:block">
             All Properties
           </h2>
           <div className="flex items-center space-x-2">
             <span className="text-gray-600">Filter by:</span>
-            <div className="flex bg-background rounded-lg shadow-sm overflow-hidden">
-              {/* Filter Buttons */}
-              <button
-                className={`px-4 py-2 ${
-                  activeFilter === "all"
-                    ? "bg-[#1e40af] text-white"
-                    : "bg-white text-gray-700"
-                }`}
-                onClick={() => setActiveFilter("all")}
-              >
-                All
-              </button>
-              <button
-                className={`px-4 py-2 ${
-                  activeFilter === "apartment"
-                    ? "bg-[#1e40af] text-white"
-                    : "bg-white text-gray-700"
-                }`}
-                onClick={() => setActiveFilter("apartment")}
-              >
-                Apartments
-              </button>
-              <button
-                className={`px-4 py-2 ${
-                  activeFilter === "house"
-                    ? "bg-[#1e40af] text-white"
-                    : "bg-white text-gray-700"
-                }`}
-                onClick={() => setActiveFilter("house")}
-              >
-                Houses
-              </button>
-            </div>
+            <Select value={activeFilter} onValueChange={setActiveFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                {propertyTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

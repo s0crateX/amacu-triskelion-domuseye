@@ -72,26 +72,26 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
+            <div className="space-y-8 mx-4">
               <div className="space-y-4">
                 <Badge variant="secondary" className="w-fit">
                   Modern Property Management
                 </Badge>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
                   Streamline Your{" "}
                   <span className="text-primary">Rental Business</span>
                 </h1>
-                <p className="text-xl text-muted-foreground max-w-2xl">
+                <p className="text-[14px] xl:text-xl text-muted-foreground max-w-2xl">
                   DomusEye provides comprehensive property management solutions
                   that help you manage properties, tenants, and maintenance
                   operations efficiently.
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="text-lg px-8">
+              <div className="flex flex-col sm:flex-row gap-4 w-[50%] xl:mx-auto justify-center items-center">
+                <Button size="lg" className="text-lg xl:px-8">
                   Get Started
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -268,7 +268,7 @@ export default function Home() {
               <Button
                 size="lg"
                 variant="outline"
-                className="text-lg px-8 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                className="text-lg px-8 border-primary dark:text-background text-foreground"
                 asChild
               >
                 <Link href="/properties">Browse More</Link>

@@ -56,7 +56,7 @@ const AboutPage = () => {
     <div className="bg-white">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1e40af]/90 to-[#1e40af]/70 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-800/90 to-slate-800/70 z-10"></div>
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
@@ -64,18 +64,18 @@ const AboutPage = () => {
               "url('https://mallettegoring.com/wp-content/uploads/2020/05/home_banner_buidlings.svg')",
           }}
         ></div>
-        <div className="container px-4 py-24 relative z-20 xl:mx-10 mx-5">
+        <div className="container px-4 py-24 relative z-20 xl:mx-10">
           <div className="max-w-2xl">
-            <h1 className="text-5xl font-bold text-white mb-6">
+            <h1 className="text-3xl xl:text-5xl font-bold text-white mb-6 text-center xl:text-start">
               DomusEye — Smart Property Management
             </h1>
-            <p className="text-xl text-white/90 mb-8">
+            <p className="text-xl text-white/90 mb-8 text-center xl:text-start">
               DomusEye is a modern property management website designed to
               assist with real estate operations. It streamlines the management
               of properties, tenants, and maintenance tasks efficiently.
             </p>
-            <button className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-md font-medium inline-flex items-center">
-              Contact Us <ArrowRight size={18} className="ml-2" />
+            <button className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-md font-medium hidden xl:block">
+              <Link href={"/contact"}>Contact Us</Link>
             </button>
           </div>
         </div>
@@ -235,7 +235,7 @@ const AboutPage = () => {
         </div>
       </section>
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-[#1e40af]">
+      <section className="py-20 px-4 bg-slate-800/90">
         <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold text-white mb-6">

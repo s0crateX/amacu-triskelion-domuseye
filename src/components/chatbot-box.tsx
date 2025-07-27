@@ -178,7 +178,7 @@ export default function FloatingChatbot() {
     <>
       {/* Floating Chat Button */}
       <button
-        className="fixed bottom-6 right-6 z-50 bg-slate-400 text-white rounded-full p-4 shadow-2xl hover:bg-primary/90 transition flex items-center gap-2"
+        className="fixed bottom-15 right-6 z-50 bg-foreground text-background rounded-full p-4 shadow-2xl hover:bg-primary/90 transition flex items-center gap-2"
         onClick={() => setShowChat(true)}
         aria-label="Open chat"
       >
