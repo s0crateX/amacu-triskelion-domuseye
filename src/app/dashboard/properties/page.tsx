@@ -47,7 +47,8 @@ type Property = {
 
 const PropertiesPage = () => {
   const [properties, setProperties] = useState<Property[]>([]);
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
 
   //Fetch properties from Firebase
@@ -55,11 +56,24 @@ const PropertiesPage = () => {
     const unsubscribe = onSnapshot(
       collection(db, "properties"),
       (querySnapshot) => {
-        const propertyList: Property[] = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Property[];
-        setProperties(propertyList);
+        try {
+          const propertyList: Property[] = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as Property[];
+          setProperties(propertyList);
+          setLoading(false);
+          setError("");
+        } catch (err) {
+          console.error("Error fetching properties:", err);
+          setError("Failed to load properties.");
+          setLoading(false);
+        }
+      },
+      (error) => {
+        console.error("Error listening to properties:", error);
+        setError("Failed to load properties.");
+        setLoading(false);
       }
     );
 
@@ -73,10 +87,99 @@ const PropertiesPage = () => {
       ? properties
       : properties.filter((property) => property.type === activeFilter);
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          {/* Animated Loading Spinner */}
+          <div className="relative mb-8">
+            <div className="w-16 h-16 border-4 border-gray-200 border-t-[#cdb323] rounded-full animate-spin mx-auto"></div>
+            <div
+              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-[#1e40af] rounded-full animate-spin mx-auto"
+              style={{
+                animationDirection: "reverse",
+                animationDuration: "1.5s",
+              }}
+            ></div>
+          </div>
+
+          {/* Loading Text */}
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+              Loading Properties
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Please wait while we fetch the latest listings...
+            </p>
+          </div>
+
+          {/* Animated Dots */}
+          <div className="flex justify-center space-x-1 mt-4">
+            <div
+              className="w-2 h-2 bg-[#cdb323] rounded-full animate-bounce"
+              style={{ animationDelay: "0ms" }}
+            ></div>
+            <div
+              className="w-2 h-2 bg-[#cdb323] rounded-full animate-bounce"
+              style={{ animationDelay: "150ms" }}
+            ></div>
+            <div
+              className="w-2 h-2 bg-[#cdb323] rounded-full animate-bounce"
+              style={{ animationDelay: "300ms" }}
+            ></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          {/* Error Icon */}
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg
+              className="w-8 h-8 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+          </div>
+
+          {/* Error Message */}
+          <div className="space-y-3">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+              Unable to Load Properties
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">{error}</p>
+
+            {/* Retry Button */}
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-6 px-6 py-3 bg-[#cdb323] text-white rounded-lg hover:bg-[#b8a01f] transition-colors duration-200 font-medium"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background min-h-screen lg:mx-8 xl:mx-30">
       {/* --- Hero Section: Search & Advanced Filters --- */}
-      <div className="py-12 px-4 mx-4 xl:mx-10">
+      <div className="py-6 px-4">
         <div className="container mx-auto">
           <h1 className="text-3xl font-bold mb-10 mt-20">
             Find Your Perfect Property
@@ -124,7 +227,7 @@ const PropertiesPage = () => {
         </div>
 
         {/* --- Properties Grid --- */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mx-4 xl:mx-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {filteredProperties.map((property) => (
             <PropertyCard
               key={property.id}

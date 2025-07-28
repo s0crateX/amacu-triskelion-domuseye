@@ -84,7 +84,7 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 w-[50%] xl:mx-auto justify-center items-center">
+              <div className="flex flex-col sm:flex-row gap-4 xl:mx-auto justify-start items-center">
                 <Button size="lg" className="text-lg xl:px-8">
                   Get Started
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -98,7 +98,7 @@ export default function Home() {
                 <div className="space-y-8">
                   {/* Enhanced Title Section */}
                   <div className="text-center space-y-3">
-                    <div className="inline-flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full border border-primary/30">
+                    <div className="inline-flex items-center gap-3 px-4 py-1 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full border border-primary/30">
                       <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                       <span className="text-sm font-medium text-primary">
                         AI Powered

@@ -218,15 +218,91 @@ const PropertyDetailPage = () => {
   // Early returns for loading and error states
   if (loading) {
     return (
-      <p className="text-center mt-10 text-sm text-gray-500">Loading...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          {/* Animated Loading Spinner */}
+          <div className="relative mb-8">
+            <div className="w-16 h-16 border-4 border-gray-200 border-t-[#cdb323] rounded-full animate-spin mx-auto"></div>
+            <div
+              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-[#1e40af] rounded-full animate-spin mx-auto"
+              style={{
+                animationDirection: "reverse",
+                animationDuration: "1.5s",
+              }}
+            ></div>
+          </div>
+
+          {/* Loading Text */}
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+              Loading Property Details
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Please wait while we fetch the information...
+            </p>
+          </div>
+
+          {/* Animated Dots */}
+          <div className="flex justify-center space-x-1 mt-4">
+            <div
+              className="w-2 h-2 bg-[#cdb323] rounded-full animate-bounce"
+              style={{ animationDelay: "0ms" }}
+            ></div>
+            <div
+              className="w-2 h-2 bg-[#cdb323] rounded-full animate-bounce"
+              style={{ animationDelay: "150ms" }}
+            ></div>
+            <div
+              className="w-2 h-2 bg-[#cdb323] rounded-full animate-bounce"
+              style={{ animationDelay: "300ms" }}
+            ></div>
+          </div>
+        </div>
+      </div>
     );
   }
 
   if (error || !property) {
     return (
-      <p className="text-center mt-10 text-sm text-red-500">
-        {error || "No property found."}
-      </p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          {/* Error Icon */}
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg
+              className="w-8 h-8 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+          </div>
+
+          {/* Error Message */}
+          <div className="space-y-3">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+              Property Not Found
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              {error ||
+                "The property you're looking for doesn't exist or has been removed."}
+            </p>
+
+            {/* Back Button */}
+            <button
+              onClick={() => router.push("/dashboard/properties")}
+              className="mt-6 px-6 py-3 bg-[#cdb323] text-white rounded-lg hover:bg-[#b8a01f] transition-colors duration-200 font-medium"
+            >
+              Back to Properties
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -237,12 +313,12 @@ const PropertyDetailPage = () => {
   }
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background min-h-screen lg:mx-8 xl:mx-30">
       {/* Back button */}
       <div className="bg-background/30 shadow-sm">
-        <div className="container mx-10 px-4 py-4">
+        <div className="container px-4 py-4">
           <button
-            onClick={() => router.push("/properties")}
+            onClick={() => router.push("/dashboard/properties")}
             className="flex items-center text-foreground hover:text-[#cdb323] transition-colors"
           >
             <ArrowLeft size={18} className="mr-2" />
@@ -309,7 +385,7 @@ const PropertyDetailPage = () => {
         </div>
       </div>
       {/* Property Info */}
-      <div className="container mx-auto py-8 px-4">
+      <div className="container py-8 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Main Property Info */}
           <div className="lg:col-span-2">
