@@ -108,7 +108,7 @@ export default function Home() {
                       Your New Companion
                     </h2>
                     <h3 className="text-xl md:text-2xl font-semibold text-muted-foreground">
-                      AI Robot Eyebot
+                      Eyebot AI
                     </h3>
                     <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
                       Meet your intelligent assistant, ready to help you

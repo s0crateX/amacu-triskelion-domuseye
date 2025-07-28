@@ -11,6 +11,15 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
 
@@ -50,6 +59,8 @@ const PropertiesPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   //Fetch properties from Firebase
   useEffect(() => {
@@ -86,6 +97,17 @@ const PropertiesPage = () => {
     activeFilter === "all"
       ? properties
       : properties.filter((property) => property.type === activeFilter);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProperties = filteredProperties.slice(startIndex, endIndex);
+
+  // Reset to first page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter]);
 
   // Loading state
   if (loading) {
@@ -228,7 +250,7 @@ const PropertiesPage = () => {
 
         {/* --- Properties Grid --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          {filteredProperties.map((property) => (
+          {currentProperties.map((property) => (
             <PropertyCard
               key={property.id}
               id={property.uid}
@@ -254,11 +276,81 @@ const PropertiesPage = () => {
           </div>
         )}
 
-        <div className="mt-12 flex justify-center">
-          <button className="px-6 py-2 border-2 border-[#1e40af] text-[#1e40af] rounded-md font-medium hover:bg-[#1e40af] hover:text-white transition-colors">
-            Load More
-          </button>
-        </div>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-12 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 1) setCurrentPage(currentPage - 1);
+                    }}
+                    className={
+                      currentPage === 1
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => {
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setCurrentPage(page);
+                            }}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    } else if (
+                      page === currentPage - 2 ||
+                      page === currentPage + 2
+                    ) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+                    return null;
+                  }
+                )}
+
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < totalPages)
+                        setCurrentPage(currentPage + 1);
+                    }}
+                    className={
+                      currentPage === totalPages
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </div>
     </div>
   );
