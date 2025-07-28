@@ -127,9 +127,6 @@ function AiInput({
 }
 
 export default function FloatingChatbot() {
-  const [responseTimes, setResponseTimes] = useState<Record<string, number>>(
-    {}
-  );
   const startTimeRef = useRef<number>(0);
   const [showChat, setShowChat] = useState(false);
 
@@ -143,14 +140,6 @@ export default function FloatingChatbot() {
   } = useChat({
     initialMessages: [],
     api: "/api/chat",
-    onFinish: (message) => {
-      const endTime = Date.now();
-      const duration = (endTime - startTimeRef.current) / 1000;
-      setResponseTimes((prev) => ({
-        ...prev,
-        [message.id]: duration,
-      }));
-    },
   });
 
   const isLoading = status === "submitted" || status === "streaming";
@@ -158,7 +147,7 @@ export default function FloatingChatbot() {
   const handleSubmit = useCallback(
     (e?: React.FormEvent) => {
       if (!input.trim()) return;
-      startTimeRef.current = Date.now();
+      startTimeRef.current = performance.now();
       originalHandleSubmit(e);
     },
     [originalHandleSubmit, input]

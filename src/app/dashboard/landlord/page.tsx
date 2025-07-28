@@ -8,10 +8,6 @@ import {
   Users, 
   DollarSign, 
   TrendingUp, 
-  Settings, 
-  LogOut,
-  User,
-  Bell,
   Eye,
   Edit,
   Trash2,
@@ -22,20 +18,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu"
 import { Progress } from "@/components/ui/progress"
 import { useAuth } from "@/lib/auth/auth-context"
-import { logoutUser } from "@/lib/auth/auth-utils"
-import { toast } from "sonner"
 
 // Sample data
 const dashboardStats = [
@@ -137,17 +122,6 @@ export default function LandlordDashboard() {
     }
   }, [user, loading, router])
 
-  const handleLogout = async () => {
-    try {
-      await logoutUser()
-      toast.success("Logged out successfully")
-      router.push('/')
-    } catch (error) {
-      console.error('Logout error:', error)
-      toast.error("Failed to logout")
-    }
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -165,61 +139,6 @@ export default function LandlordDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-primary">DomusEye</h1>
-              <Badge variant="secondary">Landlord</Badge>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5" />
-              </Button>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="/avatars/landlord.png" alt={userData.firstName} />
-                      <AvatarFallback>{userData.firstName[0]}{userData.lastName[0]}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {userData.firstName} {userData.lastName}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {userData.email}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section */}

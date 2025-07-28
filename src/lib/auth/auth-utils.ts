@@ -3,7 +3,8 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   User,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -15,6 +16,11 @@ export interface UserData {
   lastName: string;
   phone: string;
   userType: 'tenant' | 'landlord';
+  profilePicture?: string;
+  // Location data
+  latitude?: number;
+  longitude?: number;
+  location_address?: string;
   // Tenant specific
   currentAddress?: string;
   employmentStatus?: string;
@@ -168,6 +174,36 @@ export const updateUserData = async (uid: string, updates: Partial<UserData>): P
   } catch (error: unknown) {
     console.error('Update user data error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Update failed';
+    throw new Error(errorMessage);
+  }
+};
+
+// Send password reset email
+export const sendPasswordReset = async (email: string): Promise<void> => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (error: unknown) {
+    console.error('Password reset error:', error);
+    
+    // Handle specific Firebase auth error codes
+    if (error && typeof error === 'object' && 'code' in error) {
+      const firebaseError = error as { code: string; message: string };
+      
+      switch (firebaseError.code) {
+        case 'auth/user-not-found':
+          throw new Error('No account found with this email address');
+        case 'auth/invalid-email':
+          throw new Error('Please enter a valid email address');
+        case 'auth/too-many-requests':
+          throw new Error('Too many requests. Please try again later');
+        case 'auth/network-request-failed':
+          throw new Error('Network error. Please check your connection and try again');
+        default:
+          throw new Error('Failed to send password reset email. Please try again');
+      }
+    }
+    
+    const errorMessage = error instanceof Error ? error.message : 'Failed to send password reset email';
     throw new Error(errorMessage);
   }
 };

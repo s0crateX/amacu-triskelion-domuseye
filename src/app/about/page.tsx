@@ -1,7 +1,6 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef } from "react";
 import {
-  ArrowRight,
   Home,
   Shield,
   Clock,
@@ -13,42 +12,6 @@ import {
 import { motion, useInView } from "motion/react";
 import Link from "next/link";
 const AboutPage = () => {
-  const [animatedStats, setAnimatedStats] = useState({
-    years: 0,
-    properties: 0,
-    clients: 0,
-    cities: 0,
-  });
-  // Animate stats when in view
-  useEffect(() => {
-    const targetStats = {
-      years: 15,
-      properties: 10000,
-      clients: 8500,
-      cities: 50,
-    };
-    const duration = 2000; // 2 seconds
-    const frameRate = 50; // updates per second
-    const totalFrames = duration / (1000 / frameRate);
-    let frame = 0;
-    const timer = setInterval(() => {
-      frame++;
-      const progress = frame / totalFrames;
-      if (frame <= totalFrames) {
-        setAnimatedStats({
-          years: Math.floor(progress * targetStats.years),
-          properties: Math.floor(progress * targetStats.properties),
-          clients: Math.floor(progress * targetStats.clients),
-          cities: Math.floor(progress * targetStats.cities),
-        });
-      } else {
-        clearInterval(timer);
-        setAnimatedStats(targetStats);
-      }
-    }, 1000 / frameRate);
-    return () => clearInterval(timer);
-  }, []);
-
   const aboutRef = useRef(null);
   const aboutInView = useInView(aboutRef, { once: true, amount: 0.3 });
 

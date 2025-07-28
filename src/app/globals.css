@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "leaflet/dist/leaflet.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -117,5 +118,22 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Hide scrollbar for webkit browsers (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide scrollbar for all elements */
+  * {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  /* Ensure scrolling still works */
+  html, body {
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }

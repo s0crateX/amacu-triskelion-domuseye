@@ -10,6 +10,7 @@ interface AuthContextType {
   userData: UserData | null;
   loading: boolean;
   isAuthenticated: boolean;
+  refreshUserData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
   userData: null,
   loading: true,
   isAuthenticated: false,
+  refreshUserData: async () => {},
 });
 
 export const useAuth = () => {
@@ -35,6 +37,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const refreshUserData = async () => {
+    if (user) {
+      const data = await getCurrentUserData(user);
+      setUserData(data);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -59,6 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     userData,
     loading,
     isAuthenticated: !!user,
+    refreshUserData,
   };
 
   return (

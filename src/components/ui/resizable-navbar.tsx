@@ -69,16 +69,18 @@ export const Navbar = ({ children, className }: NavbarProps) => {
   return (
     <motion.div
       ref={ref}
-      className={cn("fixed z-40 w-full bg-background px-8", className)}
+      className={cn("fixed z-40 w-full bg-background", className)}
     >
-      {React.Children.map(children, (child) =>
-        React.isValidElement(child)
-          ? React.cloneElement(
-              child as React.ReactElement<{ visible?: boolean }>,
-              { visible }
-            )
-          : child
-      )}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {React.Children.map(children, (child) =>
+          React.isValidElement(child)
+            ? React.cloneElement(
+                child as React.ReactElement<{ visible?: boolean }>,
+                { visible }
+              )
+            : child
+        )}
+      </div>
     </motion.div>
   );
 };
@@ -104,7 +106,7 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
         maxWidth: "100%", // Ensure it doesn't overflow
       }}
       className={cn(
-        "relative z-[60] mx-auto hidden w-full max-w-7xl flex-row items-center justify-between self-start rounded-full bg-transparent px-4 py-2 lg:flex dark:bg-transparent",
+        "relative z-[60] hidden w-full flex-row items-center justify-between self-start rounded-full bg-transparent px-4 py-2 lg:flex dark:bg-transparent",
         visible &&
           "border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
         className
@@ -167,7 +169,7 @@ export const MobileNav = ({ children, className, visible }: MobileNavProps) => {
         duration: 0.4,
       }}
       className={cn(
-        "relative z-50 mx-auto flex w-full max-w-[calc(100vw-2rem)] flex-col items-center justify-between bg-transparent px-0 py-2 lg:hidden",
+        "relative z-50 flex w-full flex-col items-center justify-between bg-transparent px-0 py-2 lg:hidden",
         visible && "bg-white/80 dark:bg-slate-950/80",
         className
       )}

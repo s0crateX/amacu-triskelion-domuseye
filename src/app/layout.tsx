@@ -7,7 +7,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { Toaster } from "sonner";
 import { Navbar } from "@/components/layout/navbar";
-import { Navbarv2 } from "@/components/layout/navbarv2";
 
 const poppins = localFont({
   src: [
@@ -127,7 +126,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <Navbarv2 />
+            <Navbar />
             {children}
             <Toaster />
           </AuthProvider>
