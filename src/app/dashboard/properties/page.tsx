@@ -128,7 +128,7 @@ const PropertiesPage = () => {
           {filteredProperties.map((property) => (
             <PropertyCard
               key={property.id}
-              id={property.id}
+              id={property.uid}
               image={property.image}
               title={property.title}
               price={property.price}

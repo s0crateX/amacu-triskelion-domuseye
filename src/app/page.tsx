@@ -6,12 +6,6 @@ import {
   Shield,
   Clock,
   ArrowRight,
-  AirVent,
-  Search,
-  Wifi,
-  Bath,
-  Car,
-  MapPin,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -24,8 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+import Image from "next/image";
 import { Footer } from "@/components/layout/footer";
 
 const features = [
@@ -71,7 +64,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative py-20 lg:py-32 overflow-hidden">
+      <section className="relative py-5 lg:py-8 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8 mx-4">
@@ -83,10 +76,11 @@ export default function Home() {
                   Streamline Your{" "}
                   <span className="text-primary">Rental Business</span>
                 </h1>
-                <p className="text-[14px] xl:text-xl text-muted-foreground max-w-2xl">
-                  DomusEye provides comprehensive property management solutions
-                  that help you manage properties, tenants, and maintenance
-                  operations efficiently.
+                <p className="text-[14px] xl:text-[16px] text-muted-foreground max-w-2xl">
+                  DomusEye provides comprehensive rental property management
+                  solutions that helps you manage properties, tenants, and
+                  maintenance operations efficiently, while providing future
+                  tenants many choices and good agent support.
                 </p>
               </div>
 
@@ -100,96 +94,103 @@ export default function Home() {
 
             {/* Search BarBox Section */}
             <div className="relative">
-              <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl p-8 backdrop-blur-sm border border-border/50">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">
-                      Find Your Perfect Property
+              <div className="bg-gradient-to-br from-primary/20 via-secondary/15 to-primary/10 rounded-3xl p-10 backdrop-blur-lg border border-border/30 shadow-2xl">
+                <div className="space-y-8">
+                  {/* Enhanced Title Section */}
+                  <div className="text-center space-y-3">
+                    <div className="inline-flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full border border-primary/30">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium text-primary">
+                        AI Powered
+                      </span>
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary via-slate-700 to-primary bg-clip-text text-transparent">
+                      Your New Companion
+                    </h2>
+                    <h3 className="text-xl md:text-2xl font-semibold text-muted-foreground">
+                      AI Robot Eyebot
                     </h3>
+                    <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+                      Meet your intelligent assistant, ready to help you
+                      navigate and explore with advanced AI capabilities.
+                    </p>
                   </div>
-                  <div className="max-w-4xl mx-auto">
-                    <Card className="bg-card/95 backdrop-blur-sm border border-border/50 shadow-2xl">
-                      <CardContent className="p-6 sm:p-8">
-                        {/* Search Input */}
-                        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                          <div className="relative flex-1">
-                            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                            <Input
-                              placeholder="Search by location, property type, or keywords..."
-                              className="pl-10 h-12 text-base border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
-                            />
-                          </div>
-                          <Button
-                            size="lg"
-                            className="h-12 px-8 text-lg font-semibold"
-                          >
-                            <Search className="mr-2 h-5 w-5" />
-                            Search
-                          </Button>
-                        </div>
 
-                        {/* Quick Filters */}
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                          <span className="font-medium">Filters:</span>
+                  {/* Enhanced Image Section */}
+                  <div className="flex justify-center">
+                    <div className="group relative w-fit">
+                      {/* Outer glow effect */}
+                      <div className="absolute -inset-3 bg-gradient-to-r from-primary/40 via-secondary/30 to-primary/40 rounded-full opacity-60 blur-xl transition-all duration-700 group-hover:opacity-100 group-hover:blur-2xl"></div>
 
-                          <div className="flex items-center space-x-2">
-                            <Checkbox id="ac" className="h-4 w-4" />
-                            <label
-                              htmlFor="ac"
-                              className="cursor-pointer flex items-center"
-                            >
-                              <AirVent className="h-4 w-4 mr-1" />
-                              Air Conditioning
-                            </label>
-                          </div>
+                      {/* Inner glow effect */}
+                      <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-secondary/50 rounded-full opacity-50 blur-lg transition-all duration-500 group-hover:opacity-80"></div>
 
-                          <div className="flex items-center space-x-2">
-                            <Checkbox id="wifi" className="h-4 w-4" />
-                            <label
-                              htmlFor="wifi"
-                              className="cursor-pointer flex items-center"
-                            >
-                              <Wifi className="h-4 w-4 mr-1" />
-                              WiFi
-                            </label>
-                          </div>
+                      {/* Image container with enhanced styling */}
+                      <div className="relative bg-gradient-to-br from-background/80 to-background/40 rounded-full p-2 backdrop-blur-sm border border-primary/20">
+                        <Image
+                          src="/assets/images/Eyebot.png"
+                          alt="AI Robot Eyebot - Your Intelligent Companion"
+                          width={200}
+                          height={200}
+                          className="relative transition-all duration-700 hover:scale-110 active:scale-95 drop-shadow-2xl mx-auto"
+                        />
+                      </div>
 
-                          <div className="flex items-center space-x-2">
-                            <Checkbox id="baths" className="h-4 w-4" />
-                            <label
-                              htmlFor="baths"
-                              className="cursor-pointer flex items-center"
-                            >
-                              <Bath className="h-4 w-4 mr-1" />
-                              2+ Baths
-                            </label>
-                          </div>
+                      {/* Enhanced floating particles effect */}
+                      <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-primary rounded-full animate-ping opacity-60"></div>
+                      <div
+                        className="absolute top-3/4 right-1/4 w-1 h-1 bg-secondary rounded-full animate-ping opacity-40"
+                        style={{ animationDelay: "1s" }}
+                      ></div>
+                      <div
+                        className="absolute bottom-1/4 left-1/3 w-1 h-1 bg-primary rounded-full animate-ping opacity-50"
+                        style={{ animationDelay: "2s" }}
+                      ></div>
+                      <div
+                        className="absolute top-1/3 right-1/3 w-0.5 h-0.5 bg-blue-400 rounded-full animate-ping opacity-45"
+                        style={{ animationDelay: "0.5s" }}
+                      ></div>
+                      <div
+                        className="absolute bottom-1/3 left-1/4 w-0.5 h-0.5 bg-purple-400 rounded-full animate-ping opacity-35"
+                        style={{ animationDelay: "1.5s" }}
+                      ></div>
+                      <div
+                        className="absolute top-2/3 left-2/3 w-1 h-1 bg-green-400 rounded-full animate-ping opacity-40"
+                        style={{ animationDelay: "2.5s" }}
+                      ></div>
+                      <div
+                        className="absolute top-1/6 right-1/6 w-0.5 h-0.5 bg-yellow-400 rounded-full animate-ping opacity-30"
+                        style={{ animationDelay: "3s" }}
+                      ></div>
+                      <div
+                        className="absolute bottom-1/6 right-2/3 w-1 h-1 bg-pink-400 rounded-full animate-ping opacity-45"
+                        style={{ animationDelay: "3.5s" }}
+                      ></div>
+                      <div
+                        className="absolute top-5/6 left-1/6 w-0.5 h-0.5 bg-cyan-400 rounded-full animate-ping opacity-35"
+                        style={{ animationDelay: "4s" }}
+                      ></div>
+                      <div
+                        className="absolute bottom-2/3 right-1/5 w-0.5 h-0.5 bg-orange-400 rounded-full animate-ping opacity-40"
+                        style={{ animationDelay: "4.5s" }}
+                      ></div>
+                    </div>
+                  </div>
 
-                          <div className="flex items-center space-x-2">
-                            <Checkbox id="parking" className="h-4 w-4" />
-                            <label
-                              htmlFor="parking"
-                              className="cursor-pointer flex items-center"
-                            >
-                              <Car className="h-4 w-4 mr-1" />
-                              Large Lot
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Advanced Search Link */}
-                        <div className="mt-6 pt-6 border-t border-border/50">
-                          <Button
-                            variant="outline"
-                            className="w-full sm:w-auto"
-                          >
-                            <Settings className="mr-2 h-4 w-4" />
-                            Advanced Search Options
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  {/* Feature highlights */}
+                  <div className="flex justify-center gap-6 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Always Online</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span>Helpful Navigator</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <span>24/7 Support</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -199,18 +200,20 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 lg:py-32 bg-muted/30">
+      <section className="py-5 lg:py-8 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
             <Badge variant="secondary" className="w-fit mx-auto">
               Features
             </Badge>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+            <h2 className="text-2xl sm:text-4xl lg:text-4xl font-bold tracking-tight">
               Everything You Need to Manage Properties
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              From tenant management to financial reporting, DomusEye provides
-              all the tools you need to run a successful rental business.
+            <p className="text-[16px] text-muted-foreground max-w-3xl mx-auto">
+              DomusEye provides comprehensive rental property management
+              solutions that helps you manage properties, tenants, and
+              maintenance operations efficiently, while providing future tenants
+              many choices and good agent support.
             </p>
           </div>
 
