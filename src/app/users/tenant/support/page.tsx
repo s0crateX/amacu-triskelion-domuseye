@@ -153,61 +153,74 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
 export default function Faq3() {
   const faqs: Omit<FAQItemProps, "index">[] = [
     {
-      question: "What makes MVPBlocks unique?",
+      question: "How do I search for properties on DomusEye?",
       answer:
-        "MVPBlocks stands out through its intuitive design, powerful component library, and seamless integration options. We've focused on creating a user experience that combines simplicity with advanced features, all while maintaining excellent performance and accessibility.",
+        "You can search for properties using our advanced search filters on the Properties page. Filter by property type (apartment, house, condo, etc.), location, price range, number of bedrooms, and other amenities. Use the search bar to find properties in specific areas or neighborhoods.",
     },
     {
-      question: "How can I customize the components?",
+      question: "How do I submit a maintenance request?",
       answer:
-        "All components are built with Tailwind CSS, making them highly customizable. You can modify colors, spacing, typography, and more by simply adjusting the class names or using our theme variables to match your brand identity.",
+        "Navigate to your tenant dashboard and click on 'Maintenance Requests'. Fill out the form with details about the issue, select the priority level, and attach photos if needed. Your landlord will be notified immediately and you'll receive updates on the status of your request.",
+    },
+
+    {
+      question: "How do I communicate with my landlord or property manager?",
+      answer:
+        "You can message your landlord directly through the DomusEye platform. Use the messaging feature in your dashboard to send messages, share documents, and receive important updates about your rental property. All communications are logged for your records.",
     },
     {
-      question: "Do the components work with dark mode?",
+      question: "What should I do if I'm having trouble accessing my account?",
       answer:
-        "Yes, all MVPBlocks components are designed to work seamlessly with both light and dark modes. They automatically adapt to your site's theme settings, providing a consistent user experience regardless of the user's preference.",
+        "If you're having login issues, try resetting your password using the 'Forgot Password' link. If you continue to experience problems, contact our 24/7 support team through live chat, phone, or email. We're here to help you get back into your account quickly.",
     },
     {
-      question: "How can I get started with MVPBlocks?",
+      question: "How do I update my profile and contact information?",
       answer:
-        "You can get started by browsing our component library and copying the code for the components you need. Our documentation provides clear instructions for installation and usage, and you can always reach out to our support team if you need assistance.",
+        "Go to your tenant dashboard and click on 'Profile' to update your personal information, contact details, emergency contacts, and preferences. Make sure to keep your information current so your landlord can reach you when needed.",
     },
     {
-      question: "Can I use MVPBlocks for commercial projects?",
+      question: "Can I schedule property viewings through DomusEye?",
       answer:
-        "Absolutely! MVPBlocks is free to use for both personal and commercial projects. There are no licensing fees or attribution requirements—just build and launch your MVP faster than ever before.",
+        "Yes! When browsing properties, you can request viewings directly through the platform. Click on a property listing and use the 'Schedule Viewing' button to request an appointment. The landlord or agent will respond with available times.",
     },
   ];
 
   return (
     <section className="bg-background relative w-full overflow-hidden py-16">
       {/* Contact Options */}
-      <div className="mb-12 mx-40">
-        <h2 className="text-2xl font-semibold mb-6 text-center">
+      <div className="mb-12 container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">
           Get in Touch
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {supportOptions.map((option) => {
             const Icon = option.icon;
             return (
-              <Card key={option.title} className="text-center">
-                <CardHeader>
-                  <div className="flex justify-center mb-4">
-                    <div className="p-3 rounded-full bg-primary/10">
-                      <Icon className="h-8 w-8 text-primary" />
+              <Card key={option.title} className="text-center h-full">
+                <CardHeader className="pb-4">
+                  <div className="flex justify-center mb-3">
+                    <div className="p-2 sm:p-3 rounded-full bg-primary/10">
+                      <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                     </div>
                   </div>
-                  <CardTitle>{option.title}</CardTitle>
-                  <CardDescription>{option.description}</CardDescription>
+                  <CardTitle className="text-lg sm:text-xl">
+                    {option.title}
+                  </CardTitle>
+                  <CardDescription className="text-sm sm:text-base px-2">
+                    {option.description}
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4 pt-0">
                   <div className="flex items-center justify-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+                    <span className="text-xs sm:text-sm text-muted-foreground">
                       {option.availability}
                     </span>
                   </div>
-                  <Button variant={option.variant} className="w-full">
+                  <Button
+                    variant={option.variant}
+                    className="w-full text-sm sm:text-base"
+                  >
                     {option.action}
                   </Button>
                 </CardContent>
@@ -238,7 +251,7 @@ export default function Faq3() {
             Frequently Asked Questions
           </h2>
           <p className="text-muted-foreground text-sm">
-            Everything you need to know about MVPBlocks
+            Everything you need to know about DomusEye
           </p>
         </motion.div>
 
