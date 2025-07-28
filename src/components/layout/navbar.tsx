@@ -200,43 +200,45 @@ export function Navbar() {
     <header className={`sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-transform duration-300 ease-in-out will-change-transform ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
+          <div className="flex items-center min-w-0 flex-shrink-0">
+            <Link href="/" className="flex items-center space-x-3">
               <Image
                 src="/assets/images/logo.png"
                 alt="DomusEye Logo"
                 width={32}
                 height={32}
-                className="h-8 w-8 dark:invert"
+                className="h-8 w-8 dark:invert flex-shrink-0"
               />
-              <span className="text-xl font-bold text-foreground">
+              <span className="text-xl font-bold text-foreground whitespace-nowrap">
                 DomusEye
               </span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {loading || (isAuthenticated && !userData) ? (
-              <div className="text-sm text-muted-foreground">Loading...</div>
-            ) : (
-              navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  {item.name}
-                </Link>
-              ))
-            )}
+          <nav className="hidden md:flex items-center justify-center flex-1 mx-8">
+            <div className="flex items-center space-x-8">
+              {loading || (isAuthenticated && !userData) ? (
+                <div className="text-sm text-muted-foreground">Loading...</div>
+              ) : (
+                navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap px-2 py-1 rounded-md hover:bg-accent/50"
+                  >
+                    {item.name}
+                  </Link>
+                ))
+              )}
+            </div>
           </nav>
 
           {/* Right side - Theme toggle and CTA */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3 min-w-0 flex-shrink-0">
             <ThemeToggle />
 
             {isAuthenticated ? (
@@ -245,7 +247,7 @@ export function Navbar() {
                 <div className="hidden sm:flex items-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent transition-colors">
+                      <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
                         <Avatar className="h-8 w-8">
                           <AvatarImage
                             src={
@@ -260,7 +262,7 @@ export function Navbar() {
                             )}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="hidden sm:block text-sm font-medium">
+                        <span className="hidden lg:block text-sm font-medium whitespace-nowrap">
                           {userData?.firstName || "User"}
                         </span>
                       </button>
@@ -348,12 +350,12 @@ export function Navbar() {
                 </Button>
               </>
             ) : (
-              <div className="hidden sm:flex items-center space-x-2">
-                <Button variant="ghost" asChild>
-                  <Link href="/dashboard/login">Login</Link>
+              <div className="hidden sm:flex items-center space-x-3">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/dashboard/login" className="whitespace-nowrap">Login</Link>
                 </Button>
-                <Button asChild>
-                  <Link href="/dashboard/register">Sign Up</Link>
+                <Button size="sm" asChild>
+                  <Link href="/dashboard/register" className="whitespace-nowrap">Sign Up</Link>
                 </Button>
               </div>
             )}
@@ -366,15 +368,15 @@ export function Navbar() {
                   <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px] p-6">
-                <SheetHeader>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px] px-6 py-6">
+                <SheetHeader className="mb-6">
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col h-full">
                   {/* User Profile Section - Show at top for authenticated users */}
                   {isAuthenticated && userData && (
-                    <div className="pb-4 border-b border-border/40 mb-4">
-                      <div className="flex items-center justify-between py-2">
+                    <div className="pb-6 border-b border-border/40 mb-6">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-12 w-12">
                             <AvatarImage
@@ -390,8 +392,8 @@ export function Navbar() {
                               )}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="flex flex-col">
-                            <span className="text-lg font-semibold text-foreground">
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className="text-lg font-semibold text-foreground truncate">
                               {userData?.firstName} {userData?.lastName}
                             </span>
                             <span className="text-sm text-muted-foreground capitalize">
@@ -402,7 +404,7 @@ export function Navbar() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          className="h-9 w-9 text-muted-foreground hover:text-foreground flex-shrink-0"
                           onClick={() => {
                             setIsOpen(false);
                             router.push(
@@ -419,7 +421,7 @@ export function Navbar() {
                   )}
 
                   {/* Navigation Items */}
-                  <div className="space-y-1 flex-1">
+                  <div className="space-y-2 flex-1">
                     {loading || (isAuthenticated && !userData) ? (
                       <div className="flex items-center justify-center py-8">
                         <div className="text-sm text-muted-foreground">
@@ -433,10 +435,10 @@ export function Navbar() {
                           <Link
                             key={item.name}
                             href={item.href}
-                            className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-accent/50"
+                            className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-accent/50"
                             onClick={() => setIsOpen(false)}
                           >
-                            <Icon className="h-4 w-4" />
+                            <Icon className="h-5 w-5 flex-shrink-0" />
                             <span>{item.name}</span>
                           </Link>
                         );
@@ -448,39 +450,39 @@ export function Navbar() {
                   {isAuthenticated &&
                     userData &&
                     userData?.userType === "landlord" && (
-                      <div className="pt-4 border-t border-border/40 mt-4">
+                      <div className="pt-6 border-t border-border/40 mt-6">
                         <Button
                           variant="ghost"
-                          className="w-full justify-start px-3 py-2.5 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200"
+                          className="w-full justify-start px-4 py-3 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200"
                           onClick={() => {
                             setIsOpen(false);
                             router.push("/dashboard/properties");
                           }}
                         >
-                          <Building className="mr-3 h-4 w-4" />
+                          <Building className="mr-3 h-5 w-5 flex-shrink-0" />
                           My Properties
                         </Button>
                       </div>
                     )}
 
-                  <div className="pt-4 border-t border-border/40 mt-4">
+                  <div className="pt-6 border-t border-border/40 mt-6">
                     {isAuthenticated ? (
                       <Button
                         variant="ghost"
-                        className="w-full justify-start px-3 py-2.5 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200"
+                        className="w-full justify-start px-4 py-3 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200"
                         onClick={() => {
                           setIsOpen(false);
                           handleLogout();
                         }}
                       >
-                        <LogOut className="mr-3 h-4 w-4" />
+                        <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
                         Log out
                       </Button>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <Button
                           variant="ghost"
-                          className="w-full h-10 text-sm font-medium"
+                          className="w-full h-11 text-sm font-medium"
                           asChild
                         >
                           <Link
@@ -491,7 +493,7 @@ export function Navbar() {
                           </Link>
                         </Button>
                         <Button
-                          className="w-full h-10 text-sm font-medium"
+                          className="w-full h-11 text-sm font-medium"
                           asChild
                         >
                           <Link
