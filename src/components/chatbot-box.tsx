@@ -1,11 +1,11 @@
 "use client";
-import Image from "next/image";
 import { Bot, CornerRightUp, BotMessageSquare, User, Mic } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 import { useChat } from "ai/react";
 import Markdown from "react-markdown";
@@ -213,7 +213,7 @@ export default function FloatingChatbot() {
                   <div className="group relative mt-6">
                     <div className="from-primary/30 to-primary/10 absolute -inset-1 rounded-full bg-gradient-to-r opacity-75 blur-md transition-opacity duration-500 group-hover:opacity-100"></div>
                     <Image
-                      src="https://blocks.mvp-subha.me/assets/robo.svg"
+                      src="/assets/images/Eyebot.png"
                       alt="AI Assistant"
                       width={120}
                       height={120}

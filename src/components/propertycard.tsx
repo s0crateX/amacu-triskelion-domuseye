@@ -7,8 +7,11 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+
 interface PropertyCardProps {
-  image: string;
+  id: string;
+  image: string; // Changed back to array to match your Firebase data
   title: string;
   price: string;
   location: string;
@@ -19,7 +22,9 @@ interface PropertyCardProps {
   isNew?: boolean;
   isVerified?: boolean;
 }
+
 export const PropertyCard = ({
+  id,
   image,
   title,
   price,
@@ -31,15 +36,25 @@ export const PropertyCard = ({
   isNew,
   isVerified,
 }: PropertyCardProps) => {
+  const router = useRouter();
+
+  const handleViewDetails = () => {
+    router.push(`/dashboard/properties/${id}`);
+  };
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative">
         <Image
           src={image}
-          alt={title}
+          alt={title || "Property image"}
           width={400}
           height={192}
           className="w-full h-48 object-cover"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "/next.svg";
+          }}
         />
         <div className="absolute top-4 left-4 flex flex-col gap-2">
           {isNew && (
@@ -60,42 +75,55 @@ export const PropertyCard = ({
       </div>
       <CardHeader className="p-4 pb-0">
         <div className="flex justify-between items-start">
-          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-          <p className="text-[#1e40af] font-bold">{price}</p>
+          <h3 className="text-lg font-semibold text-foreground">
+            {title || "Untitled Property"}
+          </h3>
+          <p className="text-[#1e40af] font-bold">
+            {price || "Price not available"}
+          </p>
         </div>
         <div className="flex items-center text-gray-600 mt-1">
           <MapPin size={16} className="mr-1" />
-          <span className="text-sm">{location}</span>
+          <span className="text-sm">
+            {location || "Location not specified"}
+          </span>
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-2">
         <div className="flex justify-between mb-4 text-sm text-gray-600">
           <div className="flex items-center">
             <Bed size={16} className="mr-1" />
-            <span>{beds} Beds</span>
+            <span>{beds || 0} Beds</span>
           </div>
           <div className="flex items-center">
             <Bath size={16} className="mr-1" />
-            <span>{baths} Baths</span>
+            <span>{baths || 0} Baths</span>
           </div>
           <div className="flex items-center">
             <Home size={16} className="mr-1" />
-            <span>{sqft} sqft</span>
+            <span>{sqft || 0} sqft</span>
           </div>
         </div>
         <div className="flex flex-wrap gap-2 mb-1">
-          {features.map((feature, index) => (
-            <span
-              key={index}
-              className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
-            >
-              {feature}
-            </span>
-          ))}
+          {features && Array.isArray(features) && features.length > 0 ? (
+            features.map((feature, index) => (
+              <span
+                key={index}
+                className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
+              >
+                {feature}
+              </span>
+            ))
+          ) : (
+            <span className="text-gray-500 text-xs">No features listed</span>
+          )}
         </div>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <button className="w-full bg-[#1e40af] hover:bg-[#1e3a8a] text-white py-2 rounded font-medium">
+        <button
+          className="w-full bg-[#1e40af] hover:bg-[#1e3a8a] text-white py-2 rounded font-medium"
+          onClick={handleViewDetails}
+        >
           View Details
         </button>
       </CardFooter>

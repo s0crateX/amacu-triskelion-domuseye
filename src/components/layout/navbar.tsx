@@ -3,19 +3,19 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { 
-  Menu, 
-  Home, 
-  Building2, 
-  Info, 
-  Phone, 
-  User, 
-  LogOut, 
-  Users, 
+import {
+  Menu,
+  Home,
+  Building2,
+  Info,
+  Phone,
+  User,
+  LogOut,
+  Users,
   HeadphonesIcon,
   Building,
   CreditCard,
-  Settings
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { logoutUser } from "@/lib/auth/auth-utils";
@@ -75,12 +75,12 @@ export function Navbar() {
   // Handle scroll to show/hide navbar
   React.useEffect(() => {
     let ticking = false;
-    
+
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
           const currentScrollY = window.scrollY;
-          
+
           // Show navbar when at top of page
           if (currentScrollY < 10) {
             setIsVisible(true);
@@ -92,7 +92,7 @@ export function Navbar() {
           } else if (currentScrollY < lastScrollY) {
             setIsVisible(true);
           }
-          
+
           setLastScrollY(currentScrollY);
           ticking = false;
         });
@@ -101,23 +101,23 @@ export function Navbar() {
     };
 
     // Add both scroll and touchmove listeners for better mobile support
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('touchmove', handleScroll, { passive: true });
-    
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("touchmove", handleScroll, { passive: true });
+
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('touchmove', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("touchmove", handleScroll);
     };
   }, [lastScrollY]);
 
   // Debug logging to understand state changes
   React.useEffect(() => {
-    console.log('Navbar state:', { 
-      loading, 
-      isAuthenticated, 
-      hasUser: !!user, 
-      hasUserData: !!userData, 
-      userType: userData?.userType 
+    console.log("Navbar state:", {
+      loading,
+      isAuthenticated,
+      hasUser: !!user,
+      hasUserData: !!userData,
+      userType: userData?.userType,
     });
   }, [loading, isAuthenticated, user, userData]);
 
@@ -127,15 +127,15 @@ export function Navbar() {
     if (loading || (isAuthenticated && !userData)) {
       return [];
     }
-    
+
     if (!isAuthenticated || !user) {
       return visitorNavigation;
     }
 
     switch (userData?.userType) {
-      case 'tenant':
+      case "tenant":
         return tenantNavigation;
-      case 'landlord':
+      case "landlord":
         return landlordNavigation;
       default:
         return visitorNavigation;
@@ -157,13 +157,17 @@ export function Navbar() {
 
   const getInitials = (firstName?: string, lastName?: string) => {
     if (!firstName && !lastName) return "U";
-    return `${firstName?.charAt(0) || ""}${lastName?.charAt(0) || ""}`.toUpperCase();
+    return `${firstName?.charAt(0) || ""}${
+      lastName?.charAt(0) || ""
+    }`.toUpperCase();
   };
 
   return (
-    <header className={`sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-transform duration-300 ease-in-out will-change-transform ${
-      isVisible ? 'translate-y-0' : '-translate-y-full'
-    }`}>
+    <header
+      className={`sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-transform duration-300 ease-in-out will-change-transform ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
+    >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -202,7 +206,7 @@ export function Navbar() {
           {/* Right side - Theme toggle and CTA */}
           <div className="flex items-center space-x-4">
             <ThemeToggle />
-            
+
             {isAuthenticated ? (
               <>
                 {/* Desktop Profile Dropdown */}
@@ -211,9 +215,17 @@ export function Navbar() {
                     <DropdownMenuTrigger asChild>
                       <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent transition-colors">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={userData?.profilePicture || user?.photoURL || ""} alt={userData?.firstName || "User"} />
+                          <AvatarImage
+                            src={
+                              userData?.profilePicture || user?.photoURL || ""
+                            }
+                            alt={userData?.firstName || "User"}
+                          />
                           <AvatarFallback className="text-sm">
-                            {getInitials(userData?.firstName, userData?.lastName)}
+                            {getInitials(
+                              userData?.firstName,
+                              userData?.lastName
+                            )}
                           </AvatarFallback>
                         </Avatar>
                         <span className="hidden sm:block text-sm font-medium">
@@ -233,23 +245,39 @@ export function Navbar() {
                         </div>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => router.push(userData?.userType === 'tenant' ? '/users/tenant/profile' : '/profile')}>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          router.push(
+                            userData?.userType === "tenant"
+                              ? "/users/tenant/profile"
+                              : "/profile"
+                          )
+                        }
+                      >
                         <User className="mr-2 h-4 w-4" />
                         <span>Profile</span>
                       </DropdownMenuItem>
-                      {userData?.userType === 'landlord' && (
-                        <DropdownMenuItem onClick={() => router.push('/dashboard/properties')}>
+                      {userData?.userType === "landlord" && (
+                        <DropdownMenuItem
+                          onClick={() => router.push("/dashboard/properties")}
+                        >
                           <Building className="mr-2 h-4 w-4" />
                           <span>My Properties</span>
                         </DropdownMenuItem>
                       )}
-                      {userData?.userType === 'tenant' ? (
-                        <DropdownMenuItem onClick={() => router.push('/users/tenant/payment-history')}>
+                      {userData?.userType === "tenant" ? (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push("/users/tenant/payment-history")
+                          }
+                        >
                           <CreditCard className="mr-2 h-4 w-4" />
                           <span>Payment History</span>
                         </DropdownMenuItem>
                       ) : (
-                        <DropdownMenuItem onClick={() => router.push('/support')}>
+                        <DropdownMenuItem
+                          onClick={() => router.push("/support")}
+                        >
                           <HeadphonesIcon className="mr-2 h-4 w-4" />
                           <span>Support</span>
                         </DropdownMenuItem>
@@ -262,16 +290,25 @@ export function Navbar() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-                
+
                 {/* Mobile Profile Picture Button */}
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="sm:hidden"
-                  onClick={() => router.push(userData?.userType === 'tenant' ? '/users/tenant/profile' : '/profile')}
+                  onClick={() =>
+                    router.push(
+                      userData?.userType === "tenant"
+                        ? "/users/tenant/profile"
+                        : "/profile"
+                    )
+                  }
                 >
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={userData?.profilePicture || user?.photoURL || ""} alt={userData?.firstName || "User"} />
+                    <AvatarImage
+                      src={userData?.profilePicture || user?.photoURL || ""}
+                      alt={userData?.firstName || "User"}
+                    />
                     <AvatarFallback className="text-sm">
                       {getInitials(userData?.firstName, userData?.lastName)}
                     </AvatarFallback>
@@ -308,9 +345,17 @@ export function Navbar() {
                       <div className="flex items-center justify-between py-2">
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-12 w-12">
-                            <AvatarImage src={userData?.profilePicture || user?.photoURL || ""} alt={userData?.firstName || "User"} />
+                            <AvatarImage
+                              src={
+                                userData?.profilePicture || user?.photoURL || ""
+                              }
+                              alt={userData?.firstName || "User"}
+                            />
                             <AvatarFallback className="text-sm font-medium">
-                              {getInitials(userData?.firstName, userData?.lastName)}
+                              {getInitials(
+                                userData?.firstName,
+                                userData?.lastName
+                              )}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex flex-col">
@@ -328,7 +373,11 @@ export function Navbar() {
                           className="h-8 w-8 text-muted-foreground hover:text-foreground"
                           onClick={() => {
                             setIsOpen(false);
-                            router.push(userData?.userType === 'tenant' ? '/users/tenant/profile' : '/profile');
+                            router.push(
+                              userData?.userType === "tenant"
+                                ? "/users/tenant/profile"
+                                : "/profile"
+                            );
                           }}
                         >
                           <Settings className="h-4 w-4" />
@@ -341,7 +390,9 @@ export function Navbar() {
                   <div className="space-y-1 flex-1">
                     {loading || (isAuthenticated && !userData) ? (
                       <div className="flex items-center justify-center py-8">
-                        <div className="text-sm text-muted-foreground">Loading...</div>
+                        <div className="text-sm text-muted-foreground">
+                          Loading...
+                        </div>
                       </div>
                     ) : (
                       navigation.map((item) => {
@@ -360,29 +411,31 @@ export function Navbar() {
                       })
                     )}
                   </div>
-                  
+
                   {/* Additional authenticated user options */}
-                  {isAuthenticated && userData && userData?.userType === 'landlord' && (
-                    <div className="pt-4 border-t border-border/40 mt-4">
-                      <Button 
-                        variant="ghost" 
-                        className="w-full justify-start px-3 py-2.5 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200" 
-                        onClick={() => {
-                          setIsOpen(false);
-                          router.push('/dashboard/properties');
-                        }}
-                      >
-                        <Building className="mr-3 h-4 w-4" />
-                        My Properties
-                      </Button>
-                    </div>
-                  )}
-                  
+                  {isAuthenticated &&
+                    userData &&
+                    userData?.userType === "landlord" && (
+                      <div className="pt-4 border-t border-border/40 mt-4">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start px-3 py-2.5 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200"
+                          onClick={() => {
+                            setIsOpen(false);
+                            router.push("/dashboard/properties");
+                          }}
+                        >
+                          <Building className="mr-3 h-4 w-4" />
+                          My Properties
+                        </Button>
+                      </div>
+                    )}
+
                   <div className="pt-4 border-t border-border/40 mt-4">
                     {isAuthenticated ? (
-                      <Button 
-                        variant="ghost" 
-                        className="w-full justify-start px-3 py-2.5 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200" 
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start px-3 py-2.5 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200"
                         onClick={() => {
                           setIsOpen(false);
                           handleLogout();
@@ -393,13 +446,26 @@ export function Navbar() {
                       </Button>
                     ) : (
                       <div className="space-y-2">
-                        <Button variant="ghost" className="w-full h-10 text-sm font-medium" asChild>
-                          <Link href="/dashboard/login" onClick={() => setIsOpen(false)}>
+                        <Button
+                          variant="ghost"
+                          className="w-full h-10 text-sm font-medium"
+                          asChild
+                        >
+                          <Link
+                            href="/dashboard/login"
+                            onClick={() => setIsOpen(false)}
+                          >
                             Login
                           </Link>
                         </Button>
-                        <Button className="w-full h-10 text-sm font-medium" asChild>
-                          <Link href="/dashboard/register" onClick={() => setIsOpen(false)}>
+                        <Button
+                          className="w-full h-10 text-sm font-medium"
+                          asChild
+                        >
+                          <Link
+                            href="/dashboard/register"
+                            onClick={() => setIsOpen(false)}
+                          >
                             Sign Up
                           </Link>
                         </Button>
