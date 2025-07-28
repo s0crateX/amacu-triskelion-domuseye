@@ -128,6 +128,7 @@ const PropertiesPage = () => {
           {filteredProperties.map((property) => (
             <PropertyCard
               key={property.id}
+              id={property.id}
               image={property.image}
               title={property.title}
               price={property.price}
@@ -142,22 +143,21 @@ const PropertiesPage = () => {
           ))}
         </div>
 
-          {filteredProperties.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-600 text-lg">
-                No properties found matching your criteria.
-              </p>
-            </div>
-          )}
-
-          <div className="mt-12 flex justify-center">
-            <button className="px-6 py-2 border-2 border-[#1e40af] text-[#1e40af] rounded-md font-medium hover:bg-[#1e40af] hover:text-white transition-colors">
-              Load More
-            </button>
+        {filteredProperties.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg">
+              No properties found matching your criteria.
+            </p>
           </div>
+        )}
+
+        <div className="mt-12 flex justify-center">
+          <button className="px-6 py-2 border-2 border-[#1e40af] text-[#1e40af] rounded-md font-medium hover:bg-[#1e40af] hover:text-white transition-colors">
+            Load More
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
