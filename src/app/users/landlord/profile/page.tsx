@@ -30,7 +30,6 @@ import {
   Mail,
   Phone,
   MapPin,
-  Briefcase,
   Edit3,
   Save,
   X,
