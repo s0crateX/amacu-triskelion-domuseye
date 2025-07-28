@@ -45,9 +45,9 @@ export default function LoginPage() {
       
       // Redirect based on user type
       if (userData.userType === 'tenant') {
-        router.push('/dashboard/tenant')
+        router.push('/users/tenant')
       } else {
-        router.push('/dashboard/landlord')
+        router.push('/users/landlord')
       }
     } catch (error: unknown) {
       console.error('Login error:', error)
@@ -144,7 +144,7 @@ export default function LoginPage() {
               {/* Forgot Password Link */}
               <div className="text-right">
                 <Link 
-                  href="/forgot-password" 
+                  href="/dashboard/forgot-password" 
                   className="text-sm text-primary hover:underline"
                 >
                   Forgot your password?
@@ -210,7 +210,7 @@ export default function LoginPage() {
             <div className="text-center mt-6">
               <p className="text-sm text-muted-foreground">
                 Don&apos;t have an account?{" "}
-                <Link href="/register" className="text-primary hover:underline font-medium">
+                <Link href="/dashboard/register" className="text-primary hover:underline font-medium">
                   Sign up
                 </Link>
               </p>

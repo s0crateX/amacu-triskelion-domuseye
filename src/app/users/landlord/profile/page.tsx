@@ -63,7 +63,7 @@ export default function LandlordProfilePage() {
   // Redirect if not authenticated or not a landlord
   useEffect(() => {
     if (!authLoading && (!user || userData?.userType !== 'landlord')) {
-      router.push("/login");
+      router.push("/");
     }
   }, [user, userData, authLoading, router]);
 

@@ -86,9 +86,9 @@ export default function RegisterPage() {
       
       // Redirect based on user type
       if (userData.userType === 'tenant') {
-        router.push('/dashboard/tenant')
+        router.push('/users/tenant')
       } else {
-        router.push('/dashboard/landlord')
+        router.push('/users/landlord')
       }
     } catch (error: unknown) {
       console.error('Registration error:', error)
@@ -442,7 +442,7 @@ export default function RegisterPage() {
             <div className="text-center mt-6">
               <p className="text-sm text-muted-foreground">
                 Already have an account?{" "}
-                <Link href="/login" className="text-primary hover:underline font-medium">
+                <Link href="/dashboard/login" className="text-primary hover:underline font-medium">
                   Sign in
                 </Link>
               </p>

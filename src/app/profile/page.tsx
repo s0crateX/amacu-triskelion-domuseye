@@ -340,7 +340,7 @@ export default function ProfilePage() {
         }}
       />
       
-      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-4xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Profile Settings</h1>

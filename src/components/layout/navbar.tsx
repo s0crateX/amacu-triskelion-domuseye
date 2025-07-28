@@ -44,10 +44,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 // Navigation items for different user roles
 const visitorNavigation = [
   { name: "Home", href: "/", icon: Home },
-  { name: "Properties", href: "/properties", icon: Building2 },
-  { name: "Agents", href: "/agents", icon: Users },
-  { name: "About Us", href: "/about", icon: Info },
-  { name: "Contact Us", href: "/contact", icon: Phone },
+  { name: "Properties", href: "/dashboard/properties", icon: Building2 },
+  { name: "Agents", href: "/dashboard/agents", icon: Users },
+  { name: "About Us", href: "/dashboard/about", icon: Info },
+  { name: "Contact Us", href: "/dashboard/contact", icon: Phone },
 ];
 
 const tenantNavigation = [
@@ -59,10 +59,10 @@ const tenantNavigation = [
 
 const landlordNavigation = [
   { name: "Home", href: "/", icon: Home },
-  { name: "Agents", href: "/agents", icon: Users },
+  { name: "Agents", href: "/dashboard/agents", icon: Users },
   { name: "My Properties", href: "/dashboard/properties", icon: Building },
   { name: "Profile", href: "/profile", icon: User },
-  { name: "Support", href: "/support", icon: HeadphonesIcon },
+  { name: "Support", href: "/dashboard/support", icon: HeadphonesIcon },
 ];
 
 export function Navbar() {
@@ -144,14 +144,48 @@ export function Navbar() {
 
   const navigation = getNavigation();
 
-  const handleLogout = async () => {
+  const handleTenantLogout = async () => {
     try {
       await logoutUser();
-      toast.success("Logged out successfully");
+      toast.success("Tenant logged out successfully");
+      
+      // Use router.push for immediate redirect to main page
       router.push("/");
     } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Failed to logout");
+      console.error("Tenant logout error:", error);
+      toast.error("Failed to logout tenant");
+    }
+  };
+
+  const handleLandlordLogout = async () => {
+    try {
+      await logoutUser();
+      toast.success("Landlord logged out successfully");
+      
+      // Use router.push for immediate redirect to main page
+      router.push("/");
+    } catch (error) {
+      console.error("Landlord logout error:", error);
+      toast.error("Failed to logout landlord");
+    }
+  };
+
+  // Generic logout handler that determines user type and calls appropriate function
+  const handleLogout = async () => {
+    if (userData?.userType === 'tenant') {
+      await handleTenantLogout();
+    } else if (userData?.userType === 'landlord') {
+      await handleLandlordLogout();
+    } else {
+      // Fallback for other user types
+      try {
+        await logoutUser();
+        toast.success("Logged out successfully");
+        router.push("/");
+      } catch (error) {
+        console.error("Logout error:", error);
+        toast.error("Failed to logout");
+      }
     }
   };
 
@@ -164,7 +198,7 @@ export function Navbar() {
     <header className={`sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-transform duration-300 ease-in-out will-change-transform ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">

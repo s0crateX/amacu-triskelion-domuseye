@@ -28,7 +28,7 @@ const AboutPage = () => {
               "url('https://mallettegoring.com/wp-content/uploads/2020/05/home_banner_buidlings.svg')",
           }}
         ></div>
-        <div className="container px-4 py-24 relative z-20 xl:mx-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-20">
           <div className="max-w-2xl">
             <h1 className="text-3xl xl:text-5xl font-bold text-white mb-6 text-center xl:text-start">
               DomusEye — Smart Property Management
@@ -45,8 +45,8 @@ const AboutPage = () => {
         </div>
       </section>
       {/* About Content Section */}
-      <section className="py-20 px-20 dark:bg-background">
-        <div ref={aboutRef} className="relative mx-auto mb-20">
+      <section className="py-20 dark:bg-background">
+        <div ref={aboutRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
           <div className="grid gap-16 md:grid-cols-2">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -110,8 +110,8 @@ const AboutPage = () => {
       </section>
 
       {/* Why Choose Us Section*/}
-      <section className="py-20 px-20 dark:bg-background">
-        <div className="container mx-auto">
+      <section className="py-20 dark:bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-primary mb-4">
               Why Choose DomusEye
@@ -213,10 +213,10 @@ const AboutPage = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="px-8 py-3 bg-white text-[#1e40af] rounded-md font-medium hover:bg-gray-100">
-                <Link href="/properties">Browse Properties</Link>
+                <Link href="/dashboard/properties">Browse Properties</Link>
               </button>
               <button className="px-8 py-3 bg-[#cdb323] text-white rounded-md font-medium hover:bg-[#b9a020]">
-                <Link href="/register">Start Now</Link>
+                <Link href="/dashboard/register">Start Now</Link>
               </button>
             </div>
           </div>

@@ -72,7 +72,7 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="container mx-auto sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8 mx-4">
               <div className="space-y-4">
@@ -200,7 +200,7 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="py-20 lg:py-32 bg-muted/30">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
             <Badge variant="secondary" className="w-fit mx-auto">
               Features
@@ -242,7 +242,7 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="py-20 lg:py-32 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="space-y-8 max-w-3xl mx-auto">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
               Find Your Dream Property
@@ -260,7 +260,7 @@ export default function Home() {
                 className="text-lg px-8"
                 asChild
               >
-                <Link href="/register">
+                <Link href="/dashboard/register">
                   Sign Up
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
@@ -271,7 +271,7 @@ export default function Home() {
                 className="text-lg px-8 border-primary dark:text-background text-foreground"
                 asChild
               >
-                <Link href="/properties">Browse More</Link>
+                <Link href="/dashboard/properties">Browse More</Link>
               </Button>
             </div>
           </div>

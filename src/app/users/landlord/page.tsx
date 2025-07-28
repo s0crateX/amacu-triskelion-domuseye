@@ -118,7 +118,7 @@ export default function LandlordDashboard() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login')
+      router.push('/')
     }
   }, [user, loading, router])
 
@@ -140,7 +140,8 @@ export default function LandlordDashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main>
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-foreground mb-2">
@@ -385,6 +386,7 @@ export default function LandlordDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+          </div>
       </main>
     </div>
   )
