@@ -87,10 +87,46 @@ export default function MyPropertiesPage() {
     );
 
     const unsubscribe = onSnapshot(propertiesQuery, (snapshot) => {
-      const propertiesData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Property[];
+      const propertiesData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          area: data.area || 0,
+          available: data.available ?? true,
+          images: Array.isArray(data.images) ? data.images : data.image ? [data.image] : [],
+          title: data.title || "",
+          category: data.category || "",
+          datePosted: data.datePosted || new Date().toISOString(),
+          price: data.price || "",
+          location: data.location || "",
+          amenities: Array.isArray(data.amenities) ? data.amenities : [],
+          beds: data.beds || 0,
+          baths: data.baths || 0,
+          sqft: data.sqft || 0,
+          features: Array.isArray(data.features) ? data.features : [],
+          isNew: data.isNew,
+          isVerified: data.isVerified,
+          type: data.type || "",
+          uid: data.uid || "",
+          latitude: data.latitude || 0,
+          longitude: data.longitude || 0,
+          address: data.address || "",
+          description: data.description || "",
+          landlord: data.landlord || [],
+          subtype: data.subtype || "",
+          kitchen: data.kitchen || "",
+          parking: data.parking || 0,
+          landlordId: data.landlordId || "",
+          landlordName: data.landlordName || "",
+          views: data.views || 0,
+          image: data.image,
+          inquiries: data.inquiries,
+          tenant: data.tenant,
+          status: data.status,
+          rating: data.rating,
+          ...data,
+        } as Property;
+      });
       
       setProperties(propertiesData);
       setLoading(false);

@@ -136,4 +136,38 @@
     overflow-x: hidden;
     overflow-y: auto;
   }
+  
+  /* Custom styles for property map markers */
+  .custom-property-pin-marker {
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .custom-property-pin-marker:hover {
+    transform: scale(1.1);
+    z-index: 1000 !important;
+  }
+  
+  .custom-user-pin-marker {
+    z-index: 999 !important;
+  }
+  
+  /* Ensure marker images load properly */
+  .custom-property-pin-marker img {
+    transition: opacity 0.2s ease-in-out;
+  }
+  
+  .custom-property-pin-marker:hover img {
+    opacity: 0.9;
+  }
+  
+  /* Leaflet popup customization for property markers */
+  .leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .leaflet-popup-tip {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
 }

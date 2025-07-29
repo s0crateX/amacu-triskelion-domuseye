@@ -18,24 +18,8 @@ import {
 import { db } from "@/lib/firebase";
 import Image from "next/image";
 import { doc, getDoc } from "firebase/firestore";
+import { Property } from "@/types/property";
 //import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api'
-
-interface Property {
-  type: string[];
-  images: string[];
-  beds: number;
-  baths: number;
-  sqft: number;
-  features: string[];
-  isNew?: boolean;
-  isVerified?: boolean;
-  title: string;
-  location: string;
-  price: string;
-  image: string;
-  description: string;
-  landlord: string[]; // This will be an array containing [name, phone, email, etc.]
-}
 
 const PropertyDetailPage = () => {
   // All hooks must be called at the top level
@@ -198,7 +182,44 @@ const PropertyDetailPage = () => {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          const propertyData = docSnap.data() as Property;
+          const data = docSnap.data();
+          const propertyData: Property = {
+            id: docSnap.id,
+            area: data.area || 0,
+            available: data.available ?? true,
+            images: Array.isArray(data.images) ? data.images : data.image ? [data.image] : [],
+            title: data.title || "",
+            category: data.category || "",
+            datePosted: data.datePosted || new Date().toISOString(),
+            price: data.price || "",
+            location: data.location || "",
+            amenities: Array.isArray(data.amenities) ? data.amenities : [],
+            beds: data.beds || 0,
+            baths: data.baths || 0,
+            sqft: data.sqft || 0,
+            features: Array.isArray(data.features) ? data.features : [],
+            isNew: data.isNew,
+            isVerified: data.isVerified,
+            type: data.type || "",
+            uid: data.uid || "",
+            latitude: data.latitude || 0,
+            longitude: data.longitude || 0,
+            address: data.address || "",
+            description: data.description || "",
+            landlord: data.landlord || [],
+            subtype: data.subtype || "",
+            kitchen: data.kitchen || "",
+            parking: data.parking || 0,
+            landlordId: data.landlordId || "",
+            landlordName: data.landlordName || "",
+            views: data.views || 0,
+            image: data.image,
+            inquiries: data.inquiries,
+            tenant: data.tenant,
+            status: data.status,
+            rating: data.rating,
+            ...data,
+          };
 
           setProperty(propertyData);
         } else {

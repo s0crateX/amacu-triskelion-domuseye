@@ -67,7 +67,6 @@ export default function LocationMapModal({
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
-  const [mapLoaded, setMapLoaded] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isGettingCurrentLocation, setIsGettingCurrentLocation] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
@@ -425,7 +424,6 @@ export default function LocationMapModal({
               profileIconData={profileIconData}
               onMapReady={(map) => {
                 mapRef.current = map;
-                setMapLoaded(true);
               }}
             />
           </div>

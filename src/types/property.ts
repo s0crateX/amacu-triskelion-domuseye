@@ -1,10 +1,14 @@
 export interface Property {
   id: string;
+  area: number;
   available: boolean;
-  image: string;
+  images: string[];
   title: string;
+  category: string;
+  datePosted: string;
   price: string;
-  location: string;
+  location: string; // postal code
+  amenities: string[];
   beds: number;
   baths: number;
   sqft: number;
@@ -13,26 +17,23 @@ export interface Property {
   isVerified?: boolean;
   type: string;
   uid: string;
-  category: string;
   latitude: number;
   longitude: number;
   address: string;
   description: string;
-  images: string[];
   landlord: string[];
   subtype: string;
   kitchen: string;
   parking: number;
   landlordId: string;
   landlordName: string;
+  views: number;
+  // Legacy field for backward compatibility
+  image?: string;
   // Additional fields for internal use
-  datePosted?: string;
-  views?: number;
   inquiries?: number;
   tenant?: string | null;
   status?: 'Available' | 'Occupied';
-  amenities?: string[];
-  area?: number;
   rating?: number;
 }
 
