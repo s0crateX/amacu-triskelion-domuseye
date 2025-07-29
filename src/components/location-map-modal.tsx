@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
-import { OpenStreetMapProvider } from "leaflet-geosearch";
-import L from "leaflet";
+import dynamic from "next/dynamic";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   Dialog,
@@ -28,15 +26,15 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Search, MapPin, Save, X, Crosshair } from "lucide-react";
 import { toast } from "sonner";
 
-// Fix for default markers in react-leaflet - using dynamic import to avoid SSR issues
-if (typeof window !== "undefined") {
-  delete ((L.Icon.Default.prototype as unknown) as Record<string, unknown>)._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-  });
-}
+// Create a dynamic import for the entire map component to avoid SSR issues
+const DynamicMapComponent = dynamic(() => import('./map-component'), { 
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>
+  )
+});
 
 interface LocationData {
   latitude: number;
@@ -51,36 +49,6 @@ interface LocationMapModalProps {
   onSave: (locationData: LocationData) => Promise<void>;
   initialLocation?: LocationData | null;
 }
-
-// Component to handle map clicks
-function MapClickHandler({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click: (e: { latlng: { lat: number; lng: number } }) => {
-      onLocationSelect(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-}
-
-// Component to handle map reference and control
-  function MapController({ 
-    mapRef, 
-    onMapReady 
-  }: { 
-    mapRef: React.MutableRefObject<L.Map | null>, 
-    onMapReady: () => void 
-  }) {
-    const map = useMap();
-    
-    useEffect(() => {
-      if (map) {
-        mapRef.current = map;
-        onMapReady();
-      }
-    }, [map, mapRef, onMapReady]);
-
-    return null;
-  }
 
 export default function LocationMapModal({
   isOpen,
@@ -101,7 +69,7 @@ export default function LocationMapModal({
   const [mapLoaded, setMapLoaded] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isGettingCurrentLocation, setIsGettingCurrentLocation] = useState(false);
-  const mapRef = useRef<L.Map | null>(null);
+  const mapRef = useRef<any>(null);
 
   // Initialize with existing location if available
   useEffect(() => {
@@ -114,14 +82,12 @@ export default function LocationMapModal({
     }
   }, [initialLocation]);
 
-  // Create custom profile icon for map marker (map pin style)
-  const createProfileIcon = (
+  // Create custom profile icon data for map marker (map pin style)
+  const createProfileIconData = (
     profilePicture: string,
     firstName?: string,
     lastName?: string
   ) => {
-    if (typeof window === "undefined") return null;
-    
     const initials = firstName && lastName 
       ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
       : '?';
@@ -185,17 +151,17 @@ export default function LocationMapModal({
       </div>
     `;
 
-    return L.divIcon({
+    return {
       html: iconHtml,
       className: 'custom-profile-pin-marker',
-      iconSize: [40, 50],
-      iconAnchor: [20, 45],
-      popupAnchor: [0, -40]
-    });
+      iconSize: [40, 50] as [number, number],
+      iconAnchor: [20, 45] as [number, number],
+      popupAnchor: [0, -40] as [number, number]
+    };
   };
 
-  // Create custom icon for the current user
-  const profileIcon = createProfileIcon(
+  // Create custom icon data for the current user
+  const profileIconData = createProfileIconData(
     userData?.profilePicture || user?.photoURL || "",
     userData?.firstName,
     userData?.lastName
@@ -240,6 +206,8 @@ export default function LocationMapModal({
 
     setIsSearching(true);
     try {
+      // Dynamic import of OpenStreetMapProvider
+      const { OpenStreetMapProvider } = await import('leaflet-geosearch');
       const provider = new OpenStreetMapProvider();
       const results = await provider.search({ query: searchQuery });
 
@@ -448,39 +416,17 @@ export default function LocationMapModal({
 
           {/* Map Container */}
           <div className="h-48 sm:h-96 w-full rounded-md overflow-hidden border relative">
-            {!mapLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                  <span className="text-xs sm:text-sm">Loading map...</span>
-                </div>
-              </div>
-            )}
-            <MapContainer
+            <DynamicMapComponent
               center={defaultCenter}
               zoom={defaultZoom}
-              style={{ height: "100%", width: "100%" }}
-              attributionControl={true}
-            >
-              <MapController 
-                mapRef={mapRef} 
-                onMapReady={() => setMapLoaded(true)} 
-              />
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                maxZoom={19}
-              />
-              
-              <MapClickHandler onLocationSelect={handleLocationSelect} />
-              
-              {selectedLocation && profileIcon && (
-                <Marker 
-                  position={[selectedLocation.lat, selectedLocation.lng]} 
-                  icon={profileIcon}
-                />
-              )}
-            </MapContainer>
+              onLocationSelect={handleLocationSelect}
+              selectedLocation={selectedLocation}
+              profileIconData={profileIconData}
+              onMapReady={(map) => {
+                mapRef.current = map;
+                setMapLoaded(true);
+              }}
+            />
           </div>
 
           {/* Action Buttons */}

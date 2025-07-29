@@ -16,6 +16,8 @@ import {
   Building,
   CreditCard,
   Settings,
+  FileText,
+  MessageSquare,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { logoutUser } from "@/lib/auth/auth-utils";
@@ -58,11 +60,12 @@ const tenantNavigation = [
 ];
 
 const landlordNavigation = [
-  { name: "Home", href: "/", icon: Home },
-  { name: "Agents", href: "/dashboard/agents", icon: Users },
-  { name: "My Properties", href: "/dashboard/properties", icon: Building },
-  { name: "Profile", href: "/profile", icon: User },
-  { name: "Support", href: "/dashboard/support", icon: HeadphonesIcon },
+  { name: "Home", href: "/users/landlord", icon: Home },
+  { name: "My Properties", href: "/users/landlord/my-properties", icon: Building },
+  { name: "Applications", href: "/users/landlord/applications", icon: FileText },
+  { name: "Agents", href: "/users/landlord/agents", icon: Users },
+  { name: "Requests", href: "/users/landlord/requests", icon: MessageSquare },
+  { name: "Payment History", href: "/users/landlord/payment-history", icon: CreditCard },
 ];
 
 export function Navbar() {
@@ -299,7 +302,7 @@ export function Navbar() {
                           <span>My Properties</span>
                         </DropdownMenuItem>
                       )}
-                      {userData?.userType === "tenant" ? (
+                      {userData?.userType === "tenant" && (
                         <DropdownMenuItem
                           onClick={() =>
                             router.push("/users/tenant/payment-history")
@@ -307,13 +310,6 @@ export function Navbar() {
                         >
                           <CreditCard className="mr-2 h-4 w-4" />
                           <span>Payment History</span>
-                        </DropdownMenuItem>
-                      ) : (
-                        <DropdownMenuItem
-                          onClick={() => router.push("/support")}
-                        >
-                          <HeadphonesIcon className="mr-2 h-4 w-4" />
-                          <span>Support</span>
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
