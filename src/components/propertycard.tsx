@@ -6,6 +6,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -58,15 +59,21 @@ export const PropertyCard = ({
         />
         <div className="absolute top-4 left-4 flex flex-col gap-2">
           {isNew && (
-            <div className="bg-green-600 text-white px-2 py-1 text-xs font-bold rounded">
+            <Badge
+              variant="default"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold"
+            >
               NEW
-            </div>
+            </Badge>
           )}
           {isVerified && (
-            <div className="bg-[#1e40af] text-white px-2 py-1 text-xs font-bold rounded flex items-center">
-              <CheckCircle size={12} className="mr-1" />
+            <Badge
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1"
+            >
+              <CheckCircle size={12} />
               VERIFIED
-            </div>
+            </Badge>
           )}
         </div>
         <button className="absolute top-4 right-4 bg-white/80 rounded-full p-1.5 hover:bg-white">
@@ -79,7 +86,9 @@ export const PropertyCard = ({
             {title || "Untitled Property"}
           </h3>
           <p className="text-[#1e40af] font-bold">
+            <span>₱ </span>
             {price || "Price not available"}
+            <span>/Month</span>
           </p>
         </div>
         <div className="flex items-center text-gray-600 mt-1">

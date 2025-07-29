@@ -21,6 +21,8 @@ import { doc, getDoc } from "firebase/firestore";
 //import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api'
 
 interface Property {
+  datePosted: string;
+  amenities: string[];
   type: string[];
   images: string[];
   beds: number;
@@ -35,6 +37,7 @@ interface Property {
   image: string;
   description: string;
   landlord: string[]; // This will be an array containing [name, phone, email, etc.]
+  uid: string; // Add landlord UID field
 }
 
 const PropertyDetailPage = () => {
@@ -49,6 +52,25 @@ const PropertyDetailPage = () => {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [landlordProfile, setLandlordProfile] = useState<{
+    displayName?: string;
+    profilePicture?: string;
+    role?: string;
+    phone?: string;
+    email?: string;
+  } | null>(null);
+
+  // Function to fetch landlord profile data
+  const fetchLandlordProfile = async (uid: string) => {
+    try {
+      const userDoc = await getDoc(doc(db, "users", uid));
+      if (userDoc.exists()) {
+        setLandlordProfile(userDoc.data());
+      }
+    } catch (error) {
+      console.error("Error fetching landlord profile:", error);
+    }
+  };
 
   // Mock property data
   const propertyinfo = {
@@ -87,7 +109,7 @@ const PropertyDetailPage = () => {
     type: id === "1" ? "apartment" : id === "2" ? "house" : "villa",
     yearBuilt: id === "1" ? 2018 : id === "2" ? 2005 : 2020,
     availableFrom: "2023-12-01",
-    landlord: ["Alex Johnson", "(555) 123-4567", "alex@homehaven.com"], // [name, phone, email]
+    // landlord data now fetched from Firebase users collection
     availableDates: [
       {
         date: "2023-11-25",
@@ -201,6 +223,11 @@ const PropertyDetailPage = () => {
           const propertyData = docSnap.data() as Property;
 
           setProperty(propertyData);
+
+          // Fetch landlord profile if landlordUid exists
+          if (propertyData.uid) {
+            fetchLandlordProfile(propertyData.uid);
+          }
         } else {
           setError("Property not found.");
         }
@@ -331,21 +358,23 @@ const PropertyDetailPage = () => {
         <div className="container mx-auto">
           <div className="relative">
             {/* Main Image */}
-            <div className="w-full h-[500px] relative">
-              <Image
-                src={
-                  (property.images && property.images.length > 0
-                    ? property.images[activeImageIndex]
-                    : null) ||
-                  (propertyinfo.images && propertyinfo.images.length > 0
-                    ? propertyinfo.images[activeImageIndex]
-                    : null) ||
-                  "https://images.unsplash.com/photo-1613977257363-707ba9348227?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
-                }
-                alt={property.title}
-                fill
-                className="w-full h-full object-cover"
-              />
+            <div className="w-full h-[500px] relative bg-muted/30 border border-border/10 rounded-lg overflow-hidden">
+              <div className="absolute inset-2 bg-background rounded-md shadow-sm">
+                <Image
+                  src={
+                    (property.images && property.images.length > 0
+                      ? property.images[activeImageIndex]
+                      : null) ||
+                    (propertyinfo.images && propertyinfo.images.length > 0
+                      ? propertyinfo.images[activeImageIndex]
+                      : null) ||
+                    "https://images.unsplash.com/photo-1613977257363-707ba9348227?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
+                  }
+                  alt={property.title}
+                  fill
+                  className="w-full h-full object-contain rounded-md"
+                />
+              </div>
             </div>
             {/* Image Navigation - Show up to 7 images */}
             {((property.images && property.images.length > 1) ||
@@ -454,10 +483,8 @@ const PropertyDetailPage = () => {
                 <div className="flex items-center">
                   <Calendar size={20} className="mr-2 text-gray-600" />
                   <div>
-                    <div className="text-foreground">
-                      {propertyinfo.yearBuilt}
-                    </div>
-                    <div className="text-sm text-foreground">Year Built</div>
+                    <div className="text-background">{property.datePosted}</div>
+                    <div className="text-sm text-background">Year Built</div>
                   </div>
                 </div>
               </div>
@@ -469,7 +496,7 @@ const PropertyDetailPage = () => {
                 <div>
                   <h2 className="text-xl mb-3 text-slate-900">Features</h2>
                   <ul className="space-y-2">
-                    {propertyinfo.features.map((feature, index) => (
+                    {property.features.map((feature, index) => (
                       <li
                         key={index}
                         className="flex items-center text-gray-600"
@@ -486,7 +513,7 @@ const PropertyDetailPage = () => {
                 <div>
                   <h2 className="text-xl mb-3 text-slate-900">Amenities</h2>
                   <ul className="space-y-2">
-                    {propertyinfo.amenities.map((amenity, index) => (
+                    {property.amenities.map((amenity, index) => (
                       <li
                         key={index}
                         className="flex items-center text-gray-600"
@@ -654,10 +681,13 @@ const PropertyDetailPage = () => {
               </h2>
               <div className="flex items-center mb-4">
                 <Image
-                  src="https://images.unsplash.com/photo-1567963070256-729fb28b079c?q=80&w=576&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  src={
+                    landlordProfile?.profilePicture ||
+                    "https://images.unsplash.com/photo-1567963070256-729fb28b079c?q=80&w=576&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  }
                   alt={
+                    landlordProfile?.displayName ||
                     (property.landlord && property.landlord[0]) ||
-                    (propertyinfo.landlord && propertyinfo.landlord[0]) ||
                     "Property Manager"
                   }
                   className="w-16 h-16 rounded-full object-cover mr-4"
@@ -666,25 +696,27 @@ const PropertyDetailPage = () => {
                 />
                 <div>
                   <div className="font-medium text-slate-900">
-                    {(property.landlord && property.landlord[0]) ||
-                      (propertyinfo.landlord && propertyinfo.landlord[0]) ||
+                    {landlordProfile?.displayName ||
+                      (property.landlord && property.landlord[0]) ||
                       "Property Manager"}
                   </div>
-                  <div className="text-sm text-gray-500">Property Manager</div>
+                  <div className="text-sm text-gray-500">
+                    {landlordProfile?.role || "Property Manager"}
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <button className="w-full flex items-center justify-center bg-[#1e40af] hover:bg-[#1e3a8a] text-white py-2 rounded-md font-medium">
                   <Phone size={16} className="mr-2" />
-                  {(property.landlord && property.landlord[1]) ||
-                    (propertyinfo.landlord && propertyinfo.landlord[1]) ||
+                  {landlordProfile?.phone ||
+                    (property.landlord && property.landlord[1]) ||
                     "(555) 123-4567"}
                 </button>
                 <button className="w-full flex items-center justify-center border border-[#1e40af] text-[#1e40af] hover:bg-[#1e40af]/5 py-2 rounded-md font-medium">
                   <Mail size={16} className="mr-2" />
-                  {(property.landlord && property.landlord[2]) ||
-                    (propertyinfo.landlord && propertyinfo.landlord[2]) ||
+                  {landlordProfile?.email ||
+                    (property.landlord && property.landlord[2]) ||
                     "contact@example.com"}
                 </button>
               </div>

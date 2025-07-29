@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Users, Search, Filter, Phone, Mail, Star } from "lucide-react";
+import { Search, Filter, Phone, Mail, Star } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

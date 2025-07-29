@@ -8,30 +8,39 @@ import { updateUserData } from "@/lib/auth/auth-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { IKUpload } from 'imagekitio-react';
-import { getImageKitClientConfig } from '@/lib/imagekit';
+import { IKUpload } from "imagekitio-react";
+import { getImageKitClientConfig } from "@/lib/imagekit";
 
 // Dynamic import to prevent SSR issues with Leaflet
-const LocationMapModal = dynamic(() => import("@/components/location-map-modal"), {
-  ssr: false,
-});
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  Edit, 
-  Save, 
-  X, 
-  Camera, 
+const LocationMapModal = dynamic(
+  () => import("@/components/location-map-modal"),
+  {
+    ssr: false,
+  }
+);
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Edit,
+  Save,
+  X,
+  Camera,
   Loader2,
-  Map
+  Map,
 } from "lucide-react";
 
 // Define types for user data updates
@@ -92,13 +101,13 @@ export default function ProfilePage() {
         router.push("/dashboard/login");
         return;
       }
-      
+
       if (userData) {
         // Get the appropriate address field based on user type
         const getAddressField = () => {
-          if (userData.userType === 'tenant') {
+          if (userData.userType === "tenant") {
             return userData.currentAddress || "";
-          } else if (userData.userType === 'landlord') {
+          } else if (userData.userType === "landlord") {
             return userData.businessAddress || "";
           }
           return userData.location_address || "";
@@ -118,9 +127,9 @@ export default function ProfilePage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -137,16 +146,16 @@ export default function ProfilePage() {
         };
 
         // Set the appropriate address field based on user type
-        if (userData?.userType === 'tenant') {
+        if (userData?.userType === "tenant") {
           updateData.currentAddress = formData.address;
-        } else if (userData?.userType === 'landlord') {
+        } else if (userData?.userType === "landlord") {
           updateData.businessAddress = formData.address;
         } else {
           updateData.location_address = formData.address;
         }
 
         await updateUserData(user.uid, updateData);
-        
+
         // Refresh user data to get updated information
         await refreshUserData();
         toast.success("Profile updated successfully!");
@@ -162,9 +171,9 @@ export default function ProfilePage() {
     if (userData) {
       // Get the appropriate address field based on user type
       const getAddressField = () => {
-        if (userData.userType === 'tenant') {
+        if (userData.userType === "tenant") {
           return userData.currentAddress || "";
-        } else if (userData.userType === 'landlord') {
+        } else if (userData.userType === "landlord") {
           return userData.businessAddress || "";
         }
         return userData.location_address || "";
@@ -199,9 +208,9 @@ export default function ProfilePage() {
   }) => {
     try {
       // Update the form data with the new address
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        address: locationData.currentAddress || locationData.location_address
+        address: locationData.currentAddress || locationData.location_address,
       }));
 
       // If we're in editing mode, also update the user data
@@ -213,12 +222,15 @@ export default function ProfilePage() {
         };
 
         // Set the appropriate address field based on user type
-        if (userData?.userType === 'tenant') {
-          updateData.currentAddress = locationData.currentAddress || locationData.location_address;
-        } else if (userData?.userType === 'landlord') {
-          updateData.businessAddress = locationData.currentAddress || locationData.location_address;
+        if (userData?.userType === "tenant") {
+          updateData.currentAddress =
+            locationData.currentAddress || locationData.location_address;
+        } else if (userData?.userType === "landlord") {
+          updateData.businessAddress =
+            locationData.currentAddress || locationData.location_address;
         } else {
-          updateData.location_address = locationData.currentAddress || locationData.location_address;
+          updateData.location_address =
+            locationData.currentAddress || locationData.location_address;
         }
 
         if (user) {
@@ -254,7 +266,7 @@ export default function ProfilePage() {
         await updateUserData(user.uid, {
           profilePicture: response.url,
         });
-        
+
         // Refresh user data to show new profile picture
         await refreshUserData();
         setIsUploadingImage(false);
@@ -276,24 +288,26 @@ export default function ProfilePage() {
   // Get authentication parameters for ImageKit
   const authenticator = async () => {
     try {
-      const response = await fetch('/api/imagekit-auth', {
-        method: 'POST',
+      const response = await fetch("/api/imagekit-auth", {
+        method: "POST",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to get authentication parameters');
+        throw new Error("Failed to get authentication parameters");
       }
-      
+
       return await response.json();
     } catch (error) {
-      console.error('Authentication error:', error);
+      console.error("Authentication error:", error);
       throw error;
     }
   };
 
   const getInitials = (firstName?: string, lastName?: string) => {
     if (!firstName && !lastName) return "U";
-    return `${firstName?.charAt(0) || ""}${lastName?.charAt(0) || ""}`.toUpperCase();
+    return `${firstName?.charAt(0) || ""}${
+      lastName?.charAt(0) || ""
+    }`.toUpperCase();
   };
 
   if (loading) {
@@ -328,22 +342,24 @@ export default function ProfilePage() {
         onSuccess={onUploadSuccess}
         onError={onUploadError}
         accept="image/*"
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         transformation={{
-          pre: 'w-400,h-400,c-maintain_ratio',
+          pre: "w-400,h-400,c-maintain_ratio",
           post: [
             {
-              type: 'transformation',
-              value: 'w-200,h-200,c-maintain_ratio'
-            }
-          ]
+              type: "transformation",
+              value: "w-200,h-200,c-maintain_ratio",
+            },
+          ],
         }}
       />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Profile Settings</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+            Profile Settings
+          </h1>
           <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             Manage your account information and preferences
           </p>
@@ -358,17 +374,15 @@ export default function ProfilePage() {
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
-                    <AvatarImage 
-                      src={userData.profilePicture || user.photoURL || ""} 
-                      alt={`${userData.firstName} ${userData.lastName}`} 
+                    <AvatarImage
+                      src={userData.profilePicture || user.photoURL || ""}
+                      alt={`${userData.firstName} ${userData.lastName}`}
                     />
                     <AvatarFallback className="text-lg font-semibold">
                       {getInitials(userData.firstName, userData.lastName)}
                     </AvatarFallback>
                   </Avatar>
-                  
 
-                  
                   {/* Camera Button */}
                   <Button
                     size="icon"
@@ -393,12 +407,13 @@ export default function ProfilePage() {
                       {userData.userType}
                     </Badge>
                     <span className="text-xs sm:text-sm text-muted-foreground">
-                      Member since {new Date(userData.createdAt || Date.now()).getFullYear()}
+                      Member since{" "}
+                      {new Date(userData.createdAt || Date.now()).getFullYear()}
                     </span>
                   </CardDescription>
                 </div>
               </div>
-              
+
               {/* Action Buttons */}
               <div className="flex gap-2 w-full">
                 {isEditing ? (
@@ -407,13 +422,22 @@ export default function ProfilePage() {
                       <Save className="h-4 w-4 mr-2" />
                       Save
                     </Button>
-                    <Button onClick={handleCancel} variant="outline" size="sm" className="flex-1">
+                    <Button
+                      onClick={handleCancel}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
                       <X className="h-4 w-4 mr-2" />
                       Cancel
                     </Button>
                   </>
                 ) : (
-                  <Button onClick={() => setIsEditing(true)} size="sm" className="w-full">
+                  <Button
+                    onClick={() => setIsEditing(true)}
+                    size="sm"
+                    className="w-full"
+                  >
                     <Edit className="h-4 w-4 mr-2" />
                     Edit Profile
                   </Button>
@@ -426,15 +450,15 @@ export default function ProfilePage() {
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage 
-                      src={userData.profilePicture || user.photoURL || ""} 
-                      alt={`${userData.firstName} ${userData.lastName}`} 
+                    <AvatarImage
+                      src={userData.profilePicture || user.photoURL || ""}
+                      alt={`${userData.firstName} ${userData.lastName}`}
                     />
                     <AvatarFallback className="text-lg font-semibold">
                       {getInitials(userData.firstName, userData.lastName)}
                     </AvatarFallback>
                   </Avatar>
-                  
+
                   {/* Camera Button */}
                   <Button
                     size="icon"
@@ -459,7 +483,8 @@ export default function ProfilePage() {
                       {userData.userType}
                     </Badge>
                     <span className="text-sm text-muted-foreground">
-                      Member since {new Date(userData.createdAt || Date.now()).getFullYear()}
+                      Member since{" "}
+                      {new Date(userData.createdAt || Date.now()).getFullYear()}
                     </span>
                   </CardDescription>
                 </div>
@@ -501,7 +526,9 @@ export default function ProfilePage() {
           <CardContent className="space-y-4 sm:space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
+                <Label htmlFor="firstName" className="text-sm font-medium">
+                  First Name
+                </Label>
                 <Input
                   id="firstName"
                   name="firstName"
@@ -512,7 +539,9 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
+                <Label htmlFor="lastName" className="text-sm font-medium">
+                  Last Name
+                </Label>
                 <Input
                   id="lastName"
                   name="lastName"
@@ -528,7 +557,10 @@ export default function ProfilePage() {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium">
+                <Label
+                  htmlFor="email"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
                   <Mail className="h-4 w-4" />
                   Email Address
                 </Label>
@@ -544,7 +576,10 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium">
+                <Label
+                  htmlFor="phone"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
                   <Phone className="h-4 w-4" />
                   Phone Number
                 </Label>
@@ -561,7 +596,10 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address" className="flex items-center gap-2 text-sm font-medium">
+                <Label
+                  htmlFor="address"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
                   <MapPin className="h-4 w-4" />
                   Address
                 </Label>
@@ -575,10 +613,10 @@ export default function ProfilePage() {
                     className={`${!isEditing ? "bg-muted" : ""} flex-1`}
                     placeholder="Enter your address"
                   />
-                  {userData.userType === 'tenant' && isEditing && (
-                    <Button 
-                      type="button" 
-                      variant="outline" 
+                  {userData.userType === "tenant" && isEditing && (
+                    <Button
+                      type="button"
+                      variant="outline"
                       size="icon"
                       onClick={handleOpenMapModal}
                       className="flex-shrink-0"
@@ -590,7 +628,10 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth" className="flex items-center gap-2 text-sm font-medium">
+                <Label
+                  htmlFor="dateOfBirth"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
                   <Calendar className="h-4 w-4" />
                   Date of Birth
                 </Label>
@@ -613,7 +654,12 @@ export default function ProfilePage() {
                   <Save className="h-4 w-4 mr-2" />
                   Save Changes
                 </Button>
-                <Button onClick={handleCancel} variant="outline" size="sm" className="flex-1">
+                <Button
+                  onClick={handleCancel}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
                   <X className="h-4 w-4 mr-2" />
                   Cancel
                 </Button>
@@ -633,12 +679,13 @@ export default function ProfilePage() {
             ? {
                 latitude: userData.latitude,
                 longitude: userData.longitude,
-                location_address: userData.location_address || '',
-                currentAddress: userData.userType === 'tenant' 
-                  ? userData.currentAddress || ''
-                  : userData.userType === 'landlord'
-                  ? userData.businessAddress || ''
-                  : userData.location_address || ''
+                location_address: userData.location_address || "",
+                currentAddress:
+                  userData.userType === "tenant"
+                    ? userData.currentAddress || ""
+                    : userData.userType === "landlord"
+                    ? userData.businessAddress || ""
+                    : userData.location_address || "",
               }
             : null
         }
