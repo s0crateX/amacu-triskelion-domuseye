@@ -255,7 +255,7 @@ export default function LandlordDashboard() {
               Welcome back, {userData.firstName}! 👋
             </h1>
             <p className="text-muted-foreground mt-1">
-              Here's what's happening with your properties today
+              Here&apos;s what&apos;s happening with your properties today
             </p>
           </div>
         </div>
@@ -434,7 +434,7 @@ export default function LandlordDashboard() {
                   <Calendar className="h-5 w-5" />
                   Upcoming Tasks
                 </CardTitle>
-                <CardDescription>Don't miss important deadlines</CardDescription>
+                <CardDescription>Don&apos;t miss important deadlines</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">

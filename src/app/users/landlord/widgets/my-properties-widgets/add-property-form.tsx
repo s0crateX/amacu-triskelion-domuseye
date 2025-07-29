@@ -116,7 +116,7 @@ export default function AddPropertyForm({
     }
   }, [isEditMode, propertyToEdit]);
 
-  const handleInputChange = (field: keyof PropertyFormData, value: any) => {
+  const handleInputChange = (field: keyof PropertyFormData, value: string | number | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -138,7 +138,7 @@ export default function AddPropertyForm({
     toast.info("Uploading images...");
   };
 
-  const onUploadSuccess = (response: any) => {
+  const onUploadSuccess = (response: { url: string; [key: string]: unknown }) => {
     const imageUrl = response.url;
     setFormData(prev => ({
       ...prev,
@@ -148,7 +148,7 @@ export default function AddPropertyForm({
     toast.success("Image uploaded successfully");
   };
 
-  const onUploadError = (error: any) => {
+  const onUploadError = (error: Error | unknown) => {
     console.error("Upload error:", error);
     setUploadingImages(false);
     toast.error("Failed to upload image");
@@ -632,7 +632,7 @@ export default function AddPropertyForm({
                             folder="/Properties-Pictures"
                             onUploadStart={onUploadStart}
                             onUploadProgress={(progress: number) => {
-                              console.log("Upload progress:", progress);
+                              // Upload progress tracking
                             }}
                             onSuccess={onUploadSuccess}
                             onError={onUploadError}
@@ -672,7 +672,7 @@ export default function AddPropertyForm({
                               <div key={index} className="relative group">
                                 <img
                                   src={image}
-                                  alt={`Property ${index + 1}`}
+                                  alt={`Property image ${index + 1}`}
                                   className="w-full h-32 object-cover rounded-lg border"
                                 />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">

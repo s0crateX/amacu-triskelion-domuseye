@@ -19,7 +19,7 @@ const requests = [
     propertyTitle: "Modern Downtown Apartment",
     requestType: "Maintenance",
     subject: "Leaky faucet in kitchen",
-    description: "The kitchen faucet has been dripping constantly for the past week. It's getting worse and needs immediate attention.",
+    description: "The kitchen faucet has been dripping constantly for the past week. It&apos;s getting worse and needs immediate attention.",
     priority: "high",
     status: "pending",
     createdDate: "2024-01-15",

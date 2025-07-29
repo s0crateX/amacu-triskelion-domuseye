@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
+import L from "leaflet";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   Dialog,
@@ -69,7 +70,7 @@ export default function LocationMapModal({
   const [mapLoaded, setMapLoaded] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isGettingCurrentLocation, setIsGettingCurrentLocation] = useState(false);
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<L.Map | null>(null);
 
   // Initialize with existing location if available
   useEffect(() => {
