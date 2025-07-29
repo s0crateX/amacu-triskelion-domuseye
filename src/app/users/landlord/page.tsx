@@ -1,17 +1,14 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { 
-  Home, 
-  Plus, 
-  Users, 
-  DollarSign, 
-  TrendingUp, 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Plus,
+  Users,
+  DollarSign,
   Eye,
   Edit,
   Trash2,
-  MessageSquare,
   BarChart3,
   Calendar,
   AlertTriangle,
@@ -19,23 +16,25 @@ import {
   Clock,
   Building,
   Star,
-  Filter,
   Search,
   ArrowUpRight,
   Wrench,
   CreditCard,
   MapPin,
   Phone,
-  Mail
-} from "lucide-react"
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
-import { useAuth } from "@/lib/auth/auth-context"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/lib/auth/auth-context";
 
 // Enhanced sample data
 const dashboardStats = [
@@ -45,7 +44,7 @@ const dashboardStats = [
     change: "+2 this month",
     percentage: "+16.7%",
     icon: Building,
-    trend: "up"
+    trend: "up",
   },
   {
     title: "Active Tenants",
@@ -53,7 +52,7 @@ const dashboardStats = [
     change: "+5 this month",
     percentage: "+21.7%",
     icon: Users,
-    trend: "up"
+    trend: "up",
   },
   {
     title: "Monthly Revenue",
@@ -61,7 +60,7 @@ const dashboardStats = [
     change: "+₱45,000 from last month",
     percentage: "+12.0%",
     icon: DollarSign,
-    trend: "up"
+    trend: "up",
   },
   {
     title: "Maintenance Request",
@@ -69,9 +68,9 @@ const dashboardStats = [
     change: "+2 this week",
     percentage: "+40%",
     icon: Wrench,
-    trend: "up"
-  }
-]
+    trend: "up",
+  },
+];
 
 const sampleProperties = [
   {
@@ -87,7 +86,7 @@ const sampleProperties = [
     nextPayment: "2024-02-01",
     rating: 4.8,
     maintenanceStatus: "good",
-    leaseEnd: "2024-12-31"
+    leaseEnd: "2024-12-31",
   },
   {
     id: 2,
@@ -102,7 +101,7 @@ const sampleProperties = [
     nextPayment: "2024-02-05",
     rating: 4.6,
     maintenanceStatus: "needs_attention",
-    leaseEnd: "2024-10-15"
+    leaseEnd: "2024-10-15",
   },
   {
     id: 3,
@@ -115,9 +114,9 @@ const sampleProperties = [
     nextPayment: null,
     rating: 4.9,
     maintenanceStatus: "excellent",
-    leaseEnd: null
-  }
-]
+    leaseEnd: null,
+  },
+];
 
 const recentApplications = [
   {
@@ -127,7 +126,7 @@ const recentApplications = [
     date: "2024-01-15",
     status: "pending",
     phone: "+63 917 111 2222",
-    email: "maria.garcia@email.com"
+    email: "maria.garcia@email.com",
   },
   {
     id: 2,
@@ -136,7 +135,7 @@ const recentApplications = [
     date: "2024-01-14",
     status: "approved",
     phone: "+63 917 333 4444",
-    email: "robert.chen@email.com"
+    email: "robert.chen@email.com",
   },
   {
     id: 3,
@@ -145,9 +144,9 @@ const recentApplications = [
     date: "2024-01-13",
     status: "rejected",
     phone: "+63 917 555 6666",
-    email: "lisa.wong@email.com"
-  }
-]
+    email: "lisa.wong@email.com",
+  },
+];
 
 const upcomingTasks = [
   {
@@ -155,30 +154,30 @@ const upcomingTasks = [
     task: "Rent collection from John Doe",
     dueDate: "2024-02-01",
     priority: "high",
-    type: "payment"
+    type: "payment",
   },
   {
     id: 2,
     task: "Property inspection - Studio Unit",
     dueDate: "2024-02-03",
     priority: "medium",
-    type: "inspection"
+    type: "inspection",
   },
   {
     id: 3,
     task: "Lease renewal discussion - Jane Smith",
     dueDate: "2024-02-15",
     priority: "high",
-    type: "lease"
+    type: "lease",
   },
   {
     id: 4,
     task: "Maintenance check - Family House",
     dueDate: "2024-02-10",
     priority: "low",
-    type: "maintenance"
-  }
-]
+    type: "maintenance",
+  },
+];
 
 const maintenanceRequests = [
   {
@@ -188,7 +187,7 @@ const maintenanceRequests = [
     issue: "Leaking faucet in kitchen",
     priority: "medium",
     status: "pending",
-    dateReported: "2024-01-20"
+    dateReported: "2024-01-20",
   },
   {
     id: 2,
@@ -197,20 +196,20 @@ const maintenanceRequests = [
     issue: "Air conditioning not cooling",
     priority: "high",
     status: "in_progress",
-    dateReported: "2024-01-22"
-  }
-]
+    dateReported: "2024-01-22",
+  },
+];
 
 export default function LandlordDashboard() {
-  const router = useRouter()
-  const { user, userData, loading } = useAuth()
-  const [searchTerm, setSearchTerm] = useState("")
+  const router = useRouter();
+  const { user, userData, loading } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/')
+      router.push("/");
     }
-  }, [user, loading, router])
+  }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -220,30 +219,40 @@ export default function LandlordDashboard() {
           <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!user || !userData) {
-    return null
+    return null;
   }
 
-  const getPriorityColor = (priority: 'high' | 'medium' | 'low'): string => {
+  const getPriorityColor = (priority: "high" | "medium" | "low"): string => {
     switch (priority) {
-      case 'high': return 'destructive'
-      case 'medium': return 'secondary'
-      case 'low': return 'outline'
-      default: return 'outline'
+      case "high":
+        return "destructive";
+      case "medium":
+        return "secondary";
+      case "low":
+        return "outline";
+      default:
+        return "outline";
     }
-  }
+  };
 
-  const getStatusIcon = (status: 'completed' | 'in_progress' | 'pending' | string) => {
+  const getStatusIcon = (
+    status: "completed" | "in_progress" | "pending" | string
+  ) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="h-4 w-4 text-green-600" />
-      case 'in_progress': return <Clock className="h-4 w-4 text-yellow-600" />
-      case 'pending': return <AlertTriangle className="h-4 w-4 text-red-600" />
-      default: return <Clock className="h-4 w-4 text-muted-foreground" />
+      case "completed":
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case "in_progress":
+        return <Clock className="h-4 w-4 text-yellow-600" />;
+      case "pending":
+        return <AlertTriangle className="h-4 w-4 text-red-600" />;
+      default:
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -275,7 +284,9 @@ export default function LandlordDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-foreground mb-1">{stat.value}</div>
+                <div className="text-3xl font-bold text-foreground mb-1">
+                  {stat.value}
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-green-600 flex items-center">
                     <ArrowUpRight className="h-3 w-3 mr-1" />
@@ -298,13 +309,15 @@ export default function LandlordDashboard() {
                 <div className="flex justify-between items-center">
                   <div>
                     <CardTitle className="text-xl">Your Properties</CardTitle>
-                    <CardDescription>Manage and monitor your rental properties</CardDescription>
+                    <CardDescription>
+                      Manage and monitor your rental properties
+                    </CardDescription>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        placeholder="Search properties..." 
+                      <Input
+                        placeholder="Search properties..."
                         className="pl-10 w-64"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -320,7 +333,10 @@ export default function LandlordDashboard() {
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
                   {sampleProperties.map((property) => (
-                    <Card key={property.id} className="border hover:border-primary/50 transition-colors">
+                    <Card
+                      key={property.id}
+                      className="border hover:border-primary/50 transition-colors"
+                    >
                       <CardHeader className="pb-3">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -328,7 +344,9 @@ export default function LandlordDashboard() {
                               {property.title}
                               <div className="flex items-center">
                                 <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                                <span className="text-sm text-muted-foreground ml-1">{property.rating}</span>
+                                <span className="text-sm text-muted-foreground ml-1">
+                                  {property.rating}
+                                </span>
                               </div>
                             </CardTitle>
                             <CardDescription className="flex items-center gap-1">
@@ -336,7 +354,13 @@ export default function LandlordDashboard() {
                               {property.location}
                             </CardDescription>
                           </div>
-                          <Badge variant={property.status === 'occupied' ? 'default' : 'secondary'}>
+                          <Badge
+                            variant={
+                              property.status === "occupied"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
                             {property.status}
                           </Badge>
                         </div>
@@ -344,17 +368,23 @@ export default function LandlordDashboard() {
                       <CardContent className="space-y-3">
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
-                            <span className="text-muted-foreground">Monthly Rent</span>
-                            <p className="font-semibold text-lg">{property.rent}</p>
+                            <span className="text-muted-foreground">
+                              Monthly Rent
+                            </span>
+                            <p className="font-semibold text-lg">
+                              {property.rent}
+                            </p>
                           </div>
                           {property.tenant && (
                             <div>
-                              <span className="text-muted-foreground">Tenant</span>
+                              <span className="text-muted-foreground">
+                                Tenant
+                              </span>
                               <p className="font-medium">{property.tenant}</p>
                             </div>
                           )}
                         </div>
-                        
+
                         {property.tenant && (
                           <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted p-2 rounded">
                             <span>Next Payment: {property.nextPayment}</span>
@@ -363,11 +393,19 @@ export default function LandlordDashboard() {
                         )}
 
                         <div className="flex gap-2 pt-2">
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                          >
                             <Eye className="mr-2 h-3 w-3" />
                             View
                           </Button>
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                          >
                             <Edit className="mr-2 h-3 w-3" />
                             Edit
                           </Button>
@@ -398,19 +436,36 @@ export default function LandlordDashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {maintenanceRequests.map((request) => (
-                    <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg bg-card">
+                    <div
+                      key={request.id}
+                      className="flex items-center justify-between p-4 border rounded-lg bg-card"
+                    >
                       <div className="flex items-center gap-4">
                         <div className="flex items-center justify-center w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full">
                           <Wrench className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                         </div>
                         <div>
                           <p className="font-medium">{request.issue}</p>
-                          <p className="text-sm text-muted-foreground">{request.property} • {request.tenant}</p>
-                          <p className="text-xs text-muted-foreground">Reported: {request.dateReported}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {request.property} • {request.tenant}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Reported: {request.dateReported}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Badge variant={getPriorityColor(request.priority as 'high' | 'medium' | 'low') as "default" | "destructive" | "outline" | "secondary"}>
+                        <Badge
+                          variant={
+                            getPriorityColor(
+                              request.priority as "high" | "medium" | "low"
+                            ) as
+                              | "default"
+                              | "destructive"
+                              | "outline"
+                              | "secondary"
+                          }
+                        >
                           {request.priority}
                         </Badge>
                         {getStatusIcon(request.status)}
@@ -434,19 +489,31 @@ export default function LandlordDashboard() {
                   <Calendar className="h-5 w-5" />
                   Upcoming Tasks
                 </CardTitle>
-                <CardDescription>Don&apos;t miss important deadlines</CardDescription>
+                <CardDescription>
+                  Don&apos;t miss important deadlines
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {upcomingTasks.map((task) => (
-                    <div key={task.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                      <div className={`w-2 h-2 rounded-full ${
-                        task.priority === 'high' ? 'bg-red-500' : 
-                        task.priority === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                      }`} />
+                    <div
+                      key={task.id}
+                      className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          task.priority === "high"
+                            ? "bg-red-500"
+                            : task.priority === "medium"
+                            ? "bg-yellow-500"
+                            : "bg-green-500"
+                        }`}
+                      />
                       <div className="flex-1">
                         <p className="font-medium text-sm">{task.task}</p>
-                        <p className="text-xs text-muted-foreground">{task.dueDate}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {task.dueDate}
+                        </p>
                       </div>
                       <Button size="sm" variant="ghost">
                         <ArrowUpRight className="h-3 w-3" />
@@ -466,21 +533,33 @@ export default function LandlordDashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {recentApplications.map((application) => (
-                    <div key={application.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div
+                      key={application.id}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
                           <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                          <p className="font-medium text-sm">{application.applicant}</p>
-                          <p className="text-xs text-muted-foreground">{application.property}</p>
-                          <p className="text-xs text-muted-foreground">{application.date}</p>
+                          <p className="font-medium text-sm">
+                            {application.applicant}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {application.property}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {application.date}
+                          </p>
                         </div>
                       </div>
-                      <Badge 
+                      <Badge
                         variant={
-                          application.status === 'approved' ? 'default' :
-                          application.status === 'pending' ? 'secondary' : 'destructive'
+                          application.status === "approved"
+                            ? "default"
+                            : application.status === "pending"
+                            ? "secondary"
+                            : "destructive"
                         }
                       >
                         {application.status}
@@ -503,21 +582,27 @@ export default function LandlordDashboard() {
                     <Plus className="mr-3 h-4 w-4" />
                     <div className="text-left">
                       <div className="font-medium">Add New Property</div>
-                      <div className="text-xs text-muted-foreground">List a new rental</div>
+                      <div className="text-xs text-muted-foreground">
+                        List a new rental
+                      </div>
                     </div>
                   </Button>
                   <Button variant="outline" className="justify-start h-12">
                     <CreditCard className="mr-3 h-4 w-4" />
                     <div className="text-left">
                       <div className="font-medium">Payment Tracking</div>
-                      <div className="text-xs text-muted-foreground">Monitor rent payments</div>
+                      <div className="text-xs text-muted-foreground">
+                        Monitor rent payments
+                      </div>
                     </div>
                   </Button>
                   <Button variant="outline" className="justify-start h-12">
                     <BarChart3 className="mr-3 h-4 w-4" />
                     <div className="text-left">
                       <div className="font-medium">Financial Reports</div>
-                      <div className="text-xs text-muted-foreground">View income & expenses</div>
+                      <div className="text-xs text-muted-foreground">
+                        View income & expenses
+                      </div>
                     </div>
                   </Button>
                 </div>
@@ -527,5 +612,5 @@ export default function LandlordDashboard() {
         </div>
       </main>
     </div>
-  )
+  );
 }

@@ -94,7 +94,7 @@ export default function Home() {
 
             {/* Search BarBox Section */}
             <div className="relative">
-              <div className="bg-gradient-to-br from-primary/20 via-secondary/15 to-primary/10 rounded-3xl p-10 backdrop-blur-lg border border-border/30 shadow-2xl">
+              <div className="bg-gradient-to-br from-primary/20 via-secondary/15 to-primary/10 rounded-3xl p-7 backdrop-blur-lg border border-border/30 shadow-2xl">
                 <div className="space-y-8">
                   {/* Enhanced Title Section */}
                   <div className="text-center space-y-3">
@@ -130,8 +130,8 @@ export default function Home() {
                         <Image
                           src="/assets/images/Eyebot.png"
                           alt="AI Robot Eyebot - Your Intelligent Companion"
-                          width={200}
-                          height={200}
+                          width={150}
+                          height={150}
                           className="relative transition-all duration-700 hover:scale-110 active:scale-95 drop-shadow-2xl mx-auto"
                         />
                       </div>
@@ -197,6 +197,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <div className="py-10"></div>
       </section>
 
       {/* Features Section */}

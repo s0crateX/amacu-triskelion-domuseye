@@ -392,12 +392,21 @@ const PropertiesPage = () => {
         </div>
 
         {/* --- Properties Grid --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-15">
           {currentProperties.map((property) => (
             <PropertyCard
               key={property.id}
-              property={property}
-              onViewDetails={showPropertyDetailsModal}
+              id={property.uid}
+              image={property.image}
+              title={property.title}
+              price={property.price}
+              location={property.location}
+              beds={property.beds}
+              baths={property.baths}
+              sqft={property.sqft}
+              features={property.features}
+              isNew={property.isNew}
+              isVerified={property.isVerified}
             />
           ))}
         </div>

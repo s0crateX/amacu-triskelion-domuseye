@@ -25,8 +25,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Property } from "@/types/property";
 
@@ -115,54 +114,17 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
             target.src = "/next.svg";
           }}
         />
-        
-        {/* Image Navigation */}
-        {property.images && property.images.length > 1 && (
-          <>
-            <button
-              onClick={prevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              onClick={nextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <ChevronRight size={16} />
-            </button>
-            
-            {/* Image Indicators */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-              {property.images.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === currentImageIndex ? "bg-white" : "bg-white/50"
-                  }`}
-                />
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
-          {property.isNew && (
-            <Badge className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold">
+        <div className="absolute top-4 left-4 flex flex-col gap-2">
+          {isNew && (
+            <div className="bg-green-600 text-white px-2 py-1 text-xs font-bold rounded">
               NEW
-            </Badge>
+            </div>
           )}
-          {property.isVerified && (
-            <Badge className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold">
+          {isVerified && (
+            <div className="bg-[#1e40af] text-white px-2 py-1 text-xs font-bold rounded flex items-center">
               <CheckCircle size={12} className="mr-1" />
               VERIFIED
-            </Badge>
-          )}
-          {!property.available && (
-            <Badge variant="destructive" className="text-xs font-bold">
-              OCCUPIED
-            </Badge>
+            </div>
           )}
         </div>
 
@@ -185,33 +147,20 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
           <span className="text-xs opacity-80">/month</span>
         </div>
       </div>
-
-      <CardHeader className="p-4 pb-2">
-        <div className="space-y-2">
-          <div className="flex justify-between items-start">
-            <h3 className="text-lg font-semibold text-foreground line-clamp-1 flex-1">
-              {property.title || "Untitled Property"}
-            </h3>
-          </div>
-          
-          <div className="flex items-center text-muted-foreground">
-            <MapPin size={14} className="mr-1 flex-shrink-0" />
-            <span className="text-sm line-clamp-1">
-              {property.address || property.location || "Location not specified"}
-            </span>
-          </div>
-
-          {/* Property Type and Category */}
-          <div className="flex gap-2">
-            <Badge variant="outline" className="text-xs">
-              {property.type || "Property"}
-            </Badge>
-            {property.category && (
-              <Badge variant="secondary" className="text-xs">
-                {property.category}
-              </Badge>
-            )}
-          </div>
+      <CardHeader className="p-4 pb-0">
+        <div className="flex justify-between items-start">
+          <h3 className="text-lg font-semibold text-foreground">
+            {title || "Untitled Property"}
+          </h3>
+          <p className="text-[#1e40af] font-bold">
+            {price || "Price not available"}
+          </p>
+        </div>
+        <div className="flex items-center text-gray-600 mt-1">
+          <MapPin size={16} className="mr-1" />
+          <span className="text-sm">
+            {location || "Location not specified"}
+          </span>
         </div>
       </CardHeader>
 

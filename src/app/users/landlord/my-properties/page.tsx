@@ -20,7 +20,6 @@ import {
   Star,
   Users,
   Calendar,
-  Phone,
   Loader2,
   MessageSquare,
   MapPin,
@@ -38,7 +37,6 @@ import AddPropertyForm from '../widgets/my-properties-widgets/add-property-form'
 // Firebase imports
 import { 
   collection, 
-  getDocs, 
   query, 
   where, 
   orderBy, 
