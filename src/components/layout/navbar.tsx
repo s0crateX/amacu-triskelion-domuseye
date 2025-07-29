@@ -47,7 +47,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 const visitorNavigation = [
   { name: "Home", href: "/", icon: Home },
   { name: "Properties", href: "/dashboard/properties", icon: Building2 },
-  { name: "Agents", href: "/dashboard/agents", icon: Users },
+  { name: "Agents", href: "#/Agents", icon: Users },
   { name: "About Us", href: "/dashboard/about", icon: Info },
   { name: "Contact Us", href: "/dashboard/contact", icon: Phone },
 ];
@@ -61,11 +61,30 @@ const tenantNavigation = [
 
 const landlordNavigation = [
   { name: "Home", href: "/users/landlord", icon: Home },
-  { name: "My Properties", href: "/users/landlord/my-properties", icon: Building },
-  { name: "Applications", href: "/users/landlord/applications", icon: FileText },
+  {
+    name: "My Properties",
+    href: "/users/landlord/my-properties",
+    icon: Building,
+  },
+  {
+    name: "Applications",
+    href: "/users/landlord/applications",
+    icon: FileText,
+  },
   { name: "Agents", href: "/users/landlord/agents", icon: Users },
   { name: "Requests", href: "/users/landlord/requests", icon: MessageSquare },
-  { name: "Payment History", href: "/users/landlord/payment-history", icon: CreditCard },
+  {
+    name: "Payment History",
+    href: "/users/landlord/payment-history",
+    icon: CreditCard,
+  },
+];
+
+const agentNavigation = [
+  { name: "Home", href: "/users/agent", icon: Home },
+  { name: "My Properties", href: "/users/agent/my-properties", icon: Building },
+  { name: "Profile", href: "/users/agent/profile", icon: User },
+  { name: "Support", href: "/users/agent/support", icon: HeadphonesIcon },
 ];
 
 export function Navbar() {
@@ -140,6 +159,8 @@ export function Navbar() {
         return tenantNavigation;
       case "landlord":
         return landlordNavigation;
+      case "agent":
+        return agentNavigation;
       default:
         return visitorNavigation;
     }
@@ -151,7 +172,7 @@ export function Navbar() {
     try {
       await logoutUser();
       toast.success("Tenant logged out successfully");
-      
+
       // Use router.push for immediate redirect to main page
       router.push("/");
     } catch (error) {
@@ -164,7 +185,7 @@ export function Navbar() {
     try {
       await logoutUser();
       toast.success("Landlord logged out successfully");
-      
+
       // Use router.push for immediate redirect to main page
       router.push("/");
     } catch (error) {
@@ -175,10 +196,20 @@ export function Navbar() {
 
   // Generic logout handler that determines user type and calls appropriate function
   const handleLogout = async () => {
-    if (userData?.userType === 'tenant') {
+    if (userData?.userType === "tenant") {
       await handleTenantLogout();
-    } else if (userData?.userType === 'landlord') {
+    } else if (userData?.userType === "landlord") {
       await handleLandlordLogout();
+    } else if (userData?.userType === "agent") {
+      // Agent logout - use generic logout
+      try {
+        await logoutUser();
+        toast.success("Logged out successfully");
+        router.push("/");
+      } catch (error) {
+        console.error("Logout error:", error);
+        toast.error("Failed to logout");
+      }
     } else {
       // Fallback for other user types
       try {
@@ -200,9 +231,11 @@ export function Navbar() {
   };
 
   return (
-    <header className={`sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-transform duration-300 ease-in-out will-change-transform ${
-      isVisible ? 'translate-y-0' : '-translate-y-full'
-    }`}>
+    <header
+      className={`sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-transform duration-300 ease-in-out will-change-transform ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
+    >
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -348,10 +381,17 @@ export function Navbar() {
             ) : (
               <div className="hidden sm:flex items-center space-x-3">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href="/dashboard/login" className="whitespace-nowrap">Login</Link>
+                  <Link href="/dashboard/login" className="whitespace-nowrap">
+                    Login
+                  </Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link href="/dashboard/register" className="whitespace-nowrap">Sign Up</Link>
+                  <Link
+                    href="/dashboard/register"
+                    className="whitespace-nowrap"
+                  >
+                    Sign Up
+                  </Link>
                 </Button>
               </div>
             )}
@@ -364,7 +404,10 @@ export function Navbar() {
                   <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px] px-6 py-6">
+              <SheetContent
+                side="right"
+                className="w-[300px] sm:w-[400px] px-6 py-6"
+              >
                 <SheetHeader className="mb-6">
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 </SheetHeader>
@@ -406,6 +449,8 @@ export function Navbar() {
                             router.push(
                               userData?.userType === "tenant"
                                 ? "/users/tenant/profile"
+                                : userData?.userType === "agent"
+                                ? "/users/agent/profile"
                                 : "/profile"
                             );
                           }}

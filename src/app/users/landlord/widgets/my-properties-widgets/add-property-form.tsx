@@ -781,7 +781,7 @@ export default function AddPropertyForm({
                             fileName="property-image.jpg"
                             folder="/Properties-Pictures"
                             onUploadStart={onUploadStart}
-                            onUploadProgress={() => {
+                            onUploadProgress={(progress: number) => {
                               // Upload progress tracking
                             }}
                             onSuccess={onUploadSuccess}

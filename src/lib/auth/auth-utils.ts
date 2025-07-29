@@ -15,7 +15,7 @@ export interface UserData {
   firstName: string;
   lastName: string;
   phone: string;
-  userType: 'tenant' | 'landlord';
+  userType: 'tenant' | 'landlord' | 'agent';
   profilePicture?: string;
   // Location data
   latitude?: number;
@@ -39,7 +39,7 @@ export interface RegisterData {
   email: string;
   phone: string;
   password: string;
-  userType: 'tenant' | 'landlord';
+  userType: 'tenant' | 'landlord' | 'agent';
   // Optional fields
   currentAddress?: string;
   employmentStatus?: string;
@@ -90,6 +90,9 @@ export const registerUser = async (userData: RegisterData): Promise<UserData> =>
       firestoreUserData.companyName = userData.companyName || '';
       firestoreUserData.businessAddress = userData.businessAddress || '';
       firestoreUserData.propertyCount = userData.propertyCount || '';
+    } else if (userData.userType === 'agent') {
+      // Agent-specific fields can be added here if needed
+      // For now, agents use the base UserData structure
     }
 
     // Save user data to Firestore
