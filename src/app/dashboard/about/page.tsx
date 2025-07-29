@@ -3,9 +3,9 @@ import React, { useRef } from "react";
 import Image from "next/image";
 import {
   Home,
-  Shield,
-  Clock,
-  MapPin,
+  Search,
+  MessageCircle,
+  Bot,
   Building,
   LineChart,
   Zap,
@@ -28,7 +28,7 @@ const AboutPage = () => {
               "url('https://mallettegoring.com/wp-content/uploads/2020/05/home_banner_buidlings.svg')",
           }}
         ></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-20">
+        <div className="max-w-7xl mx-auto xl:mx-35 px-4 sm:px-6 lg:px-8 py-24 relative z-20">
           <div className="max-w-2xl">
             <h1 className="text-3xl xl:text-5xl font-bold text-white mb-6 text-center xl:text-start">
               DomusEye — Smart Property Management
@@ -46,8 +46,11 @@ const AboutPage = () => {
       </section>
       {/* About Content Section */}
       <section className="py-20 dark:bg-background">
-        <div ref={aboutRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
-          <div className="grid gap-16 md:grid-cols-2">
+        <div
+          ref={aboutRef}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20"
+        >
+          <div className="grid gap-16 md:grid-cols-2 xl:mx-7">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={
@@ -137,11 +140,11 @@ const AboutPage = () => {
               <div className="space-y-8">
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#1e40af]/10 flex items-center justify-center">
-                    <Shield size={24} className="text-[#1e40af]" />
+                    <Search size={24} className="text-[#1e40af]" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-primary/90 mb-2">
-                      landlord management
+                      Find Properties to Rent
                     </h3>
                     <p className="text-primary/60">
                       Lorem ipsum dolor sit amet consectetur adipiscing elit.
@@ -152,11 +155,11 @@ const AboutPage = () => {
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#cdb323]/20 flex items-center justify-center">
-                    <Clock size={24} className="text-[#cdb323]" />
+                    <MessageCircle size={24} className="text-[#cdb323]" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-primary/90 mb-2">
-                      AI Chatbot Assistance
+                      Talk to an Agent About Renting
                     </h3>
                     <p className="text-primary/60">
                       Lorem ipsum dolor sit amet consectetur adipiscing elit.
@@ -167,11 +170,11 @@ const AboutPage = () => {
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#1e40af]/10 flex items-center justify-center">
-                    <MapPin size={24} className="text-[#1e40af]" />
+                    <Bot size={24} className="text-[#1e40af]" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-primary/90 mb-2">
-                      Lorem ipsum dolor sit amet consectetur adipiscing elit.
+                      AI Chatbot Assistance
                     </h3>
                     <p className="text-primary/60">
                       Lorem ipsum dolor sit amet consectetur adipiscing elit.
@@ -186,7 +189,7 @@ const AboutPage = () => {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-primary/90 mb-2">
-                      Lorem ipsum dolor sit amet consectetur adipiscing elit.
+                      Landlord Rental Property Management
                     </h3>
                     <p className="text-primary/60">
                       Lorem ipsum dolor sit amet consectetur adipiscing elit.

@@ -154,7 +154,7 @@ export function Footer() {
                   className="w-full"
                 />
                 <Button className="w-full" size="sm">
-                  Subscribe
+                  Send
                 </Button>
               </div>
             </div>
