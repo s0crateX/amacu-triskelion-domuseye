@@ -232,13 +232,13 @@ const PropertiesPage = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center">
           {/* Animated Loading Spinner */}
           <div className="relative mb-8">
-            <div className="w-16 h-16 border-4 border-gray-200 border-t-[#cdb323] rounded-full animate-spin mx-auto"></div>
+            <div className="w-16 h-16 border-4 border-slate-200 dark:border-slate-700 border-t-slate-600 dark:border-t-slate-400 rounded-full animate-spin mx-auto"></div>
             <div
-              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-[#1e40af] rounded-full animate-spin mx-auto"
+              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-slate-500 dark:border-r-slate-300 rounded-full animate-spin mx-auto"
               style={{
                 animationDirection: "reverse",
                 animationDuration: "1.5s",
@@ -248,10 +248,10 @@ const PropertiesPage = () => {
 
           {/* Loading Text */}
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+            <h2 className="text-xl font-semibold text-foreground">
               Loading Properties
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-muted-foreground">
               Please wait while we fetch the latest listings...
             </p>
           </div>
@@ -259,15 +259,15 @@ const PropertiesPage = () => {
           {/* Animated Dots */}
           <div className="flex justify-center space-x-1 mt-4">
             <div
-              className="w-2 h-2 bg-[#cdb323] rounded-full animate-bounce"
+              className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-bounce"
               style={{ animationDelay: "0ms" }}
             ></div>
             <div
-              className="w-2 h-2 bg-[#1e40af] rounded-full animate-bounce"
+              className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-bounce"
               style={{ animationDelay: "150ms" }}
             ></div>
             <div
-              className="w-2 h-2 bg-[#cdb323] rounded-full animate-bounce"
+              className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-bounce"
               style={{ animationDelay: "300ms" }}
             ></div>
           </div>
@@ -279,7 +279,7 @@ const PropertiesPage = () => {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-6">
           {/* Error Icon */}
           <div className="mb-6">
@@ -302,16 +302,16 @@ const PropertiesPage = () => {
 
           {/* Error Content */}
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+            <h2 className="text-xl font-semibold text-foreground">
               Unable to Load Properties
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-muted-foreground">
               {error ||
                 "Something went wrong while loading the properties. Please try again."}
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-[#1e40af] hover:bg-[#1e3a8a] text-white rounded-md font-medium transition-colors"
+              className="px-6 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md font-medium transition-colors"
             >
               Try Again
             </button>
@@ -326,7 +326,7 @@ const PropertiesPage = () => {
       {/* --- Hero Section: Search & Advanced Filters --- */}
       <div className="py-0 px-4">
         <div className="container mx-auto">
-          <h1 className="text-3xl font-bold mb-10 mt-20">
+          <h1 className="text-3xl font-bold text-foreground mb-10 mt-20">
             Available Properties
           </h1>
           <p className="text-lg text-muted-foreground mb-6">
@@ -346,13 +346,13 @@ const PropertiesPage = () => {
             {/* Map Button */}
             <Button
               onClick={() => setIsMapModalOpen(true)}
-              className="bg-[#1e40af] hover:bg-[#1e3a8a] text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center h-12"
+              className="bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center h-12"
             >
               <Map size={18} className="mr-2" />
               View Map
             </Button>
             {/* Advanced Filters Button */}
-            <Button className="bg-[#cdb323] hover:bg-[#b8a01f] text-black px-6 py-3 rounded-lg font-medium flex items-center justify-center h-12">
+            <Button className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-6 py-3 rounded-lg font-medium flex items-center justify-center h-12">
               <SlidersHorizontal size={18} className="mr-2" />
               Advanced Filters
             </Button>
@@ -375,7 +375,7 @@ const PropertiesPage = () => {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="text-gray-600">Filter by:</span>
+            <span className="text-muted-foreground">Filter by:</span>
             <Select value={activeFilter} onValueChange={setActiveFilter}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Select type" />
@@ -404,12 +404,12 @@ const PropertiesPage = () => {
         {filteredProperties.length === 0 && !loading && (
           <div className="text-center py-12">
             <div className="mb-4">
-              <MapPin className="mx-auto h-12 w-12 text-gray-400" />
+              <MapPin className="mx-auto h-12 w-12 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-lg font-medium text-foreground mb-2">
               No properties found
             </h3>
-            <p className="text-gray-600 text-base max-w-md mx-auto">
+            <p className="text-muted-foreground text-base max-w-md mx-auto">
               {searchQuery || activeFilter !== "all" 
                 ? "Try adjusting your search criteria or filters to find more properties."
                 : "There are currently no available properties. Please check back later."
@@ -421,7 +421,7 @@ const PropertiesPage = () => {
                   setSearchQuery("");
                   setActiveFilter("all");
                 }}
-                className="mt-4 px-4 py-2 bg-[#1e40af] hover:bg-[#1e3a8a] text-white rounded-md font-medium transition-colors"
+                className="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md font-medium transition-colors"
               >
                 Clear Filters
               </button>

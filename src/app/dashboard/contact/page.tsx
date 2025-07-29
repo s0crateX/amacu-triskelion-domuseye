@@ -113,18 +113,18 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {contactInfo.map((info, index) => {
               const Icon = info.icon;
               return (
-                <Card key={index}>
-                  <CardContent className="flex items-start gap-4 p-6">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Icon className="h-5 w-5 text-primary" />
+                <Card key={index} className="border-l-4 border-l-primary/20">
+                  <CardContent className="flex items-start gap-3 p-4">
+                    <div className="p-1.5 rounded-md bg-primary/10 flex-shrink-0">
+                      <Icon className="h-4 w-4 text-primary" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">{info.title}</h3>
-                      <p className="text-muted-foreground whitespace-pre-line">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-medium text-sm mb-1">{info.title}</h3>
+                      <p className="text-muted-foreground text-sm whitespace-pre-line leading-relaxed">
                         {info.details}
                       </p>
                     </div>

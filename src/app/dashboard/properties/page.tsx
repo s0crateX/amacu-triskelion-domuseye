@@ -135,13 +135,13 @@ const PropertiesPage = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center">
           {/* Animated Loading Spinner */}
           <div className="relative mb-8">
-            <div className="w-16 h-16 border-4 border-gray-200 border-t-[#cdb323] rounded-full animate-spin mx-auto"></div>
+            <div className="w-16 h-16 border-4 border-slate-200 dark:border-slate-700 border-t-slate-600 dark:border-t-slate-400 rounded-full animate-spin mx-auto"></div>
             <div
-              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-[#1e40af] rounded-full animate-spin mx-auto"
+              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-slate-500 dark:border-r-slate-300 rounded-full animate-spin mx-auto"
               style={{
                 animationDirection: "reverse",
                 animationDuration: "1.5s",
@@ -151,10 +151,10 @@ const PropertiesPage = () => {
 
           {/* Loading Text */}
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+            <h2 className="text-xl font-semibold text-foreground">
               Loading Properties
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-muted-foreground">
               Please wait while we fetch the latest listings...
             </p>
           </div>
@@ -162,15 +162,15 @@ const PropertiesPage = () => {
           {/* Animated Dots */}
           <div className="flex justify-center space-x-1 mt-4">
             <div
-              className="w-2 h-2 bg-[#cdb323] rounded-full animate-bounce"
+              className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-bounce"
               style={{ animationDelay: "0ms" }}
             ></div>
             <div
-              className="w-2 h-2 bg-[#cdb323] rounded-full animate-bounce"
+              className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-bounce"
               style={{ animationDelay: "150ms" }}
             ></div>
             <div
-              className="w-2 h-2 bg-[#cdb323] rounded-full animate-bounce"
+              className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-bounce"
               style={{ animationDelay: "300ms" }}
             ></div>
           </div>
@@ -182,7 +182,7 @@ const PropertiesPage = () => {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           {/* Error Icon */}
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -203,15 +203,15 @@ const PropertiesPage = () => {
 
           {/* Error Message */}
           <div className="space-y-3">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+            <h2 className="text-xl font-semibold text-foreground">
               Unable to Load Properties
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">{error}</p>
+            <p className="text-muted-foreground">{error}</p>
 
             {/* Retry Button */}
             <button
               onClick={() => window.location.reload()}
-              className="mt-6 px-6 py-3 bg-[#cdb323] text-white rounded-lg hover:bg-[#b8a01f] transition-colors duration-200 font-medium"
+              className="mt-6 px-6 py-3 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-lg transition-colors duration-200 font-medium"
             >
               Try Again
             </button>
@@ -226,7 +226,7 @@ const PropertiesPage = () => {
       {/* --- Hero Section: Search & Advanced Filters --- */}
       <div className="py-6">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold mb-10 mt-20">
+          <h1 className="text-3xl font-bold mb-10 mt-20 text-foreground">
             Find Your Perfect Property
           </h1>
           <div className="flex flex-col md:flex-row gap-4">
@@ -243,13 +243,13 @@ const PropertiesPage = () => {
               {/* Map View Button */}
               <button 
                 onClick={() => setIsMapModalOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors"
+                className="bg-slate-700 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors"
               >
                 <Map size={18} className="mr-2" />
                 Map View
               </button>
               {/* Advanced Filters Button */}
-              <button className="bg-[#cdb323] hover:bg-[#b8a01f] text-black px-6 py-3 rounded-lg font-medium flex items-center justify-center">
+              <button className="bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors">
                 <SlidersHorizontal size={18} className="mr-2" />
                 Advanced Filters
               </button>
@@ -267,7 +267,7 @@ const PropertiesPage = () => {
               All Properties
             </h2>
             <div className="flex items-center space-x-2">
-              <span className="text-gray-600">Filter by:</span>
+              <span className="text-muted-foreground">Filter by:</span>
               <Select value={activeFilter} onValueChange={setActiveFilter}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Select type" />
@@ -295,7 +295,7 @@ const PropertiesPage = () => {
 
           {filteredProperties.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-600 text-lg">
+              <p className="text-muted-foreground text-lg">
                 No properties found matching your criteria.
               </p>
             </div>
