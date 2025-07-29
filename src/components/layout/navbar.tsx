@@ -47,7 +47,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 const visitorNavigation = [
   { name: "Home", href: "/", icon: Home },
   { name: "Properties", href: "/dashboard/properties", icon: Building2 },
-  { name: "Agents", href: "#/Agents", icon: Users },
+  { name: "Agents", href: "/dashboard/agent", icon: Users },
   { name: "About Us", href: "/dashboard/about", icon: Info },
   { name: "Contact Us", href: "/dashboard/contact", icon: Phone },
 ];

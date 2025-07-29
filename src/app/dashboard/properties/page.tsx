@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { SlidersHorizontal, MapPin } from "lucide-react";
+import { SlidersHorizontal, MapPin, Map } from "lucide-react";
 import { PropertyCard } from "@/components/propertycard";
 import { Input } from "@/components/ui/input";
+import PropertiesMapModal from "@/components/properties-map-modal";
 import {
   Select,
   SelectTrigger,
@@ -45,6 +46,7 @@ const PropertiesPage = () => {
   const [error, setError] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const itemsPerPage = 6;
 
   //Fetch properties from Firebase
@@ -219,11 +221,11 @@ const PropertiesPage = () => {
     );
   }
 
-  return (
-    <div className="bg-background min-h-screen lg:mx-8 xl:mx-30">
+   return (
+    <div className="bg-background min-h-screen">
       {/* --- Hero Section: Search & Advanced Filters --- */}
-      <div className="py-6 px-4">
-        <div className="container mx-auto">
+      <div className="py-6">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold mb-10 mt-20">
             Find Your Perfect Property
           </h1>
@@ -236,143 +238,153 @@ const PropertiesPage = () => {
                 className="pl-10 h-12 text-base border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
-            {/* Advanced Filters Button */}
-            <button className="bg-[#cdb323] hover:bg-[#b8a01f] text-black px-6 py-3 rounded-lg font-medium flex items-center justify-center">
-              <SlidersHorizontal size={18} className="mr-2" />
-              Advanced Filters
-            </button>
+            {/* Buttons Container */}
+            <div className="flex gap-3">
+              {/* Map View Button */}
+              <button 
+                onClick={() => setIsMapModalOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors"
+              >
+                <Map size={18} className="mr-2" />
+                Map View
+              </button>
+              {/* Advanced Filters Button */}
+              <button className="bg-[#cdb323] hover:bg-[#b8a01f] text-black px-6 py-3 rounded-lg font-medium flex items-center justify-center">
+                <SlidersHorizontal size={18} className="mr-2" />
+                Advanced Filters
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* --- Main Content Section --- */}
-      <div className="container mx-auto py-10 px-4">
-        {/* Filter Controls */}
-        <div className="flex items-center justify-between mb-8 mx-4 xl:mx-10">
-          <h2 className="text-2xl font-bold text-foreground hidden xl:block">
-            All Properties
-          </h2>
-          <div className="flex items-center space-x-2">
-            <span className="text-gray-600">Filter by:</span>
-            <Select value={activeFilter} onValueChange={setActiveFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                {propertyTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <div className="py-10">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Filter Controls */}
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold text-foreground hidden xl:block">
+              All Properties
+            </h2>
+            <div className="flex items-center space-x-2">
+              <span className="text-gray-600">Filter by:</span>
+              <Select value={activeFilter} onValueChange={setActiveFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {propertyTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
+          {/* --- Properties Grid --- */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-15">
+            {currentProperties.map((property) => (
+              <PropertyCard
+                key={property.id}
+                property={property}
+              />
+            ))}
+          </div>
+
+          {filteredProperties.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-600 text-lg">
+                No properties found matching your criteria.
+              </p>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-12 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 1) setCurrentPage(currentPage - 1);
+                      }}
+                      className={
+                        currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => {
+                      if (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+                      ) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentPage(page);
+                              }}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      } else if (
+                        page === currentPage - 2 ||
+                        page === currentPage + 2
+                      ) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        );
+                      }
+                      return null;
+                    }
+                  )}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < totalPages)
+                          setCurrentPage(currentPage + 1);
+                      }}
+                      className={
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </div>
-
-        {/* --- Properties Grid --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-15">
-          {currentProperties.map((property) => (
-            <PropertyCard
-              key={property.id}
-              id={property.uid}
-              image={property.image}
-              title={property.title}
-              price={property.price}
-              location={property.location}
-              beds={property.beds}
-              baths={property.baths}
-              sqft={property.sqft}
-              features={property.features}
-              isNew={property.isNew}
-              isVerified={property.isVerified}
-            />
-          ))}
-        </div>
-
-        {filteredProperties.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">
-              No properties found matching your criteria.
-            </p>
-          </div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="mt-12 flex justify-center">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage > 1) setCurrentPage(currentPage - 1);
-                    }}
-                    className={
-                      currentPage === 1
-                        ? "pointer-events-none opacity-50"
-                        : "cursor-pointer"
-                    }
-                  />
-                </PaginationItem>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (page) => {
-                    if (
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1)
-                    ) {
-                      return (
-                        <PaginationItem key={page}>
-                          <PaginationLink
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setCurrentPage(page);
-                            }}
-                            isActive={currentPage === page}
-                            className="cursor-pointer"
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      );
-                    } else if (
-                      page === currentPage - 2 ||
-                      page === currentPage + 2
-                    ) {
-                      return (
-                        <PaginationItem key={page}>
-                          <PaginationEllipsis />
-                        </PaginationItem>
-                      );
-                    }
-                    return null;
-                  }
-                )}
-
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage < totalPages)
-                        setCurrentPage(currentPage + 1);
-                    }}
-                    className={
-                      currentPage === totalPages
-                        ? "pointer-events-none opacity-50"
-                        : "cursor-pointer"
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
       </div>
+
+      {/* Properties Map Modal */}
+      <PropertiesMapModal
+        isOpen={isMapModalOpen}
+        onClose={() => setIsMapModalOpen(false)}
+        properties={filteredProperties}
+      />
     </div>
   );
 };

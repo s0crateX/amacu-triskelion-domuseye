@@ -15,8 +15,6 @@ import {
   Utensils,
   Dumbbell,
   Shield,
-  ChevronLeft,
-  ChevronRight,
   Heart
 } from "lucide-react";
 import {
@@ -25,7 +23,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Property } from "@/types/property";
 
@@ -54,24 +52,6 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
       onViewDetails(property);
     } else {
       router.push(`/dashboard/properties/${property.id}`);
-    }
-  };
-
-  const nextImage = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (property.images && property.images.length > 1) {
-      setCurrentImageIndex((prev) => 
-        prev === property.images.length - 1 ? 0 : prev + 1
-      );
-    }
-  };
-
-  const prevImage = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (property.images && property.images.length > 1) {
-      setCurrentImageIndex((prev) => 
-        prev === 0 ? property.images.length - 1 : prev - 1
-      );
     }
   };
 
@@ -115,12 +95,12 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
           }}
         />
         <div className="absolute top-4 left-4 flex flex-col gap-2">
-          {isNew && (
+          {property.isNew && (
             <div className="bg-green-600 text-white px-2 py-1 text-xs font-bold rounded">
               NEW
             </div>
           )}
-          {isVerified && (
+          {property.isVerified && (
             <div className="bg-[#1e40af] text-white px-2 py-1 text-xs font-bold rounded flex items-center">
               <CheckCircle size={12} className="mr-1" />
               VERIFIED
@@ -150,16 +130,16 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
       <CardHeader className="p-4 pb-0">
         <div className="flex justify-between items-start">
           <h3 className="text-lg font-semibold text-foreground">
-            {title || "Untitled Property"}
+            {property.title || "Untitled Property"}
           </h3>
           <p className="text-[#1e40af] font-bold">
-            {price || "Price not available"}
+            {formatPrice(property.price)}
           </p>
         </div>
         <div className="flex items-center text-gray-600 mt-1">
           <MapPin size={16} className="mr-1" />
           <span className="text-sm">
-            {location || "Location not specified"}
+            {property.location || property.address || "Location not specified"}
           </span>
         </div>
       </CardHeader>

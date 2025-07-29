@@ -396,17 +396,7 @@ const PropertiesPage = () => {
           {currentProperties.map((property) => (
             <PropertyCard
               key={property.id}
-              id={property.uid}
-              image={property.image}
-              title={property.title}
-              price={property.price}
-              location={property.location}
-              beds={property.beds}
-              baths={property.baths}
-              sqft={property.sqft}
-              features={property.features}
-              isNew={property.isNew}
-              isVerified={property.isVerified}
+              property={property}
             />
           ))}
         </div>

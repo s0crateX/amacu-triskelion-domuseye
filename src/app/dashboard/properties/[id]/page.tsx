@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   MapPin,
   Bed,
   Bath,
@@ -14,29 +13,31 @@ import {
   Share2,
   Heart,
   Star,
+  Snowflake,
+  Wifi,
+  Car,
+  ChefHat,
+  Hammer,
+  WashingMachine,
+  Utensils,
+  Smartphone,
+  Dumbbell,
+  Waves,
+  Building,
+  Users,
+  Package,
+  PawPrint,
+  Bike,
+  Zap,
 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import Image from "next/image";
 import { doc, getDoc } from "firebase/firestore";
 import { Property } from "@/types/property";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 //import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api'
-
-interface Property {
-  type: string[];
-  images: string[];
-  beds: number;
-  baths: number;
-  sqft: number;
-  features: string[];
-  isNew?: boolean;
-  isVerified?: boolean;
-  title: string;
-  location: string;
-  price: string;
-  image: string;
-  description: string;
-  landlord: string[]; // This will be an array containing [name, phone, email, etc.]
-}
 
 const PropertyDetailPage = () => {
   // All hooks must be called at the top level
@@ -57,6 +58,35 @@ const PropertyDetailPage = () => {
     phone?: string;
     email?: string;
   } | null>(null);
+
+  // Icon mapping functions
+  const getFeatureIcon = (feature: string) => {
+    const featureMap: { [key: string]: React.ReactNode } = {
+      "Air Conditioning": <Snowflake size={16} className="text-[#1e40af]" />,
+      "WiFi": <Wifi size={16} className="text-[#1e40af]" />,
+      "Parking": <Car size={16} className="text-[#1e40af]" />,
+      "Stainless Steel Appliances": <ChefHat size={16} className="text-[#1e40af]" />,
+      "Hardwood Floors": <Hammer size={16} className="text-[#1e40af]" />,
+      "In-Unit Laundry": <WashingMachine size={16} className="text-[#1e40af]" />,
+      "Dishwasher": <Utensils size={16} className="text-[#1e40af]" />,
+      "Smart Home Features": <Smartphone size={16} className="text-[#1e40af]" />,
+    };
+    return featureMap[feature] || <CheckCircle size={16} className="text-[#1e40af]" />;
+  };
+
+  const getAmenityIcon = (amenity: string) => {
+    const amenityMap: { [key: string]: React.ReactNode } = {
+      "Fitness Center": <Dumbbell size={16} className="text-[#cdb323]" />,
+      "Swimming Pool": <Waves size={16} className="text-[#cdb323]" />,
+      "Rooftop Deck": <Building size={16} className="text-[#cdb323]" />,
+      "Concierge Service": <Users size={16} className="text-[#cdb323]" />,
+      "Package Receiving": <Package size={16} className="text-[#cdb323]" />,
+      "Pet Friendly": <PawPrint size={16} className="text-[#cdb323]" />,
+      "Bike Storage": <Bike size={16} className="text-[#cdb323]" />,
+      "EV Charging Stations": <Zap size={16} className="text-[#cdb323]" />,
+    };
+    return amenityMap[amenity] || <CheckCircle size={16} className="text-[#cdb323]" />;
+  };
 
   // Function to fetch landlord profile data
   const fetchLandlordProfile = async (uid: string) => {
@@ -242,7 +272,7 @@ const PropertyDetailPage = () => {
             longitude: data.longitude || 0,
             address: data.address || "",
             description: data.description || "",
-            landlord: data.landlord || [],
+            landlord: Array.isArray(data.landlord) ? data.landlord : [],
             subtype: data.subtype || "",
             kitchen: data.kitchen || "",
             parking: data.parking || 0,
@@ -254,14 +284,13 @@ const PropertyDetailPage = () => {
             tenant: data.tenant,
             status: data.status,
             rating: data.rating,
-            ...data,
           };
 
           setProperty(propertyData);
 
           // Fetch landlord profile if landlordUid exists
-          if (propertyData.uid) {
-            fetchLandlordProfile(propertyData.uid);
+          if (propertyData.landlord) {
+            fetchLandlordProfile(propertyData.landlord[0]);
           }
         } else {
           setError("Property not found.");
@@ -356,12 +385,12 @@ const PropertyDetailPage = () => {
             </p>
 
             {/* Back Button */}
-            <button
+            <Button
               onClick={() => router.push("/dashboard/properties")}
-              className="mt-6 px-6 py-3 bg-[#cdb323] text-white rounded-lg hover:bg-[#b8a01f] transition-colors duration-200 font-medium"
+              className="mt-6"
             >
               Back to Properties
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -376,18 +405,6 @@ const PropertyDetailPage = () => {
 
   return (
     <div className="bg-background min-h-screen lg:mx-8 xl:mx-30">
-      {/* Back button */}
-      <div className="bg-background/30 shadow-sm">
-        <div className="container px-4 py-4">
-          <button
-            onClick={() => router.push("/dashboard/properties")}
-            className="flex items-center text-foreground hover:text-[#cdb323] transition-colors"
-          >
-            <ArrowLeft size={18} className="mr-2" />
-            Back to Properties
-          </button>
-        </div>
-      </div>
       {/* Property Images Gallery */}
       <div className="bg-background/30">
         <div className="container mx-auto">
@@ -453,322 +470,334 @@ const PropertyDetailPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Main Property Info */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                    {property.title}
-                  </h1>
-                  <div className="flex items-center text-gray-600 mb-4">
-                    <MapPin size={18} className="mr-1" />
-                    <span>{property.location}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {property.isNew && (
-                      <span className="bg-[#cdb323] text-white px-2 py-1 text-xs font-bold rounded">
-                        NEW
-                      </span>
-                    )}
-                    {property.isVerified && (
-                      <span className="bg-[#1e40af] text-white px-2 py-1 text-xs font-bold rounded flex items-center">
-                        <CheckCircle size={12} className="mr-1" />
-                        VERIFIED
-                      </span>
-                    )}
-                    <span className="bg-gray-100 text-gray-700 px-2 py-1 text-xs font-bold rounded">
-                      {property.type}
-                    </span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-[#1e40af]">
-                    {property.price}
-                  </div>
-                  <div className="text-gray-500 text-sm">
-                    Available from {propertyinfo.availableFrom}
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-between mb-6 py-4 border-y border-gray-200">
-                <div className="flex items-center">
-                  <Bed size={20} className="mr-2 text-gray-600" />
+            <Card className="mb-6">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
                   <div>
-                    <div className="font-semibold text-slate-900">
-                      {property.beds}
+                    <h1 className="text-3xl font-bold text-foreground mb-2">
+                      {property.title}
+                    </h1>
+                    <div className="flex items-center text-muted-foreground mb-4">
+                      <MapPin size={18} className="mr-1" />
+                      <span>{property.location}</span>
                     </div>
-                    <div className="text-sm text-slate-900">Bedrooms</div>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <Bath size={20} className="mr-2 text-gray-600" />
-                  <div>
-                    <div className="font-semibold text-slate-900">
-                      {property.baths}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {property.isNew && (
+                        <Badge variant="default" className="bg-[#cdb323] hover:bg-[#cdb323]/90">
+                          NEW
+                        </Badge>
+                      )}
+                      {property.isVerified && (
+                        <Badge variant="default" className="bg-[#1e40af] hover:bg-[#1e40af]/90">
+                          <CheckCircle size={12} className="mr-1" />
+                          VERIFIED
+                        </Badge>
+                      )}
+                      <Badge variant="secondary">
+                        {property.type}
+                      </Badge>
                     </div>
-                    <div className="text-sm text-slate-900">Bathrooms</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-[#1e40af]">
+                      {property.price}
+                    </div>
+                    <div className="text-muted-foreground text-sm">
+                      Available from {propertyinfo.availableFrom}
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center">
-                  <Home size={20} className="mr-2 text-slate-900" />
-                  <div>
-                    <div className="text-slate-900">{property.sqft}</div>
-                    <div className="text-sm text-slate-900">Sq Ft</div>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <Calendar size={20} className="mr-2 text-gray-600" />
-                  <div>
-                    <div className="text-background">{property.datePosted}</div>
-                    <div className="text-sm text-background">Year Built</div>
-                  </div>
-                </div>
-              </div>
-              <h2 className="text-xl font-semibold mb-3 text-slate-900">
-                Description
-              </h2>
-              <p className="text-gray-600 mb-6">{property.description}</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <h2 className="text-xl mb-3 text-slate-900">Features</h2>
-                  <ul className="space-y-2">
-                    {property.features.map((feature, index) => (
-                      <li
-                        key={index}
-                        className="flex items-center text-gray-600"
-                      >
-                        <CheckCircle
-                          size={16}
-                          className="mr-2 text-[#1e40af]"
-                        />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h2 className="text-xl mb-3 text-slate-900">Amenities</h2>
-                  <ul className="space-y-2">
-                    {property.amenities.map((amenity, index) => (
-                      <li
-                        key={index}
-                        className="flex items-center text-gray-600"
-                      >
-                        <CheckCircle
-                          size={16}
-                          className="mr-2 text-[#cdb323]"
-                        />
-                        {amenity}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-            {/* Location Section */}
-            <div className="bg-background rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Location</h2>
-              <div className="rounded-lg overflow-hidden mb-4">
-                {/*
-                <LoadScript googleMapsApiKey="API">
-                  <GoogleMap
-                    mapContainerStyle={mapContainerStyle}
-                    center={property.coordinates}
-                    zoom={15}
-                  >
-                    <Marker position={property.coordinates} />
-                  </GoogleMap>
-                </LoadScript>*/}
-              </div>
-              <h3 className="font-semibold mb-2">Nearby Places</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {propertyinfo.nearbyPlaces.map((place, index) => (
-                  <div key={index} className="flex items-center">
-                    <MapPin size={16} className="mr-2 text-gray-500" />
+                <div className="flex justify-between mb-6 py-4 border-y border-border">
+                  <div className="flex items-center">
+                    <Bed size={20} className="mr-2 text-muted-foreground" />
                     <div>
-                      <div className="text-gray-700">{place.name}</div>
-                      <div className="text-xs text-gray-500">
-                        {place.distance}
+                      <div className="font-semibold text-foreground">
+                        {property.beds}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Bedrooms</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    <Bath size={20} className="mr-2 text-muted-foreground" />
+                    <div>
+                      <div className="font-semibold text-foreground">
+                        {property.baths}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Bathrooms</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    <Home size={20} className="mr-2 text-muted-foreground" />
+                    <div>
+                      <div className="font-semibold text-foreground">{property.sqft}</div>
+                      <div className="text-sm text-muted-foreground">Sq Ft</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    <Calendar size={20} className="mr-2 text-muted-foreground" />
+                    <div>
+                      <div className="font-semibold text-foreground">{propertyinfo.yearBuilt}</div>
+                      <div className="text-sm text-muted-foreground">Year Built</div>
+                    </div>
+                  </div>
+                </div>
+                <h2 className="text-xl font-semibold mb-3 text-foreground">
+                  Description
+                </h2>
+                <p className="text-muted-foreground mb-6">{property.description}</p>
+                <div className="mb-6">
+                  <div className="mb-6">
+                    <h2 className="text-xl mb-3 text-foreground">Features</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {property.features.map((feature, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center p-3 bg-muted/30 rounded-lg border border-border/20 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="mr-2">
+                            {getFeatureIcon(feature)}
+                          </div>
+                          <span className="text-sm text-muted-foreground">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h2 className="text-xl mb-3 text-foreground">Amenities</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {propertyinfo.amenities.map((amenity, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center p-3 bg-muted/30 rounded-lg border border-border/20 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="mr-2">
+                            {getAmenityIcon(amenity)}
+                          </div>
+                          <span className="text-sm text-muted-foreground">{amenity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            {/* Location Section */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Location</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-lg overflow-hidden mb-4">
+                  {/*
+                  <LoadScript googleMapsApiKey="API">
+                    <GoogleMap
+                      mapContainerStyle={mapContainerStyle}
+                      center={property.coordinates}
+                      zoom={15}
+                    >
+                      <Marker position={property.coordinates} />
+                    </GoogleMap>
+                  </LoadScript>*/}
+                </div>
+                <h3 className="font-semibold mb-2 text-foreground">Nearby Places</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {propertyinfo.nearbyPlaces.map((place, index) => (
+                    <div key={index} className="flex items-center">
+                      <MapPin size={16} className="mr-2 text-muted-foreground" />
+                      <div>
+                        <div className="text-foreground">{place.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {place.distance}
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+            {/* Reviews Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Reviews</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {propertyinfo.reviews.map((review) => (
+                  <div
+                    key={review.id}
+                    className="border-b border-border pb-4 mb-4 last:border-0"
+                  >
+                    <div className="flex justify-between mb-2">
+                      <div className="font-medium text-foreground">
+                        {review.user}
+                      </div>
+                      <div className="text-sm text-muted-foreground">{review.date}</div>
+                    </div>
+                    <div className="flex items-center mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={16}
+                          className={
+                            i < review.rating
+                              ? "text-[#cdb323] fill-[#cdb323]"
+                              : "text-muted-foreground"
+                          }
+                        />
+                      ))}
+                    </div>
+                    <p className="text-muted-foreground">{review.comment}</p>
                   </div>
                 ))}
-              </div>
-            </div>
-            {/* Reviews Section */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4 text-slate-900">
-                Reviews
-              </h2>
-              {propertyinfo.reviews.map((review) => (
-                <div
-                  key={review.id}
-                  className="border-b border-gray-200 pb-4 mb-4 last:border-0"
-                >
-                  <div className="flex justify-between mb-2">
-                    <div className="font-medium text-slate-900">
-                      {review.user}
-                    </div>
-                    <div className="text-sm text-gray-500">{review.date}</div>
-                  </div>
-                  <div className="flex items-center mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={16}
-                        className={
-                          i < review.rating
-                            ? "text-[#cdb323] fill-[#cdb323]"
-                            : "text-gray-300"
-                        }
-                      />
-                    ))}
-                  </div>
-                  <p className="text-gray-600">{review.comment}</p>
-                </div>
-              ))}
-            </div>
+              </CardContent>
+            </Card>
           </div>
           {/* Right Column - Contact & Scheduling */}
           <div className="lg:col-span-1">
             {/* Schedule Viewing Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4 text-slate-900">
-                Schedule a Viewing
-              </h2>
-              {showScheduleSuccess ? (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-4">
-                  Your viewing has been scheduled! We&apos;ll be in touch
-                  shortly to confirm.
-                </div>
-              ) : (
-                <>
-                  <p className="text-gray-600 mb-4">
-                    Select an available date to schedule a viewing of this
-                    property:
-                  </p>
-                  <div className="grid grid-cols-7 gap-1 mb-6">
-                    {calendarDates.map((date, index) => (
-                      <button
-                        key={index}
-                        onClick={() =>
-                          date.isAvailable
-                            ? handleScheduleViewing(date.date)
-                            : null
-                        }
-                        disabled={!date.isAvailable}
-                        className={`
-                          p-2 rounded-md text-center
-                          ${
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Schedule a Viewing</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {showScheduleSuccess ? (
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded-md mb-4">
+                    Your viewing has been scheduled! We&apos;ll be in touch
+                    shortly to confirm.
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-muted-foreground mb-4">
+                      Select an available date to schedule a viewing of this
+                      property:
+                    </p>
+                    <div className="grid grid-cols-7 gap-1 mb-6">
+                      {calendarDates.map((date, index) => (
+                        <button
+                          key={index}
+                          onClick={() =>
                             date.isAvailable
-                              ? date.date === selectedDate
-                                ? "bg-[#1e40af] text-white"
-                                : "hover:bg-[#1e40af]/10 border border-gray-200"
-                              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              ? handleScheduleViewing(date.date)
+                              : null
                           }
-                          ${date.isToday ? "border-2 border-[#cdb323]" : ""}
-                        `}
-                      >
-                        <div className="text-xs">{date.month}</div>
-                        <div className="font-medium">{date.day}</div>
-                      </button>
-                    ))}
-                  </div>
-                  {selectedDate && (
-                    <div className="mb-6">
-                      <h3 className="font-medium mb-2">
-                        Available Time Slots:
-                      </h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        {propertyinfo.availableDates
-                          .find((d) => d.date === selectedDate)
-                          ?.timeSlots.map((time, index) => (
-                            <button
-                              key={index}
-                              className="bg-gray-100 hover:bg-[#1e40af]/10 py-2 px-3 rounded-md text-gray-700"
-                            >
-                              {time}
-                            </button>
-                          ))}
-                      </div>
+                          disabled={!date.isAvailable}
+                          className={`
+                            p-2 rounded-md text-center transition-colors
+                            ${
+                              date.isAvailable
+                                ? date.date === selectedDate
+                                  ? "bg-[#1e40af] text-white"
+                                  : "hover:bg-accent border border-border text-foreground"
+                                : "bg-muted text-muted-foreground cursor-not-allowed"
+                            }
+                            ${date.isToday ? "border-2 border-[#cdb323]" : ""}
+                          `}
+                        >
+                          <div className="text-xs">{date.month}</div>
+                          <div className="font-medium">{date.day}</div>
+                        </button>
+                      ))}
                     </div>
-                  )}
-                  <button
-                    onClick={handleSubmitSchedule}
-                    disabled={!selectedDate}
-                    className={`
-                      w-full py-3 rounded-md font-medium text-white
-                      ${
-                        selectedDate
-                          ? "bg-[#1e40af] hover:bg-[#1e3a8a]"
-                          : "bg-gray-300 cursor-not-allowed"
-                      }
-                    `}
-                  >
-                    Schedule Viewing
-                  </button>
-                </>
-              )}
-            </div>
+                    {selectedDate && (
+                      <div className="mb-6">
+                        <h3 className="font-medium mb-2 text-foreground">
+                          Available Time Slots:
+                        </h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          {propertyinfo.availableDates
+                            .find((d) => d.date === selectedDate)
+                            ?.timeSlots.map((time, index) => (
+                              <Button
+                                key={index}
+                                variant="outline"
+                                className="py-2 px-3"
+                              >
+                                {time}
+                              </Button>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                    <Button
+                      onClick={handleSubmitSchedule}
+                      disabled={!selectedDate}
+                      className="w-full"
+                    >
+                      Schedule Viewing
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
             {/* Landlord Contact Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4 text-slate-900">
-                Contact
-              </h2>
-              <div className="flex items-center mb-4">
-                <Image
-                  src={
-                    landlordProfile?.profilePicture ||
-                    "https://images.unsplash.com/photo-1567963070256-729fb28b079c?q=80&w=576&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                  }
-                  alt={
-                    landlordProfile?.displayName ||
-                    (property.landlord && property.landlord[0]) ||
-                    "Property Manager"
-                  }
-                  className="w-16 h-16 rounded-full object-cover mr-4"
-                  width={64}
-                  height={64}
-                />
-                <div>
-                  <div className="font-medium text-slate-900">
-                    {landlordProfile?.displayName ||
-                      (property.landlord && property.landlord[0]) ||
-                      "Property Manager"}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Contact Landlord</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col items-center text-center mb-6">
+                  <div className="relative mb-4">
+                    <Image
+                      src={
+                        landlordProfile?.profilePicture ||
+                        "https://images.unsplash.com/photo-1567963070256-729fb28b079c?q=80&w=576&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                      }
+                      alt={
+                        landlordProfile?.displayName ||
+                        (property.landlord && property.landlord[0]) ||
+                        "Landlord"
+                      }
+                      className="w-20 h-20 rounded-full object-cover border-4 border-background shadow-lg"
+                      width={80}
+                      height={80}
+                    />
+                    {/* Online status indicator */}
+                    <div className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-background rounded-full"></div>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {landlordProfile?.role || "Property Manager"}
+                  <div>
+                    <h3 className="font-semibold text-lg text-foreground mb-1">
+                      {landlordProfile?.displayName ||
+                        (property.landlord && property.landlord[0]) ||
+                        "Landlord"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {landlordProfile?.role || "Landlord"}
+                    </p>
+                    <div className="flex items-center justify-center text-xs text-muted-foreground">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Available now
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-3">
-                <button className="w-full flex items-center justify-center bg-[#1e40af] hover:bg-[#1e3a8a] text-white py-2 rounded-md font-medium">
-                  <Phone size={16} className="mr-2" />
-                  {landlordProfile?.phone ||
-                    (property.landlord && property.landlord[1]) ||
-                    "(555) 123-4567"}
-                </button>
-                <button className="w-full flex items-center justify-center border border-[#1e40af] text-[#1e40af] hover:bg-[#1e40af]/5 py-2 rounded-md font-medium">
-                  <Mail size={16} className="mr-2" />
-                  {landlordProfile?.email ||
-                    (property.landlord && property.landlord[2]) ||
-                    "contact@example.com"}
-                </button>
-              </div>
-            </div>
+                <div className="space-y-3">
+                  <Button className="w-full" variant="default">
+                    <Phone size={16} className="mr-2" />
+                    Call {landlordProfile?.phone ||
+                      (property.landlord && property.landlord[1]) ||
+                      "(555) 123-4567"}
+                  </Button>
+                  <Button className="w-full" variant="outline">
+                    <Mail size={16} className="mr-2" />
+                    Email {landlordProfile?.displayName?.split(' ')[0] || "Landlord"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
             {/* Actions Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex justify-between">
-                <button className="flex items-center text-gray-600 hover:text-[#1e40af]">
-                  <Share2 size={18} className="mr-2" />
-                  Share
-                </button>
-                <button className="flex items-center text-gray-600 hover:text-[#1e40af]">
-                  <Heart size={18} className="mr-2" />
-                  Save
-                </button>
-              </div>
-            </div>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex justify-between">
+                  <Button variant="ghost" className="flex items-center">
+                    <Share2 size={18} className="mr-2" />
+                    Share
+                  </Button>
+                  <Button variant="ghost" className="flex items-center">
+                    <Heart size={18} className="mr-2" />
+                    Save
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
