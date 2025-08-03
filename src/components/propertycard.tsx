@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Property } from "@/types/property";
 
 interface PropertyCardProps {
@@ -85,10 +86,11 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
       {/* Image Section with Gallery */}
       <div className="relative h-56 overflow-hidden">
-        <img
+        <Image
           src={mainImage}
           alt={property.title || "Property image"}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.src = "/next.svg";

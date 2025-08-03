@@ -1,19 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { 
-  Search, 
-  MapPin, 
-  Star, 
-  Phone, 
-  Mail, 
-  Building2, 
-  Users, 
+import {
+  Search,
+  MapPin,
+  Star,
+  Phone,
+  Mail,
+  Users,
   Award,
   Filter,
   MessageCircle,
   Home,
-  Calendar
+  Calendar,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,15 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 // Mock agent data with Filipino names
 const mockAgents = [
@@ -49,9 +41,13 @@ const mockAgents = [
     specialties: ["Residential", "Commercial", "Luxury"],
     phone: "+63 917 123 4567",
     email: "maria.santos@domuseye.com",
-    description: "Specializing in luxury residential properties with over 8 years of experience in the Manila market.",
+    description:
+      "Specializing in luxury residential properties with over 8 years of experience in the Manila market.",
     languages: ["English", "Filipino", "Mandarin"],
-    certifications: ["Licensed Real Estate Broker", "Certified Property Manager"]
+    certifications: [
+      "Licensed Real Estate Broker",
+      "Certified Property Manager",
+    ],
   },
   {
     id: 2,
@@ -66,9 +62,13 @@ const mockAgents = [
     specialties: ["Investment", "Commercial", "Condominiums"],
     phone: "+63 917 234 5678",
     email: "juan.delacruz@domuseye.com",
-    description: "Expert in property investment strategies and commercial real estate transactions.",
+    description:
+      "Expert in property investment strategies and commercial real estate transactions.",
     languages: ["English", "Filipino", "Mandarin"],
-    certifications: ["Licensed Real Estate Broker", "Investment Property Specialist"]
+    certifications: [
+      "Licensed Real Estate Broker",
+      "Investment Property Specialist",
+    ],
   },
   {
     id: 3,
@@ -83,9 +83,10 @@ const mockAgents = [
     specialties: ["Residential", "First-time Buyers", "Relocation"],
     phone: "+63 917 345 6789",
     email: "ana.reyes@domuseye.com",
-    description: "Dedicated to helping families find their perfect home with personalized service.",
+    description:
+      "Dedicated to helping families find their perfect home with personalized service.",
     languages: ["English", "Filipino", "Spanish"],
-    certifications: ["Licensed Real Estate Broker", "Relocation Specialist"]
+    certifications: ["Licensed Real Estate Broker", "Relocation Specialist"],
   },
   {
     id: 4,
@@ -100,9 +101,13 @@ const mockAgents = [
     specialties: ["Luxury", "High-end Condos", "Executive Homes"],
     phone: "+63 917 456 7890",
     email: "miguel.torres@domuseye.com",
-    description: "Specializing in luxury properties and high-end real estate transactions.",
+    description:
+      "Specializing in luxury properties and high-end real estate transactions.",
     languages: ["English", "Filipino", "Spanish"],
-    certifications: ["Licensed Real Estate Broker", "Luxury Property Specialist"]
+    certifications: [
+      "Licensed Real Estate Broker",
+      "Luxury Property Specialist",
+    ],
   },
   {
     id: 5,
@@ -117,9 +122,13 @@ const mockAgents = [
     specialties: ["Commercial", "Office Spaces", "Retail"],
     phone: "+63 917 567 8901",
     email: "isabella.garcia@domuseye.com",
-    description: "Expert in commercial real estate with focus on office and retail spaces.",
+    description:
+      "Expert in commercial real estate with focus on office and retail spaces.",
     languages: ["English", "Filipino", "Korean"],
-    certifications: ["Licensed Real Estate Broker", "Commercial Property Specialist"]
+    certifications: [
+      "Licensed Real Estate Broker",
+      "Commercial Property Specialist",
+    ],
   },
   {
     id: 6,
@@ -134,16 +143,17 @@ const mockAgents = [
     specialties: ["Development", "Pre-selling", "Investment"],
     phone: "+63 917 678 9012",
     email: "rafael.mendoza@domuseye.com",
-    description: "Specializing in property development projects and pre-selling opportunities.",
+    description:
+      "Specializing in property development projects and pre-selling opportunities.",
     languages: ["English", "Filipino", "Korean"],
-    certifications: ["Licensed Real Estate Broker", "Development Specialist"]
-  }
+    certifications: ["Licensed Real Estate Broker", "Development Specialist"],
+  },
 ];
 
 const specialtyOptions = [
   "All Specialties",
   "Residential",
-  "Commercial", 
+  "Commercial",
   "Luxury",
   "Investment",
   "Condominiums",
@@ -154,17 +164,17 @@ const specialtyOptions = [
   "Office Spaces",
   "Retail",
   "Development",
-  "Pre-selling"
+  "Pre-selling",
 ];
 
 const locationOptions = [
   "All Locations",
   "Manila",
-  "Makati", 
+  "Makati",
   "Quezon City",
   "Bonifacio Global City",
   "Ortigas",
-  "Alabang"
+  "Alabang",
 ];
 
 export default function AgentPage() {
@@ -174,19 +184,22 @@ export default function AgentPage() {
   const [sortBy, setSortBy] = useState("rating");
 
   // Filter agents based on search criteria
-  const filteredAgents = mockAgents.filter(agent => {
-    const matchesSearch = agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         agent.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         agent.specialties.some(specialty => 
-                           specialty.toLowerCase().includes(searchQuery.toLowerCase())
-                         );
-    
-    const matchesSpecialty = selectedSpecialty === "All Specialties" || 
-                            agent.specialties.includes(selectedSpecialty);
-    
-    const matchesLocation = selectedLocation === "All Locations" ||
-                           agent.location.includes(selectedLocation);
-    
+  const filteredAgents = mockAgents.filter((agent) => {
+    const matchesSearch =
+      agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      agent.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      agent.specialties.some((specialty) =>
+        specialty.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+    const matchesSpecialty =
+      selectedSpecialty === "All Specialties" ||
+      agent.specialties.includes(selectedSpecialty);
+
+    const matchesLocation =
+      selectedLocation === "All Locations" ||
+      agent.location.includes(selectedLocation);
+
     return matchesSearch && matchesSpecialty && matchesLocation;
   });
 
@@ -216,10 +229,11 @@ export default function AgentPage() {
               Find Your Perfect Agent
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Connect with experienced real estate professionals who will help you find your dream property
+              Connect with experienced real estate professionals who will help
+              you find your dream property
             </p>
           </div>
-          
+
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto">
             <div className="relative">
@@ -244,9 +258,12 @@ export default function AgentPage() {
               <Filter className="h-5 w-5 text-muted-foreground" />
               <span className="font-medium text-foreground">Filters:</span>
             </div>
-            
+
             <div className="flex flex-wrap gap-4">
-              <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+              <Select
+                value={selectedSpecialty}
+                onValueChange={setSelectedSpecialty}
+              >
                 <SelectTrigger className="w-48 bg-background border-border">
                   <SelectValue placeholder="Select Specialty" />
                 </SelectTrigger>
@@ -259,7 +276,10 @@ export default function AgentPage() {
                 </SelectContent>
               </Select>
 
-              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+              <Select
+                value={selectedLocation}
+                onValueChange={setSelectedLocation}
+              >
                 <SelectTrigger className="w-48 bg-background border-border">
                   <SelectValue placeholder="Select Location" />
                 </SelectTrigger>
@@ -302,24 +322,36 @@ export default function AgentPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {sortedAgents.map((agent) => (
-              <Card key={agent.id} className="overflow-hidden hover:shadow-lg transition-shadow bg-card border-border">
+              <Card
+                key={agent.id}
+                className="overflow-hidden hover:shadow-lg transition-shadow bg-card border-border"
+              >
                 <CardContent className="p-6">
                   {/* Agent Photo and Basic Info */}
                   <div className="flex items-center mb-4">
-                     <div className="relative">
-                       <Avatar className="w-20 h-20">
-                         <AvatarFallback className="text-lg font-semibold bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-                           {agent.name.split(' ').map(n => n[0]).join('')}
-                         </AvatarFallback>
-                       </Avatar>
-                       <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-2 border-background rounded-full"></div>
-                     </div>
+                    <div className="relative">
+                      <Avatar className="w-20 h-20">
+                        <AvatarFallback className="text-lg font-semibold bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+                          {agent.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-2 border-background rounded-full"></div>
+                    </div>
                     <div className="ml-4 flex-1">
-                      <h3 className="text-xl font-semibold text-foreground">{agent.name}</h3>
+                      <h3 className="text-xl font-semibold text-foreground">
+                        {agent.name}
+                      </h3>
                       <div className="flex items-center mt-1">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="ml-1 text-sm font-medium text-foreground">{agent.rating}</span>
-                        <span className="ml-1 text-sm text-muted-foreground">({agent.reviews} reviews)</span>
+                        <span className="ml-1 text-sm font-medium text-foreground">
+                          {agent.rating}
+                        </span>
+                        <span className="ml-1 text-sm text-muted-foreground">
+                          ({agent.reviews} reviews)
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -327,7 +359,9 @@ export default function AgentPage() {
                   {/* Location */}
                   <div className="flex items-center mb-3">
                     <MapPin className="h-4 w-4 text-muted-foreground mr-2" />
-                    <span className="text-sm text-muted-foreground">{agent.location}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {agent.location}
+                    </span>
                   </div>
 
                   {/* Stats */}
@@ -336,22 +370,34 @@ export default function AgentPage() {
                       <div className="flex items-center justify-center mb-1">
                         <Home className="h-4 w-4 text-primary mr-1" />
                       </div>
-                      <div className="text-lg font-semibold text-foreground">{agent.properties}</div>
-                      <div className="text-xs text-muted-foreground">Properties</div>
+                      <div className="text-lg font-semibold text-foreground">
+                        {agent.properties}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Properties
+                      </div>
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center mb-1">
                         <Calendar className="h-4 w-4 text-primary mr-1" />
                       </div>
-                      <div className="text-lg font-semibold text-foreground">{agent.experience}</div>
-                      <div className="text-xs text-muted-foreground">Experience</div>
+                      <div className="text-lg font-semibold text-foreground">
+                        {agent.experience}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Experience
+                      </div>
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center mb-1">
                         <Users className="h-4 w-4 text-primary mr-1" />
                       </div>
-                      <div className="text-lg font-semibold text-foreground">{agent.reviews}</div>
-                      <div className="text-xs text-muted-foreground">Reviews</div>
+                      <div className="text-lg font-semibold text-foreground">
+                        {agent.reviews}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Reviews
+                      </div>
                     </div>
                   </div>
 
@@ -397,8 +443,12 @@ export default function AgentPage() {
             <div className="text-center py-12">
               <div className="text-muted-foreground mb-4">
                 <Users className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">No agents found matching your criteria</p>
-                <p className="text-sm">Try adjusting your filters or search terms</p>
+                <p className="text-lg">
+                  No agents found matching your criteria
+                </p>
+                <p className="text-sm">
+                  Try adjusting your filters or search terms
+                </p>
               </div>
             </div>
           )}
@@ -412,7 +462,8 @@ export default function AgentPage() {
             Ready to Find Your Dream Property?
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Our experienced agents are here to guide you through every step of your real estate journey
+            Our experienced agents are here to guide you through every step of
+            your real estate journey
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="px-8">

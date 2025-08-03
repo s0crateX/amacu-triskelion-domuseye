@@ -85,10 +85,12 @@ export default function Home() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 xl:mx-auto justify-start items-center">
-                <Button size="lg" className="text-lg xl:px-8">
-                  Get Started
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+                <Link href="/dashboard/login" scroll={true}>
+                  <Button size="lg" className="text-lg xl:px-8 cursor-pointer">
+                    Get Started
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
               </div>
             </div>
 
@@ -245,7 +247,15 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 lg:py-32 bg-primary text-primary-foreground">
+      <section className="py-20 lg:py-32 bg-primary text-primary-foreground relative overflow-hidden">
+        <div className="absolute lg:right-0 lg:top-10 w-1/3 h-full opacity-80">
+          <Image
+            src="/assets/svgs/house_search.svg"
+            alt="House Search Background"
+            className="w-full h-full hidden lg:block"
+            fill
+          />
+        </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="space-y-8 max-w-3xl mx-auto">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">

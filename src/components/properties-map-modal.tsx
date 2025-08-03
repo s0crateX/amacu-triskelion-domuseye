@@ -33,6 +33,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 import { Property } from "@/types/property";
 
 // Create a dynamic import for the map component to avoid SSR issues
@@ -452,10 +453,11 @@ export default function PropertiesMapModal({
                 {/* Image Gallery */}
                 {detailsProperty.images && detailsProperty.images.length > 0 && (
                   <div className="relative h-64 bg-muted flex-shrink-0">
-                    <img
+                    <Image
                       src={detailsProperty.images[currentImageIndex] || detailsProperty.image || "/next.svg"}
                       alt={detailsProperty.title || "Property image"}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = "/next.svg";

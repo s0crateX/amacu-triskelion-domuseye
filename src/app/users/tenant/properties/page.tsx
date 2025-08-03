@@ -48,6 +48,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 
 const propertyTypes = [
   { label: "All Properties", value: "all" },
@@ -538,10 +539,11 @@ const PropertiesPage = () => {
                 {/* Image Gallery */}
                 {detailsProperty.images && detailsProperty.images.length > 0 && (
                   <div className="relative h-64 bg-muted flex-shrink-0">
-                    <img
+                    <Image
                       src={detailsProperty.images[currentImageIndex] || detailsProperty.image || "/next.svg"}
                       alt={detailsProperty.title || "Property image"}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = "/next.svg";

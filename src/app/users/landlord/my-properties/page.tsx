@@ -32,6 +32,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import Image from "next/image";
 import AddPropertyForm from '../widgets/my-properties-widgets/add-property-form';
 
 // Firebase imports
@@ -246,10 +247,11 @@ export default function MyPropertiesPage() {
           <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden max-w-sm">
             <div className="h-48 bg-muted relative">
               {property.images && property.images.length > 0 ? (
-                <img
+                <Image
                   src={property.images[0]}
                   alt={property.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -420,9 +422,11 @@ export default function MyPropertiesPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {selectedProperty.images.map((image, index) => (
                       <div key={index} className="relative">
-                        <img
+                        <Image
                           src={image}
                           alt={`${selectedProperty.title} - Image ${index + 1}`}
+                          width={400}
+                          height={192}
                           className="w-full h-48 object-cover rounded-lg border"
                         />
                         {index === 0 && (

@@ -36,7 +36,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { IKUpload } from "imagekitio-react";
+import Image from "next/image";
 import LocationMapModal from "@/components/location-map-modal";
+import DescriptionMaker from "./description-maker";
 
 // Firebase imports
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
@@ -498,6 +500,16 @@ export default function AddPropertyForm({
                         className="resize-none"
                       />
                     </div>
+                    
+                    {/* AI Description Generator */}
+                    <div className="mt-4">
+                      <DescriptionMaker 
+                        onDescriptionGenerated={(description) => {
+                          handleInputChange("description", description);
+                          toast.success("Description applied successfully!");
+                        }}
+                      />
+                    </div>
                   </div>
 
                   {/* Pricing & Location Section */}
@@ -820,9 +832,11 @@ export default function AddPropertyForm({
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             {formData.images.map((image, index) => (
                               <div key={index} className="relative group">
-                                <img
+                                <Image
                                   src={image}
                                   alt={`Property image ${index + 1}`}
+                                  width={200}
+                                  height={128}
                                   className="w-full h-32 object-cover rounded-lg border"
                                 />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
