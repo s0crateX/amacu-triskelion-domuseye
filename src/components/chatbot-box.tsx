@@ -1,11 +1,69 @@
 "use client";
-import { Bot, CornerRightUp, BotMessageSquare, User, Mic } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Bot,
+  CornerRightUp,
+  BotMessageSquare,
+  User,
+  Mic,
+  MicOff,
+} from "lucide-react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import TextareaAutosize from "react-textarea-autosize";
+
+// TypeScript declarations for Web Speech API
+interface SpeechRecognitionEvent {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  serviceURI: string;
+  start(): void;
+  stop(): void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: (event: { error: string }) => void;
+  onend: () => void;
+  onaudiostart: () => void;
+  onaudioend: () => void;
+  onspeechstart: () => void;
+  onspeechend: () => void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: {
+      new (): SpeechRecognition;
+    };
+    webkitSpeechRecognition: {
+      new (): SpeechRecognition;
+    };
+  }
+}
 
 import { useChat } from "ai/react";
 import Markdown from "react-markdown";
@@ -83,47 +141,281 @@ function AiInput({
   onSubmit: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 }) {
-  const { textareaRef, adjustHeight } = useAutoResizeTextarea({
-    minHeight: 50,
-    maxHeight: 200,
-  });
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(
+    null
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [audioLevel, setAudioLevel] = useState(0);
+  const [isSpeechSupported, setIsSpeechSupported] = useState(false);
 
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit();
-      }}
-      className="flex space-x-2"
-    >
-      <Textarea
-        ref={textareaRef}
-        id="ai-input-06"
-        placeholder="Type your message..."
-        className={cn(
-          "bg-muted/50 text-foreground ring-primary/20 placeholder:text-muted-foreground/70 flex-1 resize-none rounded-3xl border-none py-4 pr-12 pl-6 leading-[1.2] text-wrap",
-          "focus:ring-primary/30 min-h-[56px] transition-all duration-200 focus:ring-2"
+  // Check if browser supports speech recognition and is not Brave
+  const checkSpeechSupport = () => {
+    if (typeof window === "undefined") return false;
+
+    // Check if it's Brave browser
+    const isBrave =
+      (navigator as unknown as { brave?: { isBrave: boolean } }).brave?.isBrave;
+    if (isBrave) return false;
+
+    // Check for speech recognition support
+    return "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
+  };
+
+  useEffect(() => {
+    const speechSupported = checkSpeechSupport();
+    setIsSpeechSupported(speechSupported);
+
+    if (speechSupported) {
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognitionInstance = new SpeechRecognition();
+
+      recognitionInstance.continuous = true;
+      recognitionInstance.interimResults = true;
+      recognitionInstance.lang = "en-US";
+      recognitionInstance.maxAlternatives = 3; // Get multiple alternatives for better accuracy
+
+      // Audio level detection callbacks
+      recognitionInstance.onaudiostart = () => {
+        console.log("Audio capture started");
+        setAudioLevel(1);
+      };
+
+      recognitionInstance.onaudioend = () => {
+        console.log("Audio capture ended");
+        setAudioLevel(0);
+      };
+
+      recognitionInstance.onspeechstart = () => {
+        console.log("Speech detected");
+        setAudioLevel(2);
+      };
+
+      recognitionInstance.onspeechend = () => {
+        console.log("Speech ended");
+        setAudioLevel(1);
+      };
+
+      recognitionInstance.onresult = (event) => {
+        let finalTranscript = "";
+        let interimTranscript = "";
+
+        for (let i = 0; i < event.results.length; i++) {
+          const result = event.results[i];
+          const transcript = result[0].transcript;
+
+          if (result.isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        // Use final transcript when available, otherwise use interim for real-time feedback
+        const currentTranscript = finalTranscript || interimTranscript;
+
+        if (currentTranscript.trim()) {
+          // Create a synthetic event to match the expected type
+          const syntheticEvent = {
+            target: { value: currentTranscript },
+            currentTarget: { value: currentTranscript },
+          } as React.ChangeEvent<HTMLTextAreaElement>;
+
+          onChange(syntheticEvent);
+        }
+      };
+
+      recognitionInstance.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        setIsListening(false);
+
+        let errorMessage = "";
+        switch (event.error) {
+          case "network":
+            errorMessage =
+              "Network error: Please check your internet connection and try again.";
+            break;
+          case "not-allowed":
+            errorMessage =
+              "Microphone access denied. Please allow microphone permissions.";
+            break;
+          case "no-speech":
+            errorMessage = "No speech detected. Please try speaking again.";
+            break;
+          case "audio-capture":
+            errorMessage =
+              "Audio capture failed. Please check your microphone.";
+            break;
+          case "service-not-allowed":
+            errorMessage =
+              "Speech recognition service not allowed. Try using HTTPS.";
+            break;
+          default:
+            errorMessage = `Speech recognition error: ${event.error}`;
+        }
+
+        setError(errorMessage);
+        setTimeout(() => setError(null), 5000); // Clear error after 5 seconds
+      };
+
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+      };
+
+      setRecognition(recognitionInstance);
+    }
+  }, [onChange]);
+
+  // Don't render microphone button if speech is not supported
+  if (!isSpeechSupported) {
+    return (
+      <div className="space-y-2">
+        {error && (
+          <div className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            {error}
+          </div>
         )}
-        value={value}
-        onKeyDown={onKeyDown}
-        onChange={(e) => {
-          onChange(e);
-          adjustHeight();
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSubmit();
+          }}
+          className="flex space-x-2"
+        >
+          <TextareaAutosize
+            id="ai-input-06"
+            placeholder="Type your message..."
+            className={cn(
+              "bg-muted/50 text-foreground ring-primary/20 placeholder:text-muted-foreground/70 flex-1 resize-none rounded-3xl border-none py-2.5 pr-12 pl-4 leading-[1.2] text-wrap text-sm",
+              "focus:ring-primary/30 min-h-[40px] transition-all duration-200 focus:ring-2 focus:outline-none"
+            )}
+            minRows={1}
+            maxRows={6}
+            value={value}
+            onKeyDown={onKeyDown}
+            onChange={onChange}
+          />
+          <Button
+            type="submit"
+            size="icon"
+            variant="outline"
+            className="hover:bg-primary/90"
+            disabled={!value.trim()}
+          >
+            <CornerRightUp className="h-4 w-4 text-white" />
+          </Button>
+        </form>
+      </div>
+    );
+  }
+
+  const toggleListening = () => {
+    if (!recognition) {
+      setError("Speech recognition is not supported in your browser.");
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+      setIsListening(false);
+    } else {
+      setError(null); // Clear any previous errors
+      try {
+        recognition.start();
+        setIsListening(true);
+      } catch {
+        setError("Failed to start speech recognition. Please try again.");
+        setTimeout(() => setError(null), 3000);
+      }
+    }
+  };
+  return (
+    <div className="space-y-2">
+      {error && (
+        <div className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {error}
+        </div>
+      )}
+
+      {/* Audio Level Indicator */}
+      {isListening && (
+        <div className="flex items-center justify-center space-x-1 text-xs text-muted-foreground">
+          <span>Listening...</span>
+          <div className="flex space-x-1">
+            <div
+              className={cn(
+                "w-1 h-3 rounded-full transition-colors",
+                audioLevel >= 1 ? "bg-green-500" : "bg-gray-300"
+              )}
+            />
+            <div
+              className={cn(
+                "w-1 h-3 rounded-full transition-colors",
+                audioLevel >= 2 ? "bg-yellow-500" : "bg-gray-300"
+              )}
+            />
+            <div
+              className={cn(
+                "w-1 h-3 rounded-full transition-colors",
+                audioLevel >= 3 ? "bg-red-500" : "bg-gray-300"
+              )}
+            />
+          </div>
+        </div>
+      )}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit();
         }}
-      />
-      <Button
-        type="submit"
-        size="icon"
-        variant="outline"
-        className="hover:bg-primary/90"
-        disabled={!value.trim()}
+        className="flex space-x-2"
       >
-        <CornerRightUp className="h-4 w-4 text-white" />
-      </Button>
-      <Button type="button" size="icon" variant="outline">
-        <Mic className="h-4 w-4" />
-      </Button>
-    </form>
+        <TextareaAutosize
+          id="ai-input-06"
+          placeholder="Type your message..."
+          className={cn(
+            "bg-muted/50 text-foreground ring-primary/20 placeholder:text-muted-foreground/70 flex-1 resize-none rounded-3xl border-none py-2.5 pr-12 pl-4 leading-[1.2] text-wrap text-sm",
+            "focus:ring-primary/30 min-h-[40px] transition-all duration-200 focus:ring-2 focus:outline-none"
+          )}
+          minRows={1}
+          maxRows={6}
+          value={value}
+          onKeyDown={onKeyDown}
+          onChange={onChange}
+        />
+        <Button
+          type="submit"
+          size="icon"
+          variant="outline"
+          className="hover:bg-primary/90"
+          disabled={!value.trim()}
+        >
+          <CornerRightUp className="h-4 w-4 text-white" />
+        </Button>
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          onClick={toggleListening}
+          className={cn(
+            "transition-colors relative",
+            isListening && "bg-red-500 hover:bg-red-600 text-white"
+          )}
+          title={`Click to ${isListening ? "stop" : "start"} voice input`}
+        >
+          {isListening ? (
+            <MicOff className="h-4 w-4" />
+          ) : (
+            <Mic className="h-4 w-4" />
+          )}
+          {isListening && audioLevel > 0 && (
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          )}
+        </Button>
+      </form>
+    </div>
   );
 }
 

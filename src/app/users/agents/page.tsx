@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -186,7 +186,7 @@ const upcomingTasks = [
 
 export default function AgentDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { user, userData } = useAuth();
+  const { userData } = useAuth();
   const router = useRouter();
 
   const getStatusColor = (status: string) => {

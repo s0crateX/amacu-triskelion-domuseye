@@ -29,14 +29,16 @@ import {
   PawPrint,
   Bike,
   Zap,
+  FileText,
 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import Image from "next/image";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { Property } from "@/types/property";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth/auth-context";
 //import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api'
 
 const PropertyDetailPage = () => {
@@ -45,6 +47,7 @@ const PropertyDetailPage = () => {
     id: string;
   }>();
   const router = useRouter();
+  const { userData } = useAuth();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showScheduleSuccess, setShowScheduleSuccess] = useState(false);
@@ -53,6 +56,8 @@ const PropertyDetailPage = () => {
   const [error, setError] = useState("");
   const [landlordProfile, setLandlordProfile] = useState<{
     displayName?: string;
+    firstName?: string;
+    lastName?: string;
     profilePicture?: string;
     role?: string;
     phone?: string;
@@ -102,16 +107,34 @@ const PropertyDetailPage = () => {
     );
   };
 
-  // Function to fetch landlord profile data
-  const fetchLandlordProfile = async (uid: string) => {
-    try {
-      const userDoc = await getDoc(doc(db, "users", uid));
-      if (userDoc.exists()) {
-        setLandlordProfile(userDoc.data());
+  // Function to set up real-time landlord profile data listener
+  const setupLandlordProfileListener = (uid: string) => {
+    const userDocRef = doc(db, "users", uid);
+
+    const unsubscribe = onSnapshot(
+      userDocRef,
+      (userDoc) => {
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setLandlordProfile({
+            displayName:
+              userData.displayName ||
+              `${userData.firstName || ""} ${userData.lastName || ""}`.trim(),
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            profilePicture: userData.profilePicture,
+            role: userData.role || "Landlord",
+            phone: userData.phone,
+            email: userData.email,
+          });
+        }
+      },
+      (error) => {
+        console.error("Error listening to landlord profile:", error);
       }
-    } catch (error) {
-      console.error("Error fetching landlord profile:", error);
-    }
+    );
+
+    return unsubscribe;
   };
 
   // Mock property data
@@ -240,6 +263,20 @@ const PropertyDetailPage = () => {
     return dates;
   };
   const calendarDates = generateCalendarDates();
+
+  // Function to format price with commas
+  const formatPrice = (price: string) => {
+    if (!price) return "Price not available";
+    // Remove any non-numeric characters except decimal points
+    const numericPrice = price.replace(/[^0-9.]/g, "");
+    if (!numericPrice) return price;
+    // Convert to number and format with commas
+    const formattedNumber = parseFloat(numericPrice).toLocaleString("en-US", {
+      maximumFractionDigits: 0,
+    });
+    return formattedNumber;
+  };
+
   const handleImageChange = (index: number) => {
     setActiveImageIndex(index);
   };
@@ -256,6 +293,8 @@ const PropertyDetailPage = () => {
   };
   // Firebase data fetching effect
   useEffect(() => {
+    let landlordUnsubscribe: (() => void) | null = null;
+
     async function fetchProperty() {
       try {
         const docRef = doc(db, "properties", id);
@@ -306,9 +345,11 @@ const PropertyDetailPage = () => {
 
           setProperty(propertyData);
 
-          // Fetch landlord profile if landlordUid exists
-          if (propertyData.landlord) {
-            fetchLandlordProfile(propertyData.landlord[0]);
+          // Set up real-time landlord profile listener using property's uid (which is the landlord's uid)
+          if (propertyData.uid) {
+            landlordUnsubscribe = setupLandlordProfileListener(
+              propertyData.uid
+            );
           }
         } else {
           setError("Property not found.");
@@ -322,6 +363,13 @@ const PropertyDetailPage = () => {
     }
 
     if (id) fetchProperty();
+
+    // Cleanup function to unsubscribe from real-time listeners
+    return () => {
+      if (landlordUnsubscribe) {
+        landlordUnsubscribe();
+      }
+    };
   }, [id]);
 
   // Early returns for loading and error states
@@ -436,7 +484,7 @@ const PropertyDetailPage = () => {
                   src={
                     property?.images?.[activeImageIndex] ||
                     propertyinfo?.images?.[activeImageIndex] ||
-                    "https://images.unsplash.com/photo-1613977257363-707ba9348227?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
+                    "/assets/images/empty-profile.png"
                   }
                   alt={property.title}
                   fill
@@ -522,7 +570,8 @@ const PropertyDetailPage = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-lg sm:text-xl md:text-2xl font-bold text-[#1e40af]">
-                      {property.price}
+                      <span>₱ </span>
+                      {formatPrice(property.price)}
                     </div>
                     <div className="text-muted-foreground text-xs sm:text-sm">
                       {propertyinfo.availableFrom}
@@ -796,7 +845,7 @@ const PropertyDetailPage = () => {
                     <Image
                       src={
                         landlordProfile?.profilePicture ||
-                        "https://images.unsplash.com/photo-1567963070256-729fb28b079c?q=80&w=576&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                        "/assets/images/empty-profile.png"
                       }
                       alt={
                         landlordProfile?.displayName ||
@@ -813,8 +862,11 @@ const PropertyDetailPage = () => {
                   <div>
                     <h3 className="font-semibold text-base sm:text-lg text-foreground mb-1">
                       {landlordProfile?.displayName ||
-                        (property.landlord && property.landlord[0]) ||
-                        "Landlord"}
+                        (landlordProfile?.firstName && landlordProfile?.lastName
+                          ? `${landlordProfile.firstName} ${landlordProfile.lastName}`
+                          : landlordProfile?.firstName ||
+                            landlordProfile?.lastName ||
+                            "Landlord")}
                     </h3>
                     <p className="text-xs sm:text-sm text-muted-foreground mb-2">
                       {landlordProfile?.role || "Landlord"}
@@ -829,15 +881,11 @@ const PropertyDetailPage = () => {
                 <div className="space-y-3">
                   <Button className="w-full" variant="default">
                     <Phone size={16} className="mr-2" />
-                    Call{" "}
-                    {landlordProfile?.phone ||
-                      (property.landlord && property.landlord[1]) ||
-                      "(555) 123-4567"}
+                    Call {landlordProfile?.phone || "(555) 123-4567"}
                   </Button>
                   <Button className="w-full" variant="outline">
                     <Mail size={16} className="mr-2" />
-                    Email{" "}
-                    {landlordProfile?.displayName?.split(" ")[0] || "Landlord"}
+                    {landlordProfile?.email || "Email"}
                   </Button>
                 </div>
               </CardContent>
@@ -845,15 +893,42 @@ const PropertyDetailPage = () => {
             {/* Actions Card */}
             <Card>
               <CardContent className="p-6">
-                <div className="flex justify-between">
-                  <Button variant="ghost" className="flex items-center">
-                    <Share2 size={18} className="mr-2" />
-                    Share
+                <div className="space-y-3">
+                  {/* Apply Now Button */}
+                  <Button
+                    className="w-full bg-[#1e40af] hover:bg-[#1e40af]/90 text-white"
+                    onClick={() => {
+                      if (!userData) {
+                        router.push("/dashboard/login");
+                      } else if (userData.userType === "tenant") {
+                        // Handle application logic here
+                        console.log("Apply for property:", property?.id);
+                        // You can add application form modal or redirect to application page
+                      } else {
+                        // Non-tenant users cannot apply
+                        alert("Only tenants can apply for properties.");
+                      }
+                    }}
+                  >
+                    <FileText size={18} className="mr-2 text-white" />
+                    {!userData
+                      ? "Login to Apply"
+                      : userData.userType === "tenant"
+                      ? "Apply Now"
+                      : "Tenant Access Only"}
                   </Button>
-                  <Button variant="ghost" className="flex items-center">
-                    <Heart size={18} className="mr-2" />
-                    Save
-                  </Button>
+
+                  {/* Share and Save buttons */}
+                  <div className="flex justify-between">
+                    <Button variant="ghost" className="flex items-center">
+                      <Share2 size={18} className="mr-2" />
+                      Share
+                    </Button>
+                    <Button variant="ghost" className="flex items-center">
+                      <Heart size={18} className="mr-2" />
+                      Save
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

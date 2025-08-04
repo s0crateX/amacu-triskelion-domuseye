@@ -76,7 +76,7 @@ const PropertiesPage = () => {
   
   // Property details modal state
   const [showPropertyDetails, setShowPropertyDetails] = useState(false);
-  const [detailsProperty, setDetailsProperty] = useState<Property | null>(null);
+  const [detailsProperty] = useState<Property | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const itemsPerPage = 6;
@@ -192,11 +192,6 @@ const PropertiesPage = () => {
   }, [activeFilter, searchQuery]);
 
   // Property details modal functions
-  const showPropertyDetailsModal = (property: Property) => {
-    setDetailsProperty(property);
-    setCurrentImageIndex(0);
-    setShowPropertyDetails(true);
-  };
 
   // Image navigation functions
   const nextImage = () => {

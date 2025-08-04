@@ -1,6 +1,19 @@
 import { Metadata } from "next";
-import { FileText, Search, Filter, Eye, CheckCircle, XCircle } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  FileText,
+  Search,
+  Filter,
+  Eye,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -91,14 +104,21 @@ export default function ApplicationsPage() {
 
       <div className="space-y-4">
         {applications.map((application) => (
-          <Card key={application.id} className="hover:shadow-lg transition-shadow">
+          <Card
+            key={application.id}
+            className="hover:shadow-lg transition-shadow"
+          >
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(application.status)}
                   <div>
-                    <CardTitle className="text-xl">{application.applicantName}</CardTitle>
-                    <CardDescription>{application.propertyTitle}</CardDescription>
+                    <CardTitle className="text-xl">
+                      {application.applicantName}
+                    </CardTitle>
+                    <CardDescription>
+                      {application.propertyTitle}
+                    </CardDescription>
                   </div>
                 </div>
                 {getStatusBadge(application.status)}
@@ -107,11 +127,15 @@ export default function ApplicationsPage() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Application Date</p>
+                  <p className="text-sm text-muted-foreground">
+                    Application Date
+                  </p>
                   <p className="font-medium">{application.applicationDate}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Monthly Income</p>
+                  <p className="text-sm text-muted-foreground">
+                    Monthly Income
+                  </p>
                   <p className="font-medium">{application.monthlyIncome}</p>
                 </div>
                 <div>
@@ -126,7 +150,10 @@ export default function ApplicationsPage() {
                 </Button>
                 {application.status === "pending" && (
                   <>
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                    <Button
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Approve
                     </Button>

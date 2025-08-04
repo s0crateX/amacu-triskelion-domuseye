@@ -221,7 +221,7 @@ const PropertiesPage = () => {
     );
   }
 
-   return (
+  return (
     <div className="bg-background min-h-screen">
       {/* --- Hero Section: Search & Advanced Filters --- */}
       <div className="py-6">
@@ -241,7 +241,7 @@ const PropertiesPage = () => {
             {/* Buttons Container */}
             <div className="flex gap-3">
               {/* Map View Button */}
-              <button 
+              <button
                 onClick={() => setIsMapModalOpen(true)}
                 className="bg-slate-700 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors"
               >
@@ -284,12 +284,9 @@ const PropertiesPage = () => {
           </div>
 
           {/* --- Properties Grid --- */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-15">
+          <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-15">
             {currentProperties.map((property) => (
-              <PropertyCard
-                key={property.id}
-                property={property}
-              />
+              <PropertyCard key={property.id} property={property} />
             ))}
           </div>
 

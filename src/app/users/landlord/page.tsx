@@ -8,7 +8,6 @@ import {
   DollarSign,
   Eye,
   Edit,
-  Trash2,
   BarChart3,
   Calendar,
   AlertTriangle,

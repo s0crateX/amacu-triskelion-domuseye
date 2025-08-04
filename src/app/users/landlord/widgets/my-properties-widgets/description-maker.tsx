@@ -63,7 +63,7 @@ export default function DescriptionMaker({
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <input
               className="flex-1 bg-transparent border-0 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-0 text-sm"
               placeholder="(e.g., make it more professional,)"
@@ -82,7 +82,7 @@ export default function DescriptionMaker({
                 handleSubmit(e as React.FormEvent<HTMLButtonElement>);
                 setInput("");
               }}
-              className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70 transform hover:scale-105 active:scale-95 text-xs"
+              className="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70 transform hover:scale-105 active:scale-95 text-xs w-full sm:w-auto"
             >
               {isLoading ? (
                 <>

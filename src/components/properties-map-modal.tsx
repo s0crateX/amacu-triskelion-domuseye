@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import L from "leaflet";
 import {
@@ -73,7 +73,7 @@ export default function PropertiesMapModal({
   const mapRef = useRef<L.Map | null>(null);
 
   // Reverse geocoding function
-  const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
+  const reverseGeocode = useCallback(async (lat: number, lng: number): Promise<string> => {
     try {
       setIsLoadingAddress(true);
       const response = await fetch(
@@ -97,7 +97,7 @@ export default function PropertiesMapModal({
     } finally {
       setIsLoadingAddress(false);
     }
-  };
+  }, [setIsLoadingAddress]);
 
   // Handle search
   const handleSearch = async () => {
@@ -135,7 +135,7 @@ export default function PropertiesMapModal({
   };
 
   // Get current location using GPS
-  const getCurrentLocation = () => {
+  const getCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
       toast.error("Geolocation is not supported by this browser");
       return;
@@ -189,7 +189,7 @@ export default function PropertiesMapModal({
         maximumAge: 60000
       }
     );
-  };
+  }, [setIsGettingCurrentLocation, mapRef, reverseGeocode, setUserLocation]);
 
   // Calculate distance between two coordinates in kilometers
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -220,14 +220,14 @@ export default function PropertiesMapModal({
   };
 
   // Show property details
-  const showPropertyDetailsModal = (propertyId: string) => {
+  const showPropertyDetailsModal = useCallback((propertyId: string) => {
     const property = properties.find(p => p.id === propertyId);
     if (property) {
       setDetailsProperty(property);
       setCurrentImageIndex(0);
       setShowPropertyDetails(true);
     }
-  };
+  }, [properties]);
 
   // Set up global function for map popup
   useEffect(() => {
@@ -299,7 +299,7 @@ export default function PropertiesMapModal({
     if (isOpen && !userLocation && !isGettingCurrentLocation) {
       getCurrentLocation();
     }
-  }, [isOpen]);
+  }, [isOpen, userLocation, isGettingCurrentLocation, getCurrentLocation]);
 
   return (
     <>

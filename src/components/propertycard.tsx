@@ -45,7 +45,7 @@ const amenityIcons: { [key: string]: React.ComponentType<{ size?: number; classN
 
 export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => {
   const router = useRouter();
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
 
   const handleViewDetails = () => {
@@ -83,9 +83,9 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
+    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group border-0 shadow-sm">
       {/* Image Section with Gallery */}
-      <div className="relative h-56 overflow-hidden">
+      <div className="relative h-48 overflow-hidden">
         <Image
           src={mainImage}
           alt={property.title || "Property image"}
@@ -129,96 +129,95 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
           <span className="text-xs opacity-80">/month</span>
         </div>
       </div>
-      <CardHeader className="p-4 pb-0">
-        <div className="flex justify-between items-start">
-          <h3 className="text-lg font-semibold text-foreground">
+      <CardHeader className="p-3 pb-2">
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold text-foreground line-clamp-1">
             {property.title || "Untitled Property"}
           </h3>
-          <p className="text-[#1e40af] font-bold">
-            {formatPrice(property.price)}
-          </p>
-        </div>
-        <div className="flex items-center text-gray-600 mt-1">
-          <MapPin size={16} className="mr-1" />
-          <span className="text-sm">
-            {property.location || property.address || "Location not specified"}
-          </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center text-gray-600">
+              <MapPin size={14} className="mr-1 flex-shrink-0" />
+              <span className="text-sm line-clamp-1">
+                {property.location || property.address || "Location not specified"}
+              </span>
+            </div>
+            <p className="text-[#1e40af] font-bold text-sm">
+              {formatPrice(property.price)}
+            </p>
+          </div>
         </div>
       </CardHeader>
 
-      <CardContent className="p-4 pt-0 space-y-3">
+      <CardContent className="p-3 pt-0 space-y-2">
         {/* Property Details */}
-        <div className="grid grid-cols-4 gap-2 text-sm text-muted-foreground">
-          <div className="flex items-center justify-center p-2 bg-muted/50 rounded">
-            <Bed size={14} className="mr-1" />
+        <div className="grid grid-cols-4 gap-1.5 text-sm text-muted-foreground">
+          <div className="flex items-center justify-center p-1.5 bg-muted/30 rounded text-xs">
+            <Bed size={12} className="mr-1" />
             <span className="font-medium">{property.beds || 0}</span>
           </div>
-          <div className="flex items-center justify-center p-2 bg-muted/50 rounded">
-            <Bath size={14} className="mr-1" />
+          <div className="flex items-center justify-center p-1.5 bg-muted/30 rounded text-xs">
+            <Bath size={12} className="mr-1" />
             <span className="font-medium">{property.baths || 0}</span>
           </div>
-          <div className="flex items-center justify-center p-2 bg-muted/50 rounded">
-            <Car size={14} className="mr-1" />
+          <div className="flex items-center justify-center p-1.5 bg-muted/30 rounded text-xs">
+            <Car size={12} className="mr-1" />
             <span className="font-medium">{property.parking || 0}</span>
           </div>
-          <div className="flex items-center justify-center p-2 bg-muted/50 rounded">
-            <Home size={14} className="mr-1" />
-            <span className="font-medium text-xs">{property.sqft || 0}ft²</span>
+          <div className="flex items-center justify-center p-1.5 bg-muted/30 rounded text-xs">
+            <Home size={12} className="mr-1" />
+            <span className="font-medium">{property.sqft || 0}ft²</span>
           </div>
         </div>
 
-        {/* Amenities */}
+        {/* Amenities - Compact Version */}
         {property.amenities && property.amenities.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="text-xs font-medium text-muted-foreground">Amenities</h4>
-            <div className="flex flex-wrap gap-1">
-              {property.amenities.slice(0, 4).map((amenity, index) => {
-                const IconComponent = amenityIcons[amenity.toLowerCase()] || Shield;
-                return (
-                  <div
-                    key={index}
-                    className="flex items-center gap-1 bg-muted/50 text-muted-foreground px-2 py-1 rounded text-xs"
-                  >
-                    <IconComponent size={12} />
-                    <span className="capitalize">{amenity}</span>
-                  </div>
-                );
-              })}
-              {property.amenities.length > 4 && (
-                <div className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-xs">
-                  +{property.amenities.length - 4} more
+          <div className="flex flex-wrap gap-1">
+            {property.amenities.slice(0, 3).map((amenity, index) => {
+              const IconComponent = amenityIcons[amenity.toLowerCase()] || Shield;
+              return (
+                <div
+                  key={index}
+                  className="flex items-center gap-1 bg-muted/30 text-muted-foreground px-1.5 py-0.5 rounded text-xs"
+                >
+                  <IconComponent size={10} />
+                  <span className="capitalize">{amenity}</span>
                 </div>
-              )}
-            </div>
+              );
+            })}
+            {property.amenities.length > 3 && (
+              <div className="bg-muted/30 text-muted-foreground px-1.5 py-0.5 rounded text-xs">
+                +{property.amenities.length - 3}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Property Stats */}
-        <div className="flex justify-between items-center text-xs text-muted-foreground pt-2 border-t">
-          <div className="flex items-center gap-3">
+        {/* Property Stats - Simplified */}
+        <div className="flex justify-between items-center text-xs text-muted-foreground pt-1">
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <Eye size={12} />
-              <span>{property.views || 0} views</span>
+              <Eye size={10} />
+              <span>{property.views || 0}</span>
             </div>
             {property.datePosted && (
               <div className="flex items-center gap-1">
-                <Calendar size={12} />
+                <Calendar size={10} />
                 <span>{formatDate(property.datePosted)}</span>
               </div>
             )}
           </div>
           {property.landlordName && (
-            <div className="flex items-center gap-1">
-              <User size={12} />
-              <span className="line-clamp-1">{property.landlordName}</span>
+            <div className="flex items-center gap-1 max-w-[100px]">
+              <User size={10} />
+              <span className="line-clamp-1 text-xs">{property.landlordName}</span>
             </div>
           )}
         </div>
       </CardContent>
 
-      <CardFooter className="p-4 pt-0">
+      <CardFooter className="p-3 pt-2">
         <Button
-          className="w-full bg-[#1e40af] hover:bg-[#1e3a8a] text-white font-medium"
+          className="w-full bg-[#1e40af] hover:bg-[#1e3a8a] text-white font-medium h-8 text-sm"
           onClick={handleViewDetails}
         >
           View Details
