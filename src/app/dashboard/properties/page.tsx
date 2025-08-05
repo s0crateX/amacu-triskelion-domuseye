@@ -284,7 +284,7 @@ const PropertiesPage = () => {
           </div>
 
           {/* --- Properties Grid --- */}
-          <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-15">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-15">
             {currentProperties.map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))}

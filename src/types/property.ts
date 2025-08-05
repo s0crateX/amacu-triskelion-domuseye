@@ -1,3 +1,5 @@
+import { FieldValue } from "firebase/firestore";
+
 export interface Property {
   id: string;
   area: number;
@@ -55,4 +57,15 @@ export interface PropertyFormData {
   images: string[];
   latitude: number;
   longitude: number;
+}
+
+export interface TenantApplication {
+  id?: string;
+  tenantId: string;
+  tenantName: string;
+  email: string;
+  message: string;
+  status: "pending" | "approved" | "rejected";
+  appliedAt: FieldValue; // Firestore timestamp
+  propertyId?: string;
 }

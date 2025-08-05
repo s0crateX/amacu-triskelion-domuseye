@@ -154,8 +154,8 @@ function AiInput({
     if (typeof window === "undefined") return false;
 
     // Check if it's Brave browser
-    const isBrave =
-      (navigator as unknown as { brave?: { isBrave: boolean } }).brave?.isBrave;
+    const isBrave = (navigator as unknown as { brave?: { isBrave: boolean } })
+      .brave?.isBrave;
     if (isBrave) return false;
 
     // Check for speech recognition support
@@ -174,7 +174,7 @@ function AiInput({
       recognitionInstance.continuous = true;
       recognitionInstance.interimResults = true;
       recognitionInstance.lang = "en-US";
-      recognitionInstance.maxAlternatives = 3; // Get multiple alternatives for better accuracy
+      recognitionInstance.maxAlternatives = 1; // Normal sensitivity setting
 
       // Audio level detection callbacks
       recognitionInstance.onaudiostart = () => {
