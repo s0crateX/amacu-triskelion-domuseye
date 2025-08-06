@@ -66,6 +66,7 @@ export interface TenantApplication {
   email: string;
   message: string;
   status: "pending" | "approved" | "rejected";
+  propertyTitle: string;
   appliedAt: FieldValue; // Firestore timestamp
   propertyId?: string;
 }

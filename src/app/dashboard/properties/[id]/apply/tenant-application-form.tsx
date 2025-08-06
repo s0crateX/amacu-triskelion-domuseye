@@ -72,6 +72,7 @@ export default function TenantApplicationForm({
         email: userData.email,
         message: message.trim(),
         status: "pending",
+        propertyTitle: propertyTitle,
         appliedAt: serverTimestamp(),
       };
 
@@ -110,6 +111,19 @@ export default function TenantApplicationForm({
           onSubmit={handleSubmit}
           className="space-y-4 sm:space-y-6 mt-4 sm:mt-6"
         >
+          {/* Property Information */}
+          <div className="space-y-4">
+            <div className="border-l-4 border-blue-500 pl-4 bg-blue-50 dark:bg-blue-950/20 p-3 rounded-r">
+              <h3 className="text-base sm:text-lg font-semibold mb-1 text-blue-700 dark:text-blue-300">
+                Property Application
+              </h3>
+              <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400">
+                You are applying for:{" "}
+                <span className="font-medium">{propertyTitle}</span>
+              </p>
+            </div>
+          </div>
+
           {/* Tenant Information (Read-only) */}
           <div className="space-y-4">
             <div className="border-l-4 border-primary pl-4">
