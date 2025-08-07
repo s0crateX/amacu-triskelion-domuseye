@@ -338,6 +338,16 @@ export function Navbar() {
                       {userData?.userType === "tenant" && (
                         <DropdownMenuItem
                           onClick={() =>
+                            router.push("/users/tenant/application")
+                          }
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          <span>Application</span>
+                        </DropdownMenuItem>
+                      )}
+                      {userData?.userType === "tenant" && (
+                        <DropdownMenuItem
+                          onClick={() =>
                             router.push("/users/tenant/payment-history")
                           }
                         >

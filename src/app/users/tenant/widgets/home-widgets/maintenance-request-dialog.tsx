@@ -98,15 +98,15 @@ export default function MaintenanceRequestDialog({
           Submit New Request
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full max-w-4xl mx-auto my-4 max-h-[95vh] overflow-hidden flex flex-col p-0">
+      <DialogContent className="w-full max-w-4xl mx-auto my-4 max-h-[75vh] sm:max-h-[80vh] overflow-hidden flex flex-col p-0">
         {/* Fixed Header */}
-        <div className="flex-shrink-0 px-4 sm:px-6 pt-6 pb-4 border-b border-border">
-          <DialogHeader className="space-y-3">
-            <DialogTitle className="flex items-center text-lg sm:text-xl font-semibold">
-              <Settings className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+        <div className="flex-shrink-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-border">
+          <DialogHeader className="space-y-2 sm:space-y-3">
+            <DialogTitle className="flex items-center text-base sm:text-lg font-semibold">
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary flex-shrink-0" />
               <span className="truncate">Submit Maintenance Request</span>
             </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
+            <DialogDescription className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               Fill out the form below to submit a maintenance request. Please provide as much detail as possible to help us resolve your issue quickly.
             </DialogDescription>
           </DialogHeader>
@@ -116,8 +116,8 @@ export default function MaintenanceRequestDialog({
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6">
           <form onSubmit={handleSubmit} className="space-y-6 mt-6">
             {/* Request Title */}
-            <div className="space-y-2">
-              <Label htmlFor="title" className="text-sm font-medium text-foreground">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="title" className="text-xs sm:text-sm font-medium text-foreground">
                 Request Title <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -125,18 +125,18 @@ export default function MaintenanceRequestDialog({
                 placeholder="Brief description of the issue"
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                className="h-10 sm:h-11"
+                className="h-8 sm:h-10 text-sm"
                 required
               />
             </div>
 
             {/* Category */}
-            <div className="space-y-2">
-              <Label htmlFor="category" className="text-sm font-medium text-foreground">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="category" className="text-xs sm:text-sm font-medium text-foreground">
                 Category <span className="text-destructive">*</span>
               </Label>
               <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                <SelectTrigger className="h-10 sm:h-11">
+                <SelectTrigger className="h-8 sm:h-10 text-sm">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px] overflow-y-auto z-50 w-auto min-w-[280px] max-w-[calc(100vw-4rem)]" side="bottom" align="start" avoidCollisions={true} collisionPadding={16}>
@@ -155,12 +155,12 @@ export default function MaintenanceRequestDialog({
             </div>
 
             {/* Priority */}
-            <div className="space-y-2">
-              <Label htmlFor="priority" className="text-sm font-medium text-foreground">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="priority" className="text-xs sm:text-sm font-medium text-foreground">
                 Priority <span className="text-destructive">*</span>
               </Label>
               <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
-                <SelectTrigger className="h-10 sm:h-11">
+                <SelectTrigger className="h-8 sm:h-10 text-sm">
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px] overflow-y-auto z-50 w-[var(--radix-select-trigger-width)] min-w-[200px]" side="bottom" align="center" avoidCollisions={true} collisionPadding={16}>
@@ -173,8 +173,8 @@ export default function MaintenanceRequestDialog({
             </div>
 
             {/* Location */}
-            <div className="space-y-2">
-              <Label htmlFor="location" className="text-sm font-medium text-foreground">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="location" className="text-xs sm:text-sm font-medium text-foreground">
                 Location in Unit <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -182,33 +182,33 @@ export default function MaintenanceRequestDialog({
                 placeholder="e.g., Kitchen sink, Master bedroom, Living room"
                 value={formData.location}
                 onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                className="h-10 sm:h-11"
+                className="h-8 sm:h-10 text-sm"
                 required
               />
             </div>
 
             {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-medium text-foreground">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="description" className="text-xs sm:text-sm font-medium text-foreground">
                 Detailed Description <span className="text-destructive">*</span>
               </Label>
               <Textarea
                 id="description"
-                placeholder="Please describe the issue in detail, including when it started, what you've tried, and any other relevant information..."
+                placeholder="Please describe the issue in detail, including when it started, what you&apos;ve tried, and any other relevant information..."
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="min-h-[120px] sm:min-h-[140px] resize-none"
+                className="min-h-[60px] sm:min-h-[80px] resize-none text-sm"
                 required
               />
             </div>
 
             {/* Preferred Time for Access */}
-            <div className="space-y-2">
-              <Label htmlFor="preferredTime" className="text-sm font-medium text-foreground">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="preferredTime" className="text-xs sm:text-sm font-medium text-foreground">
                 Preferred Time for Access
               </Label>
               <Select value={formData.preferredTime} onValueChange={(value) => setFormData(prev => ({ ...prev, preferredTime: value }))}>
-                <SelectTrigger className="h-10 sm:h-11">
+                <SelectTrigger className="h-8 sm:h-10 text-sm">
                   <SelectValue placeholder="Select preferred time" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px] overflow-y-auto z-50 w-auto min-w-[280px] max-w-[calc(100vw-4rem)]" side="bottom" align="start" avoidCollisions={true} collisionPadding={16}>
@@ -221,14 +221,14 @@ export default function MaintenanceRequestDialog({
               </Select>
             </div>
 
-            {/* Preferred Contact Method */}
-            <div className="space-y-2">
-              <Label htmlFor="contactMethod" className="text-sm font-medium text-foreground">
+            {/* Contact Method */}
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="contactMethod" className="text-xs sm:text-sm font-medium text-foreground">
                 Preferred Contact Method
               </Label>
               <Select value={formData.contactMethod} onValueChange={(value) => setFormData(prev => ({ ...prev, contactMethod: value }))}>
-                <SelectTrigger className="h-10 sm:h-11">
-                  <SelectValue placeholder="How should we contact you?" />
+                <SelectTrigger className="h-8 sm:h-10 text-sm">
+                  <SelectValue placeholder="Select contact method" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px] overflow-y-auto z-50 w-[var(--radix-select-trigger-width)] min-w-[200px]" side="bottom" align="center" avoidCollisions={true} collisionPadding={16}>
                   <SelectItem value="phone">📞 Phone Call</SelectItem>
@@ -240,19 +240,19 @@ export default function MaintenanceRequestDialog({
             </div>
 
             {/* Image Upload */}
-            <div className="space-y-2">
-              <Label htmlFor="images" className="text-sm font-medium text-foreground">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="images" className="text-xs sm:text-sm font-medium text-foreground">
                 Photos (Optional)
               </Label>
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-6 sm:p-8 bg-muted/20 hover:bg-muted/30 transition-colors">
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-3 sm:p-8 bg-muted/20 hover:bg-muted/30 transition-colors">
                 <div className="text-center">
-                  <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                    <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+                  <div className="mx-auto w-8 h-8 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2 sm:mb-4">
+                    <Camera className="w-4 h-4 sm:w-8 sm:h-8 text-primary" />
                   </div>
-                  <h4 className="text-sm font-medium text-foreground mb-2">
+                  <h4 className="text-xs sm:text-sm font-medium text-foreground mb-1 sm:mb-2">
                     Upload photos to help us understand the issue better
                   </h4>
-                  <p className="text-xs text-muted-foreground mb-4">
+                  <p className="text-xs text-muted-foreground mb-2 sm:mb-4">
                     Drag and drop your files here, or click to browse
                   </p>
                   <Input
@@ -265,36 +265,36 @@ export default function MaintenanceRequestDialog({
                   />
                   <div className="flex justify-center">
                     <Label htmlFor="image-upload" className="cursor-pointer">
-                      <Button type="button" variant="outline" className="pointer-events-none h-10 sm:h-11 px-4 sm:px-6">
-                        <Upload className="w-4 h-4 mr-2" />
+                      <Button type="button" variant="outline" className="pointer-events-none h-8 sm:h-11 px-3 sm:px-6">
+                        <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                         Choose Photos
                       </Button>
                     </Label>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-3">
+                  <p className="text-xs text-muted-foreground mt-2 sm:mt-3">
                     Maximum 5 photos, up to 10MB each • JPG, PNG, GIF
                   </p>
                 </div>
                 
                 {/* Display uploaded images */}
                 {formData.images.length > 0 && (
-                  <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-muted-foreground/20">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  <div className="mt-3 sm:mt-6 pt-3 sm:pt-6 border-t border-muted-foreground/20">
+                    <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
                       {formData.images.map((file, index) => (
                         <div key={index} className="relative group">
-                          <div className="aspect-square bg-background border border-border rounded-lg flex items-center justify-center p-2 sm:p-3 shadow-sm">
+                          <div className="aspect-square bg-background border border-border rounded-lg flex items-center justify-center p-1 sm:p-3 shadow-sm">
                             <span className="text-xs text-muted-foreground text-center leading-tight break-all">
-                              {file.name.length > 15 ? `${file.name.substring(0, 15)}...` : file.name}
+                              {file.name.length > 12 ? `${file.name.substring(0, 12)}...` : file.name}
                             </span>
                           </div>
                           <Button
                             type="button"
                             variant="destructive"
                             size="sm"
-                            className="absolute -top-2 -right-2 w-6 h-6 sm:w-7 sm:h-7 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                            className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-7 sm:h-7 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                             onClick={() => removeImage(index)}
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                           </Button>
                         </div>
                       ))}
@@ -307,20 +307,20 @@ export default function MaintenanceRequestDialog({
         </div>
 
         {/* Fixed Footer */}
-        <div className="flex-shrink-0 px-4 sm:px-6 pb-6 pt-4 border-t border-border bg-background">
-          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
+        <div className="flex-shrink-0 px-4 sm:px-6 pb-3 sm:pb-6 pt-2 sm:pt-4 border-t border-border bg-background">
+          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsOpen(false)}
-              className="w-full sm:w-auto h-10 sm:h-11 px-6 sm:px-8"
+              className="w-full sm:w-auto h-8 sm:h-10 px-3 sm:px-6 text-xs sm:text-sm"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               onClick={handleSubmit}
-              className="w-full sm:flex-1 h-10 sm:h-11 px-6 sm:px-8 font-medium"
+              className="w-full sm:flex-1 h-8 sm:h-10 px-3 sm:px-6 text-xs sm:text-sm font-medium"
               disabled={!isFormValid}
             >
               Submit Request

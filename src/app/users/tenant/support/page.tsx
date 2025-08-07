@@ -160,7 +160,7 @@ export default function Faq3() {
     {
       question: "How do I submit a maintenance request?",
       answer:
-        "Navigate to your tenant dashboard and click on 'Maintenance Requests'. Fill out the form with details about the issue, select the priority level, and attach photos if needed. Your landlord will be notified immediately and you'll receive updates on the status of your request.",
+        "Navigate to your tenant dashboard and click on 'Maintenance Requests'. Fill out the form with details about the issue, select the priority level, and attach photos if needed. Your landlord will be notified immediately and you&apos;ll receive updates on the status of your request.",
     },
 
     {
@@ -169,19 +169,19 @@ export default function Faq3() {
         "You can message your landlord directly through the DomusEye platform. Use the messaging feature in your dashboard to send messages, share documents, and receive important updates about your rental property. All communications are logged for your records.",
     },
     {
-      question: "What should I do if I'm having trouble accessing my account?",
+      question: "What should I do if I&apos;m having trouble accessing my account?",
       answer:
-        "If you're having login issues, try resetting your password using the 'Forgot Password' link. If you continue to experience problems, contact our 24/7 support team through live chat, phone, or email. We're here to help you get back into your account quickly.",
+        "If you&apos;re having login issues, try resetting your password using the &apos;Forgot Password&apos; link. If you continue to experience problems, contact our 24/7 support team through live chat, phone, or email. We&apos;re here to help you get back into your account quickly.",
     },
     {
       question: "How do I update my profile and contact information?",
       answer:
-        "Go to your tenant dashboard and click on 'Profile' to update your personal information, contact details, emergency contacts, and preferences. Make sure to keep your information current so your landlord can reach you when needed.",
+        "Go to your tenant dashboard and click on &apos;Profile&apos; to update your personal information, contact details, emergency contacts, and preferences. Make sure to keep your information current so your landlord can reach you when needed.",
     },
     {
       question: "Can I schedule property viewings through DomusEye?",
       answer:
-        "Yes! When browsing properties, you can request viewings directly through the platform. Click on a property listing and use the 'Schedule Viewing' button to request an appointment. The landlord or agent will respond with available times.",
+        "Yes! When browsing properties, you can request viewings directly through the platform. Click on a property listing and use the &apos;Schedule Viewing&apos; button to request an appointment. The landlord or agent will respond with available times.",
     },
   ];
 

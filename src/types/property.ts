@@ -65,8 +65,16 @@ export interface TenantApplication {
   tenantName: string;
   email: string;
   message: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "awaiting_tenant_confirmation" | "confirmed" | "declined_by_tenant";
   propertyTitle: string;
   appliedAt: FieldValue; // Firestore timestamp
   propertyId?: string;
+}
+
+export interface PropertyTenant {
+  userId: string;
+  name: string;
+  email: string;
+  balance: number;
+  joinedAt: Date;
 }

@@ -135,10 +135,13 @@ export default function ApplicationsPage() {
         return;
       }
 
+      // Determine the actual status to set
+      const actualStatus = newStatus === "approved" ? "awaiting_tenant_confirmation" : "rejected";
+
       // Update the application status in the property's applications subcollection
       await updateDoc(
         doc(db, "properties", propertyId, "applications", applicationId),
-        { status: newStatus }
+        { status: actualStatus }
       );
 
       // Create/update the application in the tenant's user subcollection
@@ -146,7 +149,7 @@ export default function ApplicationsPage() {
         doc(db, "users", application.tenantId, "applications", applicationId),
         {
           ...application,
-          status: newStatus,
+          status: actualStatus,
           updatedAt: new Date().toISOString(),
         }
       );
@@ -154,11 +157,15 @@ export default function ApplicationsPage() {
       // Update local state
       setApplications((prev) =>
         prev.map((app) =>
-          app.id === applicationId ? { ...app, status: newStatus } : app
+          app.id === applicationId ? { ...app, status: actualStatus } : app
         )
       );
 
-      toast.success(`Application ${newStatus} successfully!`);
+      if (newStatus === "approved") {
+        toast.success("Application approved! Waiting for tenant confirmation.");
+      } else {
+        toast.success("Application rejected successfully!");
+      }
     } catch (error) {
       console.error("Error updating application status:", error);
       toast.error("Failed to update application status");
@@ -177,12 +184,20 @@ export default function ApplicationsPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "pending":
+        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
       case "approved":
         return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+      case "awaiting_tenant_confirmation":
+        return <Badge className="bg-blue-100 text-blue-800">Awaiting Confirmation</Badge>;
+      case "confirmed":
+        return <Badge className="bg-emerald-100 text-emerald-800">Confirmed</Badge>;
       case "rejected":
         return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
+      case "declined_by_tenant":
+        return <Badge className="bg-gray-100 text-gray-800">Declined by Tenant</Badge>;
       default:
-        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
     }
   };
 
@@ -222,7 +237,15 @@ export default function ApplicationsPage() {
                 ? "Pending"
                 : statusFilter === "approved"
                 ? "Approved"
-                : "Rejected"}
+                : statusFilter === "awaiting_tenant_confirmation"
+                ? "Awaiting Confirmation"
+                : statusFilter === "confirmed"
+                ? "Confirmed"
+                : statusFilter === "rejected"
+                ? "Rejected"
+                : statusFilter === "declined_by_tenant"
+                ? "Declined by Tenant"
+                : "Unknown"}
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -236,8 +259,17 @@ export default function ApplicationsPage() {
             <DropdownMenuItem onClick={() => setStatusFilter("approved")}>
               Approved
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStatusFilter("awaiting_tenant_confirmation")}>
+              Awaiting Confirmation
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStatusFilter("confirmed")}>
+              Confirmed
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setStatusFilter("rejected")}>
               Rejected
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStatusFilter("declined_by_tenant")}>
+              Declined by Tenant
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -340,6 +372,30 @@ export default function ApplicationsPage() {
                           <XCircle className="h-4 w-4 mr-2" />
                           Reject
                         </Button>
+                      </div>
+                    )}
+                    
+                    {application.status === "awaiting_tenant_confirmation" && (
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-800 font-medium">
+                          ⏳ Awaiting tenant confirmation. The tenant needs to confirm this approved application.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {application.status === "confirmed" && (
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm text-green-800 font-medium">
+                          ✅ Application confirmed by tenant. This application is now finalized.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {application.status === "declined_by_tenant" && (
+                      <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <p className="text-sm text-gray-700 font-medium">
+                          ❌ Application declined by tenant after approval.
+                        </p>
                       </div>
                     )}
                   </div>
