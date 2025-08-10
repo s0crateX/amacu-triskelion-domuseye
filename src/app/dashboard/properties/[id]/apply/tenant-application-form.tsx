@@ -16,7 +16,14 @@ import { toast } from "sonner";
 import { Loader2, FileText } from "lucide-react";
 
 // Firebase imports
-import { doc, setDoc, serverTimestamp, FieldValue } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  serverTimestamp,
+  FieldValue,
+  collection,
+  getDocs,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 // Auth and types
@@ -64,6 +71,19 @@ export default function TenantApplicationForm({
     try {
       setLoading(true);
 
+      // Get existing applications count to generate incremental ID
+      const applicationsRef = collection(
+        db,
+        "properties",
+        propertyId,
+        "applications"
+      );
+      const applicationsSnapshot = await getDocs(applicationsRef);
+      const applicationNumber = applicationsSnapshot.size + 1;
+
+      // Generate unique application ID with incremental number
+      const applicationId = `${user.uid}-request-${applicationNumber}`;
+
       const applicationData: Omit<ApplicationData, "appliedAt"> & {
         appliedAt: FieldValue;
       } = {
@@ -76,9 +96,9 @@ export default function TenantApplicationForm({
         appliedAt: serverTimestamp(),
       };
 
-      // Add application as subcollection of the property using user's UID as document ID
+      // Add application as subcollection of the property using incremental ID
       await setDoc(
-        doc(db, "properties", propertyId, "applications", user.uid),
+        doc(db, "properties", propertyId, "applications", applicationId),
         applicationData
       );
 

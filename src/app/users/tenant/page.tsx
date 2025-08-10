@@ -34,6 +34,8 @@ import {
   getDoc,
   addDoc,
   serverTimestamp,
+  orderBy,
+  onSnapshot,
 } from "firebase/firestore";
 import MaintenanceRequestDialog from "./widgets/home-widgets/maintenance-request-dialog";
 import OnlinePaymentDialog from "./widgets/home-widgets/online-payment-dialog";
@@ -165,6 +167,19 @@ interface MaintenanceRequest {
   propertyTitle: string;
 }
 
+interface CommunityPost {
+  id: string;
+  propertyId: string;
+  propertyTitle: string;
+  title: string;
+  content: string;
+  type: "update" | "news" | "announcement" | "maintenance";
+  landlordId: string;
+  landlordName: string;
+  createdAt: Date | string | { seconds: number; nanoseconds: number };
+  updatedAt: Date | string | { seconds: number; nanoseconds: number };
+}
+
 export default function ModernTenantDashboard() {
   const { user } = useAuth();
   const [confirmedProperties, setConfirmedProperties] = useState<Property[]>(
@@ -173,6 +188,7 @@ export default function ModernTenantDashboard() {
   const [maintenanceRequestsData, setMaintenanceRequestsData] = useState<
     MaintenanceRequest[]
   >([]);
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Dynamic quick stats based on real data
@@ -208,6 +224,54 @@ export default function ModernTenantDashboard() {
       fetchConfirmedProperties();
     }
   }, [user]);
+
+  const fetchCommunityPosts = useCallback(async (properties: Property[]) => {
+    try {
+      const allPosts: CommunityPost[] = [];
+
+      for (const property of properties) {
+        const postsQuery = query(
+          collection(db, "properties", property.id, "community-board"),
+          orderBy("createdAt", "desc")
+        );
+
+        const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
+          const propertyPosts = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            propertyTitle: property.title,
+            ...doc.data(),
+          })) as CommunityPost[];
+
+          // Update posts for this property
+          setCommunityPosts((prevPosts) => {
+            const otherPropertyPosts = prevPosts.filter(
+              (post) => post.propertyId !== property.id
+            );
+            return [...otherPropertyPosts, ...propertyPosts]
+              .sort((a, b) => {
+                const getTimestamp = (createdAt: Date | string | { seconds: number; nanoseconds: number }) => {
+                  if (!createdAt) return 0;
+                  if (typeof createdAt === "object" && "seconds" in createdAt) {
+                    return createdAt.seconds;
+                  }
+                  if (createdAt instanceof Date) {
+                    return Math.floor(createdAt.getTime() / 1000);
+                  }
+                  return 0;
+                };
+                return getTimestamp(b.createdAt) - getTimestamp(a.createdAt);
+              })
+              .slice(0, 3); // Show only latest 3 posts
+          });
+        });
+
+        // Store unsubscribe function for cleanup
+        return unsubscribe;
+      }
+    } catch (error) {
+      console.error("Error fetching community posts:", error);
+    }
+  }, []);
 
   const fetchMaintenanceRequests = useCallback(
     async (properties: Property[]) => {
@@ -342,16 +406,17 @@ export default function ModernTenantDashboard() {
 
       setConfirmedProperties(properties);
 
-      // Fetch maintenance requests for confirmed properties
+      // Fetch maintenance requests and community posts for confirmed properties
       if (properties.length > 0) {
         await fetchMaintenanceRequests(properties);
+        await fetchCommunityPosts(properties);
       }
     } catch (error) {
       console.error("Error fetching confirmed properties:", error);
     } finally {
       setLoading(false);
     }
-  }, [user, fetchMaintenanceRequests]);
+  }, [user, fetchMaintenanceRequests, fetchCommunityPosts]);
 
   const handleMaintenanceSubmit = async (formData: {
     title: string;
@@ -453,6 +518,57 @@ export default function ModernTenantDashboard() {
   const totalOutstanding = outstandingDues.reduce((sum, due) => {
     return sum + parseFloat(due.amount.replace("₱", "").replace(",", ""));
   }, 0);
+
+  // Helper functions for community posts
+  const getPostTypeInfo = (type: string) => {
+    const postTypes = [
+      {
+        value: "update",
+        label: "Property Update",
+        color:
+          "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300",
+      },
+      {
+        value: "news",
+        label: "News",
+        color:
+          "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300",
+      },
+      {
+        value: "announcement",
+        label: "Announcement",
+        color:
+          "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300",
+      },
+      {
+        value: "maintenance",
+        label: "Maintenance Notice",
+        color:
+          "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300",
+      },
+    ];
+    return postTypes.find((pt) => pt.value === type) || postTypes[0];
+  };
+
+  const formatPostDate = (timestamp: Date | string | { seconds: number; nanoseconds: number } | { toDate: () => Date }) => {
+    if (!timestamp) return "Unknown date";
+
+    let date;
+    if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp && typeof timestamp.toDate === 'function') {
+      date = timestamp.toDate();
+    } else if (typeof timestamp === 'object' && timestamp !== null && 'seconds' in timestamp) {
+      date = new Date(timestamp.seconds * 1000);
+    } else {
+      date = new Date(timestamp as string | Date);
+    }
+
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   // Show loading state while user data is being fetched
   if (loading) {
@@ -748,6 +864,76 @@ export default function ModernTenantDashboard() {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Community Board */}
+            <Card className="hover:shadow-lg transition-all duration-300">
+              <CardHeader className="border-b p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center text-base sm:text-lg">
+                    <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary" />
+                    Community Updates
+                  </CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-primary hover:text-primary text-xs sm:text-sm"
+                    onClick={() =>
+                      (window.location.href = "/users/tenant/community-board")
+                    }
+                  >
+                    View All
+                  </Button>
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  Latest updates from your landlord
+                </p>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6">
+                <div className="space-y-3 sm:space-y-4">
+                  {communityPosts.length > 0 ? (
+                    communityPosts.map((post) => {
+                      const typeInfo = getPostTypeInfo(post.type);
+                      return (
+                        <div
+                          key={post.id}
+                          className="p-3 sm:p-4 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors border-l-4 border-primary/20"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-sm sm:text-base font-medium text-foreground truncate">
+                                {post.title}
+                              </h4>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {formatPostDate(post.createdAt)} • by{" "}
+                                {post.landlordName}
+                              </p>
+                            </div>
+                            <Badge
+                              className={`${typeInfo.color} text-xs ml-2 flex-shrink-0`}
+                            >
+                              {typeInfo.label}
+                            </Badge>
+                          </div>
+                          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
+                            {post.content}
+                          </p>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-6 sm:py-8">
+                      <MessageSquare className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        No community updates yet
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Your landlord will post updates here
+                      </p>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 

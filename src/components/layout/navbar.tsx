@@ -71,7 +71,11 @@ const landlordNavigation = [
     href: "/users/landlord/applications",
     icon: FileText,
   },
-  { name: "Agents", href: "/users/landlord/agents", icon: Users },
+  {
+    name: "Community Board",
+    href: "/users/landlord/community-board",
+    icon: Users,
+  },
   { name: "Requests", href: "/users/landlord/requests", icon: MessageSquare },
   {
     name: "Payment History",

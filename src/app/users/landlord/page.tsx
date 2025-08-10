@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -10,9 +10,6 @@ import {
   Edit,
   BarChart3,
   Calendar,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
   Building,
   Star,
   Search,
@@ -20,7 +17,8 @@ import {
   Wrench,
   CreditCard,
   MapPin,
-  Phone,
+  User,
+  LucideIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -33,119 +31,87 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth/auth-context";
+import { db } from "@/lib/firebase";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
+import { Property } from "@/types/property";
+import { toast } from "sonner";
 
-// Enhanced sample data
-const dashboardStats = [
-  {
-    title: "Total Properties",
-    value: "12",
-    change: "+2 this month",
-    percentage: "+16.7%",
-    icon: Building,
-    trend: "up",
-  },
-  {
-    title: "Active Tenants",
-    value: "28",
-    change: "+5 this month",
-    percentage: "+21.7%",
-    icon: Users,
-    trend: "up",
-  },
-  {
-    title: "Monthly Revenue",
-    value: "₱420,000",
-    change: "+₱45,000 from last month",
-    percentage: "+12.0%",
-    icon: DollarSign,
-    trend: "up",
-  },
-  {
-    title: "Maintenance Request",
-    value: "5",
-    change: "+2 this week",
-    percentage: "+40%",
-    icon: Wrench,
-    trend: "up",
-  },
-];
+// Interfaces for dynamic data
+interface MaintenanceRequest {
+  id: string;
+  title: string;
+  category: string;
+  priority: string;
+  description: string;
+  location: string;
+  preferredTime: string;
+  contactMethod: string;
+  status: string;
+  requesterId: string;
+  requesterName: string;
+  requesterEmail: string;
+  propertyId: string;
+  propertyTitle: string;
+  landlordId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  imageCount: number;
+}
 
-const sampleProperties = [
-  {
-    id: 1,
-    title: "Modern 2BR Apartment",
-    location: "Makati City",
-    rent: "₱35,000",
-    tenant: "John Doe",
-    tenantPhone: "+63 917 123 4567",
-    tenantEmail: "john.doe@email.com",
-    status: "occupied",
-    occupancy: 100,
-    nextPayment: "2024-02-01",
-    rating: 4.8,
-    maintenanceStatus: "good",
-    leaseEnd: "2024-12-31",
-  },
-  {
-    id: 2,
-    title: "Cozy Studio Unit",
-    location: "BGC, Taguig",
-    rent: "₱28,000",
-    tenant: "Jane Smith",
-    tenantPhone: "+63 917 987 6543",
-    tenantEmail: "jane.smith@email.com",
-    status: "occupied",
-    occupancy: 100,
-    nextPayment: "2024-02-05",
-    rating: 4.6,
-    maintenanceStatus: "needs_attention",
-    leaseEnd: "2024-10-15",
-  },
-  {
-    id: 3,
-    title: "Family House",
-    location: "Quezon City",
-    rent: "₱50,000",
-    tenant: null,
-    status: "vacant",
-    occupancy: 0,
-    nextPayment: null,
-    rating: 4.9,
-    maintenanceStatus: "excellent",
-    leaseEnd: null,
-  },
-];
+interface Application {
+  id: string;
+  applicant: string;
+  property: string;
+  date: string;
+  status: string;
+  phone: string;
+  email: string;
+  propertyId: string;
+  propertyTitle: string;
+  applicantId: string;
+  createdAt: Date | string;
+  updatedAt?: Date | string;
+}
 
-const recentApplications = [
-  {
-    id: 1,
-    applicant: "Maria Garcia",
-    property: "Family House",
-    date: "2024-01-15",
-    status: "pending",
-    phone: "+63 917 111 2222",
-    email: "maria.garcia@email.com",
-  },
-  {
-    id: 2,
-    applicant: "Robert Chen",
-    property: "Modern 2BR Apartment",
-    date: "2024-01-14",
-    status: "approved",
-    phone: "+63 917 333 4444",
-    email: "robert.chen@email.com",
-  },
-  {
-    id: 3,
-    applicant: "Lisa Wong",
-    property: "Cozy Studio Unit",
-    date: "2024-01-13",
-    status: "rejected",
-    phone: "+63 917 555 6666",
-    email: "lisa.wong@email.com",
-  },
-];
+interface PropertyWithTenants extends Property {
+  tenants?: PropertyTenant[];
+}
+
+interface PropertyTenant {
+  userId: string;
+  name: string;
+  email: string;
+  phone?: string;
+  status?: string;
+  leaseEnd?: string;
+  balance: number;
+  joinedAt: Date;
+}
+
+interface DashboardStats {
+  title: string;
+  value: string;
+  change: string;
+  percentage: string;
+  icon: LucideIcon;
+  trend: string;
+}
+
+// Static data removed - now using Firebase data
 
 const upcomingTasks = [
   {
@@ -178,31 +144,22 @@ const upcomingTasks = [
   },
 ];
 
-const maintenanceRequests = [
-  {
-    id: 1,
-    property: "Modern 2BR Apartment",
-    tenant: "John Doe",
-    issue: "Leaking faucet in kitchen",
-    priority: "medium",
-    status: "pending",
-    dateReported: "2024-01-20",
-  },
-  {
-    id: 2,
-    property: "Cozy Studio Unit",
-    tenant: "Jane Smith",
-    issue: "Air conditioning not cooling",
-    priority: "high",
-    status: "in_progress",
-    dateReported: "2024-01-22",
-  },
-];
-
 export default function LandlordDashboard() {
   const router = useRouter();
   const { user, userData, loading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+
+  // State for dynamic data
+  const [properties, setProperties] = useState<PropertyWithTenants[]>([]);
+  const [maintenanceRequests, setMaintenanceRequests] = useState<
+    MaintenanceRequest[]
+  >([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [selectedProperty, setSelectedProperty] =
+    useState<PropertyWithTenants | null>(null);
+  const [showTenantsModal, setShowTenantsModal] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -210,12 +167,333 @@ export default function LandlordDashboard() {
     }
   }, [user, loading, router]);
 
-  if (loading) {
+  // Fetch landlord's properties
+  const fetchProperties = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const propertiesQuery = query(
+        collection(db, "properties"),
+        where("landlordId", "==", user.uid),
+        orderBy("datePosted", "desc")
+      );
+
+      const unsubscribe = onSnapshot(propertiesQuery, async (snapshot) => {
+        const propertiesData = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            area: data.area || 0,
+            available: data.available ?? true,
+            images: Array.isArray(data.images)
+              ? data.images
+              : data.image
+              ? [data.image]
+              : [],
+            title: data.title || "",
+            category: data.category || "",
+            datePosted: data.datePosted || new Date().toISOString(),
+            price: data.price || "",
+            location: data.location || "",
+            amenities: Array.isArray(data.amenities) ? data.amenities : [],
+            beds: data.beds || 0,
+            baths: data.baths || 0,
+            sqft: data.sqft || 0,
+            features: Array.isArray(data.features) ? data.features : [],
+            isNew: data.isNew,
+            isVerified: data.isVerified,
+            type: data.type || "",
+            uid: data.uid || "",
+            latitude: data.latitude || 0,
+            longitude: data.longitude || 0,
+            address: data.address || "",
+            description: data.description || "",
+            landlord: Array.isArray(data.landlord) ? data.landlord : [],
+            subtype: data.subtype || "",
+            kitchen: data.kitchen || "",
+            parking: data.parking || 0,
+            landlordId: data.landlordId || "",
+            landlordName: data.landlordName || "",
+            views: data.views || 0,
+            image: data.image,
+            inquiries: data.inquiries,
+            tenant: data.tenant,
+            status: data.status || "Available",
+            rating: data.rating,
+            tenants: [],
+          } as PropertyWithTenants;
+        });
+
+        // Fetch tenants for each property
+        const propertiesWithTenants = await Promise.all(
+          propertiesData.map(async (property) => {
+            try {
+              const tenantsQuery = query(
+                collection(db, "properties", property.id, "tenants")
+              );
+              const tenantsSnapshot = await getDocs(tenantsQuery);
+              const tenants = tenantsSnapshot.docs.map((doc) => ({
+                userId: doc.id,
+                ...doc.data(),
+              })) as PropertyTenant[];
+              return { ...property, tenants };
+            } catch (error) {
+              console.error(
+                `Error fetching tenants for property ${property.id}:`,
+                error
+              );
+              return property;
+            }
+          })
+        );
+
+        setProperties(propertiesWithTenants);
+      });
+
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+      toast.error("Failed to load properties");
+    }
+  }, [user]);
+
+  // Fetch applications
+  const fetchApplications = useCallback(async () => {
+    if (!user) {
+      console.log("No user found, skipping applications fetch");
+      return;
+    }
+
+    try {
+      console.log("Starting to fetch applications for user:", user.uid);
+      const allApplications: Application[] = [];
+
+      // Get all properties owned by the landlord
+      const propertiesQuery = query(
+        collection(db, "properties"),
+        where("landlordId", "==", user.uid)
+      );
+
+      const propertiesSnapshot = await getDocs(propertiesQuery);
+      console.log(
+        `Found ${propertiesSnapshot.docs.length} properties for landlord`
+      );
+
+      // For each property, get its applications
+      await Promise.all(
+        propertiesSnapshot.docs.map(async (propertyDoc) => {
+          try {
+            console.log(
+              `Checking applications for property: ${propertyDoc.id}`
+            );
+            const applicationsQuery = query(
+              collection(db, "properties", propertyDoc.id, "applications")
+            );
+
+            const applicationsSnapshot = await getDocs(applicationsQuery);
+            console.log(
+              `Found ${applicationsSnapshot.docs.length} applications for property ${propertyDoc.id}`
+            );
+
+            const propertyData = propertyDoc.data();
+            const propertyApplications = applicationsSnapshot.docs.map(
+              (doc) => {
+                const data = doc.data();
+                console.log(`Processing application:`, doc.id, data);
+                return {
+                  id: doc.id,
+                  applicant:
+                    data.applicant ||
+                    data.tenantName ||
+                    data.fullName ||
+                    "Unknown Applicant",
+                  property: propertyData.title || "Unknown Property",
+                  date:
+                    data.createdAt?.toDate?.()?.toLocaleDateString() ||
+                    (data.createdAt
+                      ? new Date(data.createdAt).toLocaleDateString()
+                      : new Date().toLocaleDateString()),
+                  status: data.status || "pending",
+                  phone:
+                    data.phone || data.contactNumber || data.phoneNumber || "",
+                  email: data.email || data.emailAddress || "",
+                  propertyId: propertyDoc.id,
+                  propertyTitle: propertyData.title || "Unknown Property",
+                  applicantId:
+                    data.applicantId || data.userId || data.uid || "",
+                  createdAt: data.createdAt,
+                  updatedAt: data.updatedAt,
+                } as Application;
+              }
+            );
+
+            allApplications.push(...propertyApplications);
+          } catch (error) {
+            console.error(
+              `Error fetching applications for property ${propertyDoc.id}:`,
+              error
+            );
+          }
+        })
+      );
+
+      // Sort all applications by creation date
+      allApplications.sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
+
+      console.log(`Total applications found: ${allApplications.length}`);
+      setApplications(allApplications);
+    } catch (error) {
+      console.error("Error fetching applications:", error);
+      toast.error("Failed to load applications");
+    }
+  }, [user]);
+
+  // Fetch maintenance requests
+  const fetchMaintenanceRequests = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const allRequests: MaintenanceRequest[] = [];
+
+      // Get all properties owned by the landlord
+      const propertiesQuery = query(
+        collection(db, "properties"),
+        where("landlordId", "==", user.uid)
+      );
+
+      const propertiesSnapshot = await getDocs(propertiesQuery);
+
+      // For each property, get its maintenance requests
+      await Promise.all(
+        propertiesSnapshot.docs.map(async (propertyDoc) => {
+          try {
+            const requestsQuery = query(
+              collection(db, "properties", propertyDoc.id, "requests"),
+              orderBy("createdAt", "desc")
+            );
+
+            const requestsSnapshot = await getDocs(requestsQuery);
+            const propertyRequests = requestsSnapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            })) as MaintenanceRequest[];
+
+            allRequests.push(...propertyRequests);
+          } catch (error) {
+            console.error(
+              `Error fetching requests for property ${propertyDoc.id}:`,
+              error
+            );
+          }
+        })
+      );
+
+      // Sort all requests by creation date
+      allRequests.sort((a, b) => {
+        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime();
+      });
+
+      setMaintenanceRequests(allRequests);
+    } catch (error) {
+      console.error("Error fetching maintenance requests:", error);
+      toast.error("Failed to load maintenance requests");
+    }
+  }, [user]);
+
+  // Calculate dashboard stats
+  const calculateStats = useCallback(() => {
+    const totalProperties = properties.length;
+    const activeTenants = properties.reduce((count, property) => {
+      return count + (property.tenants?.length || 0);
+    }, 0);
+    const monthlyRevenue = properties.reduce((total, property) => {
+      if (property.status === "Occupied" && property.price) {
+        const price = parseFloat(property.price.replace(/[^\d.-]/g, ""));
+        return total + (isNaN(price) ? 0 : price);
+      }
+      return total;
+    }, 0);
+    const pendingRequests = maintenanceRequests.filter(
+      (req) => req.status === "pending"
+    ).length;
+
+    const stats: DashboardStats[] = [
+      {
+        title: "Total Properties",
+        value: totalProperties.toString(),
+        change: `${totalProperties} properties`,
+        percentage: "100%",
+        icon: Building,
+        trend: "up",
+      },
+      {
+        title: "Active Tenants",
+        value: activeTenants.toString(),
+        change: `${activeTenants} tenants`,
+        percentage: "100%",
+        icon: Users,
+        trend: "up",
+      },
+      {
+        title: "Monthly Revenue",
+        value: `₱${monthlyRevenue.toLocaleString()}`,
+        change: `From ${
+          properties.filter((p) => p.status === "Occupied").length
+        } occupied units`,
+        percentage: "100%",
+        icon: DollarSign,
+        trend: "up",
+      },
+      {
+        title: "Maintenance Requests",
+        value: pendingRequests.toString(),
+        change: `${pendingRequests} pending`,
+        percentage: "100%",
+        icon: Wrench,
+        trend: pendingRequests > 0 ? "up" : "neutral",
+      },
+    ];
+
+    setDashboardStats(stats);
+  }, [properties, maintenanceRequests]);
+
+  // Load data when user is available
+  useEffect(() => {
+    if (user && !loading) {
+      setDataLoading(true);
+      Promise.all([
+        fetchProperties(),
+        fetchMaintenanceRequests(),
+        fetchApplications(),
+      ]).finally(() => setDataLoading(false));
+    }
+  }, [
+    user,
+    loading,
+    fetchProperties,
+    fetchMaintenanceRequests,
+    fetchApplications,
+  ]);
+
+  // Recalculate stats when data changes
+  useEffect(() => {
+    calculateStats();
+  }, [calculateStats]);
+
+  if (loading || dataLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
+          <p className="mt-4 text-muted-foreground">
+            {loading ? "Loading..." : "Loading dashboard data..."}
+          </p>
         </div>
       </div>
     );
@@ -225,33 +503,24 @@ export default function LandlordDashboard() {
     return null;
   }
 
-  const getPriorityColor = (priority: "high" | "medium" | "low"): string => {
-    switch (priority) {
-      case "high":
-        return "destructive";
-      case "medium":
-        return "secondary";
-      case "low":
-        return "outline";
-      default:
-        return "outline";
-    }
+  // Filter properties based on search term
+  const filteredProperties = properties.filter(
+    (property) =>
+      property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Handle view property with tenants
+  const handleViewProperty = (property: PropertyWithTenants) => {
+    setSelectedProperty(property);
+    setShowTenantsModal(true);
   };
 
-  const getStatusIcon = (
-    status: "completed" | "in_progress" | "pending" | string
-  ) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case "in_progress":
-        return <Clock className="h-4 w-4 text-yellow-600" />;
-      case "pending":
-        return <AlertTriangle className="h-4 w-4 text-red-600" />;
-      default:
-        return <Clock className="h-4 w-4 text-muted-foreground" />;
-    }
+  const handleCloseModal = () => {
+    setShowTenantsModal(false);
+    setSelectedProperty(null);
   };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -330,94 +599,109 @@ export default function LandlordDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {sampleProperties.map((property) => (
-                    <Card
-                      key={property.id}
-                      className="border hover:border-primary/50 transition-colors"
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              {property.title}
-                              <div className="flex items-center">
-                                <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                                <span className="text-sm text-muted-foreground ml-1">
-                                  {property.rating}
-                                </span>
-                              </div>
-                            </CardTitle>
-                            <CardDescription className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              {property.location}
-                            </CardDescription>
+                {filteredProperties.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">
+                      {searchTerm
+                        ? "No properties found matching your search."
+                        : "No properties found. Add your first property to get started."}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {filteredProperties.map((property, index) => (
+                      <Card
+                        key={`property-${property.id}-${index}`}
+                        className="border hover:border-primary/50 transition-colors"
+                      >
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <CardTitle className="text-lg flex items-center gap-2">
+                                {property.title}
+                                {property.rating && (
+                                  <div className="flex items-center">
+                                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                                    <span className="text-sm text-muted-foreground ml-1">
+                                      {property.rating}
+                                    </span>
+                                  </div>
+                                )}
+                              </CardTitle>
+                              <CardDescription className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {property.address || property.location}
+                              </CardDescription>
+                            </div>
+                            <Badge
+                              variant={
+                                property.status === "Occupied"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {property.status || "Available"}
+                            </Badge>
                           </div>
-                          <Badge
-                            variant={
-                              property.status === "occupied"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {property.status}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">
-                              Monthly Rent
-                            </span>
-                            <p className="font-semibold text-lg">
-                              {property.rent}
-                            </p>
-                          </div>
-                          {property.tenant && (
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                               <span className="text-muted-foreground">
-                                Tenant
+                                Monthly Rent
                               </span>
-                              <p className="font-medium">{property.tenant}</p>
+                              <p className="font-semibold text-lg">
+                                {property.price}
+                              </p>
                             </div>
-                          )}
-                        </div>
-
-                        {property.tenant && (
-                          <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted p-2 rounded">
-                            <span>Next Payment: {property.nextPayment}</span>
-                            <span>Lease ends: {property.leaseEnd}</span>
+                            <div>
+                              <span className="text-muted-foreground">
+                                Tenants
+                              </span>
+                              <p className="font-medium">
+                                {property.tenants?.length || 0} tenant
+                                {property.tenants?.length !== 1 ? "s" : ""}
+                              </p>
+                            </div>
                           </div>
-                        )}
 
-                        <div className="flex gap-2 pt-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                          >
-                            <Eye className="mr-2 h-3 w-3" />
-                            View
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                          >
-                            <Edit className="mr-2 h-3 w-3" />
-                            Edit
-                          </Button>
-                          {property.tenant && (
-                            <Button variant="outline" size="sm">
-                              <Phone className="h-3 w-3" />
+                          <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground bg-muted p-2 rounded">
+                            <span>
+                              {property.beds} bed
+                              {property.beds !== 1 ? "s" : ""}
+                            </span>
+                            <span>
+                              {property.baths} bath
+                              {property.baths !== 1 ? "s" : ""}
+                            </span>
+                            <span>{property.sqft} sqft</span>
+                          </div>
+
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => handleViewProperty(property)}
+                            >
+                              <Eye className="mr-2 h-3 w-3" />
+                              View
                             </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1"
+                            >
+                              <Edit className="mr-2 h-3 w-3" />
+                              Edit
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -433,48 +717,72 @@ export default function LandlordDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {maintenanceRequests.map((request) => (
-                    <div
-                      key={request.id}
-                      className="flex items-center justify-between p-4 border rounded-lg bg-card"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center justify-center w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full">
-                          <Wrench className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                {maintenanceRequests.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">
+                      No maintenance requests at the moment.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {maintenanceRequests.slice(0, 5).map((request, index) => (
+                      <div
+                        key={`${request.propertyId}-${request.id}-${index}`}
+                        className="flex items-center justify-between p-4 border rounded-lg bg-card"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center justify-center w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full">
+                            <Wrench className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{request.title}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {request.propertyTitle} • {request.requesterName}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {request.createdAt instanceof Date 
+                                ? request.createdAt.toLocaleDateString() 
+                                : new Date(request.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{request.issue}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {request.property} • {request.tenant}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Reported: {request.dateReported}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <Badge
+                            variant={
+                              request.status === "completed"
+                                ? "default"
+                                : request.status === "in-progress"
+                                ? "secondary"
+                                : "destructive"
+                            }
+                          >
+                            {request.status}
+                          </Badge>
+                          <Badge
+                            variant={
+                              request.priority === "high" ||
+                              request.priority === "emergency"
+                                ? "destructive"
+                                : request.priority === "medium"
+                                ? "secondary"
+                                : "outline"
+                            }
+                          >
+                            {request.priority}
+                          </Badge>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Badge
-                          variant={
-                            getPriorityColor(
-                              request.priority as "high" | "medium" | "low"
-                            ) as
-                              | "default"
-                              | "destructive"
-                              | "outline"
-                              | "secondary"
-                          }
-                        >
-                          {request.priority}
-                        </Badge>
-                        {getStatusIcon(request.status)}
-                        <Button size="sm" variant="outline">
-                          View Details
+                    ))}
+                    {maintenanceRequests.length > 5 && (
+                      <div className="text-center pt-4">
+                        <Button variant="outline" size="sm">
+                          View All Requests ({maintenanceRequests.length})
                         </Button>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -530,42 +838,51 @@ export default function LandlordDashboard() {
                 <CardDescription>Latest rental applications</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentApplications.map((application) => (
-                    <div
-                      key={application.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                          <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {application.applicant}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {application.property}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {application.date}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge
-                        variant={
-                          application.status === "approved"
-                            ? "default"
-                            : application.status === "pending"
-                            ? "secondary"
-                            : "destructive"
-                        }
+                {applications.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">
+                      No applications received yet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {applications.slice(0, 5).map((application, index) => (
+                      <div
+                        key={`${application.propertyId}-${application.id}-${index}`}
+                        className="flex items-center justify-between p-3 border rounded-lg"
                       >
-                        {application.status}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                            <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">
+                              {application.applicant}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {application.property}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {application.date}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge
+                          variant={
+                            application.status === "approved"
+                              ? "default"
+                              : application.status === "pending"
+                              ? "secondary"
+                              : "destructive"
+                          }
+                        >
+                          {application.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -610,6 +927,68 @@ export default function LandlordDashboard() {
           </div>
         </div>
       </main>
+
+      {/* Tenants Modal */}
+      <Dialog
+        open={showTenantsModal}
+        onOpenChange={(open) => !open && handleCloseModal()}
+      >
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Tenants for {selectedProperty?.title}</DialogTitle>
+          </DialogHeader>
+
+          {selectedProperty?.tenants && selectedProperty.tenants.length > 0 ? (
+            <div className="space-y-4">
+              {selectedProperty.tenants.map((tenant, index) => (
+                <div
+                  key={`${selectedProperty.id}-${tenant.userId}-${index}`}
+                  className="border rounded-lg p-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                      <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium">{tenant.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {tenant.email}
+                      </p>
+                      {tenant.phone && (
+                        <p className="text-sm text-muted-foreground">
+                          {tenant.phone}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <Badge
+                        variant={
+                          tenant.status === "active" ? "default" : "secondary"
+                        }
+                      >
+                        {tenant.status}
+                      </Badge>
+                      {tenant.leaseEnd && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Lease ends:{" "}
+                          {new Date(tenant.leaseEnd).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
+                No tenants currently assigned to this property.
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
