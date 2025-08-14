@@ -249,7 +249,12 @@ export default function ModernTenantDashboard() {
             );
             return [...otherPropertyPosts, ...propertyPosts]
               .sort((a, b) => {
-                const getTimestamp = (createdAt: Date | string | { seconds: number; nanoseconds: number }) => {
+                const getTimestamp = (
+                  createdAt:
+                    | Date
+                    | string
+                    | { seconds: number; nanoseconds: number }
+                ) => {
                   if (!createdAt) return 0;
                   if (typeof createdAt === "object" && "seconds" in createdAt) {
                     return createdAt.seconds;
@@ -550,13 +555,28 @@ export default function ModernTenantDashboard() {
     return postTypes.find((pt) => pt.value === type) || postTypes[0];
   };
 
-  const formatPostDate = (timestamp: Date | string | { seconds: number; nanoseconds: number } | { toDate: () => Date }) => {
+  const formatPostDate = (
+    timestamp:
+      | Date
+      | string
+      | { seconds: number; nanoseconds: number }
+      | { toDate: () => Date }
+  ) => {
     if (!timestamp) return "Unknown date";
 
     let date;
-    if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp && typeof timestamp.toDate === 'function') {
+    if (
+      typeof timestamp === "object" &&
+      timestamp !== null &&
+      "toDate" in timestamp &&
+      typeof timestamp.toDate === "function"
+    ) {
       date = timestamp.toDate();
-    } else if (typeof timestamp === 'object' && timestamp !== null && 'seconds' in timestamp) {
+    } else if (
+      typeof timestamp === "object" &&
+      timestamp !== null &&
+      "seconds" in timestamp
+    ) {
       date = new Date(timestamp.seconds * 1000);
     } else {
       date = new Date(timestamp as string | Date);

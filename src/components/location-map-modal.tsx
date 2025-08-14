@@ -28,13 +28,13 @@ import { Loader2, Search, MapPin, Save, X, Crosshair } from "lucide-react";
 import { toast } from "sonner";
 
 // Create a dynamic import for the entire map component to avoid SSR issues
-const DynamicMapComponent = dynamic(() => import('./map-component'), { 
+const DynamicMapComponent = dynamic(() => import("./map-component"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin" />
     </div>
-  )
+  ),
 });
 
 interface LocationData {
@@ -68,7 +68,8 @@ export default function LocationMapModal({
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [isGettingCurrentLocation, setIsGettingCurrentLocation] = useState(false);
+  const [isGettingCurrentLocation, setIsGettingCurrentLocation] =
+    useState(false);
   const mapRef = useRef<L.Map | null>(null);
 
   // Initialize with existing location if available
@@ -88,9 +89,10 @@ export default function LocationMapModal({
     firstName?: string,
     lastName?: string
   ) => {
-    const initials = firstName && lastName 
-      ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
-      : '?';
+    const initials =
+      firstName && lastName
+        ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+        : "?";
 
     const profileContent = profilePicture
       ? `<img 
@@ -139,7 +141,11 @@ export default function LocationMapModal({
           width: 28px;
           height: 28px;
           border-radius: 50%;
-          background: ${profilePicture ? 'white' : 'linear-gradient(135deg, #1d4ed8, #2563eb)'};
+          background: ${
+            profilePicture
+              ? "white"
+              : "linear-gradient(135deg, #1d4ed8, #2563eb)"
+          };
           display: flex;
           align-items: center;
           justify-content: center;
@@ -153,10 +159,10 @@ export default function LocationMapModal({
 
     return {
       html: iconHtml,
-      className: 'custom-profile-pin-marker',
+      className: "custom-profile-pin-marker",
       iconSize: [40, 50] as [number, number],
       iconAnchor: [20, 45] as [number, number],
-      popupAnchor: [0, -40] as [number, number]
+      popupAnchor: [0, -40] as [number, number],
     };
   };
 
@@ -175,19 +181,19 @@ export default function LocationMapModal({
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
         {
           headers: {
-            'User-Agent': 'DomusEye/1.0'
-          }
+            "User-Agent": "DomusEye/1.0",
+          },
         }
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch address');
+        throw new Error("Failed to fetch address");
       }
 
       const data = await response.json();
       return data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     } catch (error) {
-      console.error('Reverse geocoding error:', error);
+      console.error("Reverse geocoding error:", error);
       return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     } finally {
       setIsLoadingAddress(false);
@@ -207,7 +213,7 @@ export default function LocationMapModal({
     setIsSearching(true);
     try {
       // Dynamic import of OpenStreetMapProvider
-      const { OpenStreetMapProvider } = await import('leaflet-geosearch');
+      const { OpenStreetMapProvider } = await import("leaflet-geosearch");
       const provider = new OpenStreetMapProvider();
       const results = await provider.search({ query: searchQuery });
 
@@ -215,7 +221,7 @@ export default function LocationMapModal({
         const result = results[0];
         const lat = parseFloat(result.y.toString());
         const lng = parseFloat(result.x.toString());
-        
+
         // Move map to the searched location
         if (mapRef.current) {
           mapRef.current.setView([lat, lng], 15);
@@ -228,7 +234,7 @@ export default function LocationMapModal({
         toast.error("No results found for this search");
       }
     } catch (error) {
-      console.error('Search error:', error);
+      console.error("Search error:", error);
       toast.error("Search failed. Please try again.");
     } finally {
       setIsSearching(false);
@@ -243,13 +249,13 @@ export default function LocationMapModal({
     }
 
     setIsGettingCurrentLocation(true);
-    
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-          
+
           // Move map to current location
           if (mapRef.current) {
             mapRef.current.setView([lat, lng], 15);
@@ -259,19 +265,20 @@ export default function LocationMapModal({
           setSelectedLocation({ lat, lng, address });
           toast.success("Current location found!");
         } catch (error) {
-          console.error('Error processing current location:', error);
+          console.error("Error processing current location:", error);
           toast.error("Failed to process current location");
         } finally {
           setIsGettingCurrentLocation(false);
         }
       },
       (error) => {
-        console.error('Geolocation error:', error);
+        console.error("Geolocation error:", error);
         let errorMessage = "Failed to get current location";
-        
+
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = "Location access denied. Please enable location permissions.";
+            errorMessage =
+              "Location access denied. Please enable location permissions.";
             break;
           case error.POSITION_UNAVAILABLE:
             errorMessage = "Location information is unavailable.";
@@ -280,14 +287,14 @@ export default function LocationMapModal({
             errorMessage = "Location request timed out.";
             break;
         }
-        
+
         toast.error(errorMessage);
         setIsGettingCurrentLocation(false);
       },
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 60000
+        maximumAge: 60000,
       }
     );
   };
@@ -317,7 +324,7 @@ export default function LocationMapModal({
       setShowConfirmation(false);
       onClose();
     } catch (error) {
-      console.error('Save error:', error);
+      console.error("Save error:", error);
       toast.error("Failed to save location. Please try again.");
     } finally {
       setIsSaving(false);
@@ -325,7 +332,7 @@ export default function LocationMapModal({
   };
 
   // Default center coordinates (General Santos City, Philippines)
-  const defaultCenter: [number, number] = initialLocation 
+  const defaultCenter: [number, number] = initialLocation
     ? [Number(initialLocation.latitude), Number(initialLocation.longitude)]
     : [6.1164, 125.1716];
 
@@ -333,7 +340,7 @@ export default function LocationMapModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl sm:max-w-4xl max-w-[95vw] max-h-[95vh] sm:max-h-[90vh] overflow-hidden p-4 sm:p-6">
+      <DialogContent className="max-w-4xl sm:max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto p-3 sm:p-6">
         <DialogHeader className="space-y-1 sm:space-y-2">
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
             <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -344,9 +351,9 @@ export default function LocationMapModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2 sm:space-y-4">
+        <div className="flex flex-col h-full space-y-3 sm:space-y-4">
           {/* Search Bar */}
-          <div className="flex gap-1 sm:gap-2">
+          <div className="flex gap-2 sm:gap-2 flex-shrink-0">
             <div className="flex-1">
               <Label htmlFor="search" className="sr-only">
                 Search for an address
@@ -354,10 +361,10 @@ export default function LocationMapModal({
               <Input
                 id="search"
                 placeholder="Search address..."
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base h-9 sm:h-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
               />
             </div>
             <Button
@@ -365,12 +372,12 @@ export default function LocationMapModal({
               disabled={isSearching || !searchQuery.trim()}
               variant="outline"
               size="sm"
-              className="px-2 sm:px-4 sm:h-10"
+              className="px-3 sm:px-4 h-9 sm:h-10 flex-shrink-0"
             >
               {isSearching ? (
-                <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Search className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Search className="h-4 w-4" />
               )}
             </Button>
             <Button
@@ -378,28 +385,28 @@ export default function LocationMapModal({
               disabled={isGettingCurrentLocation}
               variant="outline"
               size="sm"
-              className="px-2 sm:px-4 sm:h-10"
+              className="px-3 sm:px-4 h-9 sm:h-10 flex-shrink-0"
               title="Get current location"
             >
               {isGettingCurrentLocation ? (
-                <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Crosshair className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Crosshair className="h-4 w-4" />
               )}
             </Button>
           </div>
 
           {/* Selected Location Display */}
           {selectedLocation && (
-            <div className="p-2 sm:p-3 bg-muted/50 rounded-md">
+            <div className="p-3 sm:p-3 bg-muted/50 rounded-md flex-shrink-0">
               <div className="flex items-start gap-2">
-                <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-primary mt-0.5 flex-shrink-0" />
+                <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium">Selected Location:</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                  <p className="text-sm font-medium">Selected Location:</p>
+                  <p className="text-sm text-muted-foreground break-words">
                     {isLoadingAddress ? (
                       <span className="flex items-center gap-1">
-                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                         Loading address...
                       </span>
                     ) : (
@@ -407,7 +414,8 @@ export default function LocationMapModal({
                     )}
                   </p>
                   <p className="text-xs text-muted-foreground hidden sm:block">
-                    Coordinates: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                    Coordinates: {selectedLocation.lat.toFixed(6)},{" "}
+                    {selectedLocation.lng.toFixed(6)}
                   </p>
                 </div>
               </div>
@@ -415,7 +423,7 @@ export default function LocationMapModal({
           )}
 
           {/* Map Container */}
-          <div className="h-48 sm:h-96 w-full rounded-md overflow-hidden border relative">
+          <div className="flex-1 min-h-[250px] sm:min-h-[350px] w-full rounded-md overflow-hidden border relative">
             <DynamicMapComponent
               center={defaultCenter}
               zoom={defaultZoom}
@@ -429,27 +437,25 @@ export default function LocationMapModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 sm:pt-4">
-            <Button 
-              variant="outline" 
-              onClick={onClose} 
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-3 sm:pt-4 flex-shrink-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-3 sm:-mx-6 px-3 sm:px-6 py-3 sm:py-4">
+            <Button
+              variant="outline"
+              onClick={onClose}
               disabled={isSaving}
-              size="sm"
-              className="w-full sm:w-auto sm:h-10"
+              className="w-full sm:w-auto h-10"
             >
-              <X className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
             <Button
               onClick={handleSaveClick}
               disabled={!selectedLocation || isSaving || isLoadingAddress}
-              size="sm"
-              className="w-full sm:w-auto sm:h-10"
+              className="w-full sm:w-auto h-10"
             >
               {isSaving ? (
-                <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
-                <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                <Save className="h-4 w-4 mr-2" />
               )}
               Save Location
             </Button>
@@ -463,18 +469,20 @@ export default function LocationMapModal({
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Location Update</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to update your location and current address to:
+              Are you sure you want to update your location and current address
+              to:
               <br />
               <br />
               <strong>{selectedLocation?.address}</strong>
               <br />
               <br />
-              This will update both your location coordinates and your current address in your profile.
+              This will update both your location coordinates and your current
+              address in your profile.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSaving}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleConfirmedSave}
               disabled={isSaving}
             >

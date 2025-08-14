@@ -24,6 +24,7 @@ import {
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
 import { Property } from "@/types/property";
+import { PropertiesLoadingSkeleton } from "@/components/loadings";
 
 const propertyTypes = [
   { label: "All Properties", value: "all" },
@@ -132,49 +133,81 @@ const PropertiesPage = () => {
     setCurrentPage(1);
   }, [activeFilter]);
 
-  // Loading state
+  // Loading state - show normal page layout with skeleton grid
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
-        <div className="text-center">
-          {/* Animated Loading Spinner */}
-          <div className="relative mb-8">
-            <div className="w-16 h-16 border-4 border-slate-200 dark:border-slate-700 border-t-slate-600 dark:border-t-slate-400 rounded-full animate-spin mx-auto"></div>
-            <div
-              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-slate-500 dark:border-r-slate-300 rounded-full animate-spin mx-auto"
-              style={{
-                animationDirection: "reverse",
-                animationDuration: "1.5s",
-              }}
-            ></div>
-          </div>
-
-          {/* Loading Text */}
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">
-              Loading Properties
-            </h2>
-            <p className="text-muted-foreground">
-              Please wait while we fetch the latest listings...
-            </p>
-          </div>
-
-          {/* Animated Dots */}
-          <div className="flex justify-center space-x-1 mt-4">
-            <div
-              className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-bounce"
-              style={{ animationDelay: "0ms" }}
-            ></div>
-            <div
-              className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-bounce"
-              style={{ animationDelay: "150ms" }}
-            ></div>
-            <div
-              className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-bounce"
-              style={{ animationDelay: "300ms" }}
-            ></div>
+      <div className="bg-background min-h-screen">
+        {/* --- Hero Section: Search & Advanced Filters --- */}
+        <div className="py-6">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 className="text-3xl font-bold mb-10 mt-20 text-foreground">
+              Find Your Perfect Property
+            </h1>
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search Bar */}
+              <div className="relative flex-1">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  placeholder="Search by location, property type, or keywords..."
+                  className="pl-10 h-12 text-base border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              {/* Buttons Container */}
+              <div className="flex gap-3">
+                {/* Map View Button */}
+                <button
+                  onClick={() => setIsMapModalOpen(true)}
+                  className="bg-slate-700 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors"
+                >
+                  <Map size={18} className="mr-2" />
+                  Map View
+                </button>
+                {/* Advanced Filters Button */}
+                <button className="bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors">
+                  <SlidersHorizontal size={18} className="mr-2" />
+                  Advanced Filters
+                </button>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* --- Main Content Section --- */}
+        <div className="py-10">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Filter Controls */}
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold text-foreground hidden xl:block">
+                All Properties
+              </h2>
+              <div className="flex items-center space-x-2">
+                <span className="text-muted-foreground">Filter by:</span>
+                <Select value={activeFilter} onValueChange={setActiveFilter}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {propertyTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* --- Properties Grid Skeleton --- */}
+            <PropertiesLoadingSkeleton count={6} />
+          </div>
+        </div>
+
+        {/* Properties Map Modal */}
+        <PropertiesMapModal
+          isOpen={isMapModalOpen}
+          onClose={() => setIsMapModalOpen(false)}
+          properties={[]}
+        />
       </div>
     );
   }

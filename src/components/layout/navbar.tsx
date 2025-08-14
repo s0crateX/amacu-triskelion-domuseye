@@ -42,6 +42,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import {
+  NavbarNavigationSkeleton,
+  ProfileAvatarSkeleton,
+  MobileMenuSkeleton,
+} from "@/components/loadings/navbar-skeleton";
 
 // Navigation items for different user roles
 const visitorNavigation = [
@@ -262,7 +267,10 @@ export function Navbar() {
           <nav className="hidden md:flex items-center justify-center flex-1 mx-8">
             <div className="flex items-center space-x-8">
               {loading || (isAuthenticated && !userData) ? (
-                <div className="text-sm text-muted-foreground">Loading...</div>
+                <NavbarNavigationSkeleton
+                  userType={userData?.userType}
+                  isLoading={loading || (isAuthenticated && !userData)}
+                />
               ) : (
                 navigation.map((item) => (
                   <Link
@@ -285,112 +293,128 @@ export function Navbar() {
               <>
                 {/* Desktop Profile Dropdown */}
                 <div className="hidden sm:flex items-center">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={
-                              userData?.profilePicture || user?.photoURL || ""
+                  {loading || !userData ? (
+                    <ProfileAvatarSkeleton
+                      userType={userData?.userType}
+                      isLoading={loading || !userData}
+                    />
+                  ) : (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage
+                              src={
+                                userData?.profilePicture || user?.photoURL || ""
+                              }
+                              alt={userData?.firstName || "User"}
+                            />
+                            <AvatarFallback className="text-sm">
+                              {getInitials(
+                                userData?.firstName,
+                                userData?.lastName
+                              )}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="hidden lg:block text-sm font-medium whitespace-nowrap">
+                            {userData?.firstName || "User"}
+                          </span>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuLabel>
+                          <div className="flex flex-col space-y-1">
+                            <p className="text-sm font-medium leading-none">
+                              {userData?.firstName} {userData?.lastName}
+                            </p>
+                            <p className="text-xs leading-none text-muted-foreground capitalize">
+                              {userData?.userType}
+                            </p>
+                          </div>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push(
+                              userData?.userType === "tenant"
+                                ? "/users/tenant/profile"
+                                : "/profile"
+                            )
+                          }
+                        >
+                          <User className="mr-2 h-4 w-4" />
+                          <span>Profile</span>
+                        </DropdownMenuItem>
+                        {userData?.userType === "landlord" && (
+                          <DropdownMenuItem
+                            onClick={() => router.push("/dashboard/properties")}
+                          >
+                            <Building className="mr-2 h-4 w-4" />
+                            <span>My Properties</span>
+                          </DropdownMenuItem>
+                        )}
+                        {userData?.userType === "tenant" && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              router.push("/users/tenant/application")
                             }
-                            alt={userData?.firstName || "User"}
-                          />
-                          <AvatarFallback className="text-sm">
-                            {getInitials(
-                              userData?.firstName,
-                              userData?.lastName
-                            )}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="hidden lg:block text-sm font-medium whitespace-nowrap">
-                          {userData?.firstName || "User"}
-                        </span>
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuLabel>
-                        <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none">
-                            {userData?.firstName} {userData?.lastName}
-                          </p>
-                          <p className="text-xs leading-none text-muted-foreground capitalize">
-                            {userData?.userType}
-                          </p>
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() =>
-                          router.push(
-                            userData?.userType === "tenant"
-                              ? "/users/tenant/profile"
-                              : "/profile"
-                          )
-                        }
-                      >
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </DropdownMenuItem>
-                      {userData?.userType === "landlord" && (
-                        <DropdownMenuItem
-                          onClick={() => router.push("/dashboard/properties")}
-                        >
-                          <Building className="mr-2 h-4 w-4" />
-                          <span>My Properties</span>
+                          >
+                            <FileText className="mr-2 h-4 w-4" />
+                            <span>Application</span>
+                          </DropdownMenuItem>
+                        )}
+                        {userData?.userType === "tenant" && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              router.push("/users/tenant/payment-history")
+                            }
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            <span>Payment History</span>
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleLogout}>
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>Log out</span>
                         </DropdownMenuItem>
-                      )}
-                      {userData?.userType === "tenant" && (
-                        <DropdownMenuItem
-                          onClick={() =>
-                            router.push("/users/tenant/application")
-                          }
-                        >
-                          <FileText className="mr-2 h-4 w-4" />
-                          <span>Application</span>
-                        </DropdownMenuItem>
-                      )}
-                      {userData?.userType === "tenant" && (
-                        <DropdownMenuItem
-                          onClick={() =>
-                            router.push("/users/tenant/payment-history")
-                          }
-                        >
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          <span>Payment History</span>
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleLogout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
 
                 {/* Mobile Profile Picture Button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="sm:hidden"
-                  onClick={() =>
-                    router.push(
-                      userData?.userType === "tenant"
-                        ? "/users/tenant/profile"
-                        : "/profile"
-                    )
-                  }
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={userData?.profilePicture || user?.photoURL || ""}
-                      alt={userData?.firstName || "User"}
+                {loading || !userData ? (
+                  <div className="sm:hidden">
+                    <ProfileAvatarSkeleton
+                      userType={userData?.userType}
+                      isLoading={loading || !userData}
                     />
-                    <AvatarFallback className="text-sm">
-                      {getInitials(userData?.firstName, userData?.lastName)}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="sm:hidden"
+                    onClick={() =>
+                      router.push(
+                        userData?.userType === "tenant"
+                          ? "/users/tenant/profile"
+                          : "/profile"
+                      )
+                    }
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage
+                        src={userData?.profilePicture || user?.photoURL || ""}
+                        alt={userData?.firstName || "User"}
+                      />
+                      <AvatarFallback className="text-sm">
+                        {getInitials(userData?.firstName, userData?.lastName)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                )}
               </>
             ) : (
               <div className="hidden sm:flex items-center space-x-3">
@@ -426,141 +450,145 @@ export function Navbar() {
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col h-full">
-                  {/* User Profile Section - Show at top for authenticated users */}
-                  {isAuthenticated && userData && (
-                    <div className="pb-6 border-b border-border/40 mb-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-12 w-12">
-                            <AvatarImage
-                              src={
-                                userData?.profilePicture || user?.photoURL || ""
-                              }
-                              alt={userData?.firstName || "User"}
-                            />
-                            <AvatarFallback className="text-sm font-medium">
-                              {getInitials(
-                                userData?.firstName,
-                                userData?.lastName
-                              )}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col min-w-0 flex-1">
-                            <span className="text-lg font-semibold text-foreground truncate">
-                              {userData?.firstName} {userData?.lastName}
-                            </span>
-                            <span className="text-sm text-muted-foreground capitalize">
-                              {userData?.userType}
-                            </span>
+                  {/* Mobile Menu Content */}
+                  {loading || (isAuthenticated && !userData) ? (
+                    <MobileMenuSkeleton
+                      userType={userData?.userType}
+                      isLoading={loading || (isAuthenticated && !userData)}
+                    />
+                  ) : (
+                    <>
+                      {/* User Profile Section - Show at top for authenticated users */}
+                      {isAuthenticated && userData && (
+                        <div className="pb-6 border-b border-border/40 mb-6">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <Avatar className="h-12 w-12">
+                                <AvatarImage
+                                  src={
+                                    userData?.profilePicture ||
+                                    user?.photoURL ||
+                                    ""
+                                  }
+                                  alt={userData?.firstName || "User"}
+                                />
+                                <AvatarFallback className="text-sm font-medium">
+                                  {getInitials(
+                                    userData?.firstName,
+                                    userData?.lastName
+                                  )}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex flex-col min-w-0 flex-1">
+                                <span className="text-lg font-semibold text-foreground truncate">
+                                  {userData?.firstName} {userData?.lastName}
+                                </span>
+                                <span className="text-sm text-muted-foreground capitalize">
+                                  {userData?.userType}
+                                </span>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 text-muted-foreground hover:text-foreground flex-shrink-0"
+                              onClick={() => {
+                                setIsOpen(false);
+                                router.push(
+                                  userData?.userType === "tenant"
+                                    ? "/users/tenant/profile"
+                                    : userData?.userType === "agent"
+                                    ? "/users/agent/profile"
+                                    : "/profile"
+                                );
+                              }}
+                            >
+                              <Settings className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 text-muted-foreground hover:text-foreground flex-shrink-0"
-                          onClick={() => {
-                            setIsOpen(false);
-                            router.push(
-                              userData?.userType === "tenant"
-                                ? "/users/tenant/profile"
-                                : userData?.userType === "agent"
-                                ? "/users/agent/profile"
-                                : "/profile"
-                            );
-                          }}
-                        >
-                          <Settings className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                      )}
 
-                  {/* Navigation Items */}
-                  <div className="space-y-2 flex-1">
-                    {loading || (isAuthenticated && !userData) ? (
-                      <div className="flex items-center justify-center py-8">
-                        <div className="text-sm text-muted-foreground">
-                          Loading...
-                        </div>
+                      {/* Navigation Items */}
+                      <div className="space-y-2 flex-1">
+                        {navigation.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <Link
+                              key={item.name}
+                              href={item.href}
+                              className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-accent/50"
+                              onClick={() => setIsOpen(false)}
+                            >
+                              <Icon className="h-5 w-5 flex-shrink-0" />
+                              <span>{item.name}</span>
+                            </Link>
+                          );
+                        })}
                       </div>
-                    ) : (
-                      navigation.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                          <Link
-                            key={item.name}
-                            href={item.href}
-                            className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-accent/50"
-                            onClick={() => setIsOpen(false)}
-                          >
-                            <Icon className="h-5 w-5 flex-shrink-0" />
-                            <span>{item.name}</span>
-                          </Link>
-                        );
-                      })
-                    )}
-                  </div>
 
-                  {/* Additional authenticated user options */}
-                  {isAuthenticated &&
-                    userData &&
-                    userData?.userType === "landlord" && (
+                      {/* Additional authenticated user options */}
+                      {isAuthenticated &&
+                        userData &&
+                        userData?.userType === "landlord" && (
+                          <div className="pt-6 border-t border-border/40 mt-6">
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-start px-4 py-3 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200"
+                              onClick={() => {
+                                setIsOpen(false);
+                                router.push("/dashboard/properties");
+                              }}
+                            >
+                              <Building className="mr-3 h-5 w-5 flex-shrink-0" />
+                              My Properties
+                            </Button>
+                          </div>
+                        )}
+
                       <div className="pt-6 border-t border-border/40 mt-6">
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start px-4 py-3 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200"
-                          onClick={() => {
-                            setIsOpen(false);
-                            router.push("/dashboard/properties");
-                          }}
-                        >
-                          <Building className="mr-3 h-5 w-5 flex-shrink-0" />
-                          My Properties
-                        </Button>
-                      </div>
-                    )}
-
-                  <div className="pt-6 border-t border-border/40 mt-6">
-                    {isAuthenticated ? (
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start px-4 py-3 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200"
-                        onClick={() => {
-                          setIsOpen(false);
-                          handleLogout();
-                        }}
-                      >
-                        <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
-                        Log out
-                      </Button>
-                    ) : (
-                      <div className="space-y-3">
-                        <Button
-                          variant="ghost"
-                          className="w-full h-11 text-sm font-medium"
-                          asChild
-                        >
-                          <Link
-                            href="/dashboard/login"
-                            onClick={() => setIsOpen(false)}
+                        {isAuthenticated ? (
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start px-4 py-3 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200"
+                            onClick={() => {
+                              setIsOpen(false);
+                              handleLogout();
+                            }}
                           >
-                            Login
-                          </Link>
-                        </Button>
-                        <Button
-                          className="w-full h-11 text-sm font-medium"
-                          asChild
-                        >
-                          <Link
-                            href="/dashboard/register"
-                            onClick={() => setIsOpen(false)}
-                          >
-                            Sign Up
-                          </Link>
-                        </Button>
+                            <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
+                            Log out
+                          </Button>
+                        ) : (
+                          <div className="space-y-3">
+                            <Button
+                              variant="ghost"
+                              className="w-full h-11 text-sm font-medium"
+                              asChild
+                            >
+                              <Link
+                                href="/dashboard/login"
+                                onClick={() => setIsOpen(false)}
+                              >
+                                Login
+                              </Link>
+                            </Button>
+                            <Button
+                              className="w-full h-11 text-sm font-medium"
+                              asChild
+                            >
+                              <Link
+                                href="/dashboard/register"
+                                onClick={() => setIsOpen(false)}
+                              >
+                                Sign Up
+                              </Link>
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>

@@ -5,14 +5,17 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { updateUserData } from "@/lib/auth/auth-utils";
 import { toast } from "sonner";
-import { IKUpload } from 'imagekitio-react';
-import { getImageKitClientConfig } from '@/lib/imagekit';
+import { IKUpload } from "imagekitio-react";
+import { getImageKitClientConfig } from "@/lib/imagekit";
 import dynamic from "next/dynamic";
 
 // Dynamic import to avoid SSR issues with Leaflet
-const LocationMapModal = dynamic(() => import("@/components/location-map-modal"), {
-  ssr: false,
-});
+const LocationMapModal = dynamic(
+  () => import("@/components/location-map-modal"),
+  {
+    ssr: false,
+  }
+);
 import {
   Card,
   CardContent,
@@ -24,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+// Removed ProfilePageSkeleton import - replaced with circular spinner
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   User,
@@ -49,7 +53,7 @@ export default function LandlordProfilePage() {
   const [clientTimestamp, setClientTimestamp] = useState<string>("");
   const uploadRef = useRef<HTMLInputElement>(null);
   const imageKitConfig = getImageKitClientConfig();
-  
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -62,7 +66,7 @@ export default function LandlordProfilePage() {
 
   // Redirect if not authenticated or not a landlord
   useEffect(() => {
-    if (!authLoading && (!user || userData?.userType !== 'landlord')) {
+    if (!authLoading && (!user || userData?.userType !== "landlord")) {
       router.push("/");
     }
   }, [user, userData, authLoading, router]);
@@ -88,9 +92,9 @@ export default function LandlordProfilePage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -98,14 +102,17 @@ export default function LandlordProfilePage() {
     setUploadingImage(true);
   };
 
-  const handleImageUploadSuccess = async (response: { url: string; [key: string]: unknown }) => {
+  const handleImageUploadSuccess = async (response: {
+    url: string;
+    [key: string]: unknown;
+  }) => {
     try {
       const imageUrl = response.url;
-      
+
       // Update form data with new profile picture URL
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        profilePicture: imageUrl
+        profilePicture: imageUrl,
       }));
 
       // Update user data in Firebase immediately
@@ -150,7 +157,7 @@ export default function LandlordProfilePage() {
       };
 
       // Also update businessAddress for landlords
-      if (userData?.userType === 'landlord' && locationData.businessAddress) {
+      if (userData?.userType === "landlord" && locationData.businessAddress) {
         updateData.businessAddress = locationData.businessAddress;
       }
 
@@ -209,49 +216,84 @@ export default function LandlordProfilePage() {
 
   const getInitials = (firstName?: string, lastName?: string) => {
     if (!firstName && !lastName) return "U";
-    return `${firstName?.charAt(0) || ""}${lastName?.charAt(0) || ""}`.toUpperCase();
+    return `${firstName?.charAt(0) || ""}${
+      lastName?.charAt(0) || ""
+    }`.toUpperCase();
   };
 
+  // Show loading state while authentication and user data are being loaded
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 p-4 pt-24">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading profile...</p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (!user || !userData || userData.userType !== 'landlord') {
+  if (!user || !userData || userData.userType !== "landlord") {
     return null;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 p-4 pt-24">
       <div className="max-w-4xl mx-auto">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Profile Settings
+          </h1>
+          <p className="text-muted-foreground">
+            Manage your personal and business information
+          </p>
+        </div>
 
         <div className="grid gap-6 md:grid-cols-3">
           {/* Profile Summary Card */}
-          <Card className="md:col-span-1">
-            <CardHeader className="text-center">
+          <Card className="md:col-span-1 transition-all duration-200 hover:shadow-lg border-0 shadow-sm">
+            <CardHeader className="text-center pb-4">
               <div className="flex flex-col items-center mb-4">
-                <div className="relative mb-2">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage
-                      src={formData.profilePicture || userData.profilePicture || user?.photoURL || ""}
-                      alt={`${userData.firstName} ${userData.lastName}`}
-                    />
-                    <AvatarFallback className="text-2xl">
-                      {getInitials(userData.firstName, userData.lastName)}
-                    </AvatarFallback>
-                  </Avatar>
+                <div className="relative mb-4">
+                  <div className="relative">
+                    <Avatar className="h-24 w-24 ring-4 ring-primary/10 transition-all duration-200 hover:ring-primary/20">
+                      <AvatarImage
+                        src={
+                          formData.profilePicture ||
+                          userData.profilePicture ||
+                          user?.photoURL ||
+                          ""
+                        }
+                        alt={`${userData.firstName} ${userData.lastName}`}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="text-2xl bg-gradient-to-br from-primary/20 to-secondary/20">
+                        {getInitials(userData.firstName, userData.lastName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {uploadingImage && (
+                      <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                        <Loader2 className="h-6 w-6 animate-spin text-white" />
+                      </div>
+                    )}
+                  </div>
                 </div>
-                
+
                 {/* Upload Button with Text - Show when editing OR when no image exists */}
-                {(isEditing || !formData.profilePicture && !userData.profilePicture && !user?.photoURL) && (
+                {(isEditing ||
+                  (!formData.profilePicture &&
+                    !userData.profilePicture &&
+                    !user?.photoURL)) && (
                   <Button
                     onClick={triggerImageUpload}
                     size="sm"
                     variant="outline"
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 hover:bg-primary/5 transition-colors duration-200"
                     disabled={uploadingImage}
                   >
                     {uploadingImage ? (
@@ -262,7 +304,11 @@ export default function LandlordProfilePage() {
                     ) : (
                       <>
                         <Camera className="h-4 w-4" />
-                        Upload
+                        {formData.profilePicture ||
+                        userData.profilePicture ||
+                        user?.photoURL
+                          ? "Change Photo"
+                          : "Upload Photo"}
                       </>
                     )}
                   </Button>
@@ -276,15 +322,15 @@ export default function LandlordProfilePage() {
                     urlEndpoint={imageKitConfig.urlEndpoint}
                     authenticator={async () => {
                       try {
-                        const response = await fetch('/api/imagekit-auth', {
-                          method: 'POST',
+                        const response = await fetch("/api/imagekit-auth", {
+                          method: "POST",
                         });
                         if (!response.ok) {
-                          throw new Error('Failed to authenticate');
+                          throw new Error("Failed to authenticate");
                         }
                         return await response.json();
                       } catch (error) {
-                        console.error('Authentication error:', error);
+                        console.error("Authentication error:", error);
                         throw error;
                       }
                     }}
@@ -306,31 +352,69 @@ export default function LandlordProfilePage() {
                 {userData.userType}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-sm">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">{user.email}</span>
+            <CardContent className="pt-0">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors duration-200">
+                  <div className="flex-shrink-0">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                      Email
+                    </p>
+                    <p className="text-sm truncate">{user.email}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{formData.phone || userData.phone || "Not provided"}</span>
+                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors duration-200">
+                  <div className="flex-shrink-0">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                      Phone
+                    </p>
+                    <p className="text-sm">
+                      {formData.phone || userData.phone || "Not provided"}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">{formData.companyName || userData.companyName || "Not provided"}</span>
+                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors duration-200">
+                  <div className="flex-shrink-0">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                      Company
+                    </p>
+                    <p className="text-sm truncate">
+                      {formData.companyName ||
+                        userData.companyName ||
+                        "Not provided"}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">{formData.businessAddress || userData.businessAddress || "Not provided"}</span>
+                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors duration-200">
+                  <div className="flex-shrink-0">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                      Address
+                    </p>
+                    <p className="text-sm truncate">
+                      {formData.businessAddress ||
+                        userData.businessAddress ||
+                        "Not provided"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Profile Details Card */}
-          <Card className="md:col-span-2">
-            <CardHeader className="flex flex-row items-center justify-between">
+          <Card className="md:col-span-2 transition-all duration-200 hover:shadow-lg border-0 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-6">
               <div>
                 <CardTitle>Profile Information</CardTitle>
                 <CardDescription>
@@ -339,9 +423,13 @@ export default function LandlordProfilePage() {
               </div>
               <div className="flex gap-2">
                 {!isEditing ? (
-                  <Button onClick={() => setIsEditing(true)} size="sm">
+                  <Button
+                    onClick={() => setIsEditing(true)}
+                    size="sm"
+                    className="hover:bg-primary/90 transition-colors duration-200"
+                  >
                     <Edit3 className="h-4 w-4 mr-2" />
-                    Edit
+                    Edit Profile
                   </Button>
                 ) : (
                   <div className="flex gap-2">
@@ -349,19 +437,21 @@ export default function LandlordProfilePage() {
                       onClick={handleSave}
                       size="sm"
                       disabled={loading}
+                      className="hover:bg-primary/90 transition-colors duration-200"
                     >
                       {loading ? (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       ) : (
                         <Save className="h-4 w-4 mr-2" />
                       )}
-                      Save
+                      {loading ? "Saving..." : "Save Changes"}
                     </Button>
                     <Button
                       onClick={handleCancel}
                       size="sm"
                       variant="outline"
                       disabled={loading}
+                      className="hover:bg-muted transition-colors duration-200"
                     >
                       <X className="h-4 w-4 mr-2" />
                       Cancel
@@ -379,7 +469,9 @@ export default function LandlordProfilePage() {
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
+                    <Label htmlFor="firstName" className="text-sm font-medium">
+                      First Name
+                    </Label>
                     <Input
                       id="firstName"
                       name="firstName"
@@ -387,10 +479,17 @@ export default function LandlordProfilePage() {
                       onChange={handleInputChange}
                       disabled={!isEditing}
                       placeholder="Enter your first name"
+                      className={`transition-all duration-200 ${
+                        !isEditing
+                          ? "bg-muted/50"
+                          : "focus:ring-2 focus:ring-primary/20"
+                      }`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
+                    <Label htmlFor="lastName" className="text-sm font-medium">
+                      Last Name
+                    </Label>
                     <Input
                       id="lastName"
                       name="lastName"
@@ -398,10 +497,17 @@ export default function LandlordProfilePage() {
                       onChange={handleInputChange}
                       disabled={!isEditing}
                       placeholder="Enter your last name"
+                      className={`transition-all duration-200 ${
+                        !isEditing
+                          ? "bg-muted/50"
+                          : "focus:ring-2 focus:ring-primary/20"
+                      }`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="phone" className="text-sm font-medium">
+                      Phone Number
+                    </Label>
                     <Input
                       id="phone"
                       name="phone"
@@ -409,16 +515,26 @@ export default function LandlordProfilePage() {
                       onChange={handleInputChange}
                       disabled={!isEditing}
                       placeholder="Enter your phone number"
+                      className={`transition-all duration-200 ${
+                        !isEditing
+                          ? "bg-muted/50"
+                          : "focus:ring-2 focus:ring-primary/20"
+                      }`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
+                    <Label htmlFor="email" className="text-sm font-medium">
+                      Email Address
+                    </Label>
                     <Input
                       id="email"
                       value={user.email || ""}
                       disabled
-                      className="bg-muted"
+                      className="bg-muted/50 cursor-not-allowed"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Email cannot be changed
+                    </p>
                   </div>
                 </div>
               </div>
@@ -433,7 +549,12 @@ export default function LandlordProfilePage() {
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="companyName">Company Name</Label>
+                    <Label
+                      htmlFor="companyName"
+                      className="text-sm font-medium"
+                    >
+                      Company Name
+                    </Label>
                     <Input
                       id="companyName"
                       name="companyName"
@@ -441,10 +562,20 @@ export default function LandlordProfilePage() {
                       onChange={handleInputChange}
                       disabled={!isEditing}
                       placeholder="Enter your company name"
+                      className={`transition-all duration-200 ${
+                        !isEditing
+                          ? "bg-muted/50"
+                          : "focus:ring-2 focus:ring-primary/20"
+                      }`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="businessAddress">Business Address</Label>
+                    <Label
+                      htmlFor="businessAddress"
+                      className="text-sm font-medium"
+                    >
+                      Business Address
+                    </Label>
                     <div className="flex gap-2">
                       <Input
                         id="businessAddress"
@@ -453,7 +584,11 @@ export default function LandlordProfilePage() {
                         onChange={handleInputChange}
                         disabled={!isEditing}
                         placeholder="Enter your business address"
-                        className="flex-1"
+                        className={`flex-1 transition-all duration-200 ${
+                          !isEditing
+                            ? "bg-muted/50"
+                            : "focus:ring-2 focus:ring-primary/20"
+                        }`}
                       />
                       {isEditing && (
                         <Button
@@ -462,11 +597,17 @@ export default function LandlordProfilePage() {
                           size="icon"
                           onClick={() => setIsLocationModalOpen(true)}
                           title="Select location on map"
+                          className="hover:bg-primary/5 transition-colors duration-200"
                         >
                           <Map className="h-4 w-4" />
                         </Button>
                       )}
                     </div>
+                    {isEditing && (
+                      <p className="text-xs text-muted-foreground">
+                        Click the map icon to select location
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -480,12 +621,15 @@ export default function LandlordProfilePage() {
           onClose={() => setIsLocationModalOpen(false)}
           onSave={handleLocationSave}
           initialLocation={
-            userData?.latitude && userData?.longitude && userData?.location_address
+            userData?.latitude &&
+            userData?.longitude &&
+            userData?.location_address
               ? {
                   latitude: userData.latitude,
                   longitude: userData.longitude,
                   location_address: userData.location_address,
-                  currentAddress: userData.businessAddress || userData.location_address || "",
+                  currentAddress:
+                    userData.businessAddress || userData.location_address || "",
                 }
               : null
           }

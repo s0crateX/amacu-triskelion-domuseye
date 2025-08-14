@@ -37,6 +37,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DashboardStatSkeleton,
+  PropertyCardSkeleton,
+  MaintenanceRequestSkeleton,
+  ApplicationSkeleton,
+  TaskSkeleton,
+  QuickActionSkeleton,
+  LoadingGrid,
+  LoadingList,
+  StaggeredSkeleton,
+} from "@/components/loadings/dashboard-skeletons";
 import { useAuth } from "@/lib/auth/auth-context";
 import { db } from "@/lib/firebase";
 import {
@@ -157,6 +168,9 @@ export default function LandlordDashboard() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [dashboardStats, setDashboardStats] = useState<DashboardStats[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [propertiesLoading, setPropertiesLoading] = useState(true);
+  const [applicationsLoading, setApplicationsLoading] = useState(true);
+  const [maintenanceLoading, setMaintenanceLoading] = useState(true);
   const [selectedProperty, setSelectedProperty] =
     useState<PropertyWithTenants | null>(null);
   const [showTenantsModal, setShowTenantsModal] = useState(false);
@@ -172,6 +186,7 @@ export default function LandlordDashboard() {
     if (!user) return;
 
     try {
+      setPropertiesLoading(true);
       const propertiesQuery = query(
         collection(db, "properties"),
         where("landlordId", "==", user.uid),
@@ -248,12 +263,14 @@ export default function LandlordDashboard() {
         );
 
         setProperties(propertiesWithTenants);
+        setPropertiesLoading(false);
       });
 
       return unsubscribe;
     } catch (error) {
       console.error("Error fetching properties:", error);
       toast.error("Failed to load properties");
+      setPropertiesLoading(false);
     }
   }, [user]);
 
@@ -265,6 +282,7 @@ export default function LandlordDashboard() {
     }
 
     try {
+      setApplicationsLoading(true);
       console.log("Starting to fetch applications for user:", user.uid);
       const allApplications: Application[] = [];
 
@@ -346,8 +364,10 @@ export default function LandlordDashboard() {
 
       console.log(`Total applications found: ${allApplications.length}`);
       setApplications(allApplications);
+      setApplicationsLoading(false);
     } catch (error) {
       console.error("Error fetching applications:", error);
+      setApplicationsLoading(false);
       toast.error("Failed to load applications");
     }
   }, [user]);
@@ -357,6 +377,7 @@ export default function LandlordDashboard() {
     if (!user) return;
 
     try {
+      setMaintenanceLoading(true);
       const allRequests: MaintenanceRequest[] = [];
 
       // Get all properties owned by the landlord
@@ -394,15 +415,19 @@ export default function LandlordDashboard() {
 
       // Sort all requests by creation date
       allRequests.sort((a, b) => {
-        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
-        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+        const dateA =
+          a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+        const dateB =
+          b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
         return dateB.getTime() - dateA.getTime();
       });
 
       setMaintenanceRequests(allRequests);
+      setMaintenanceLoading(false);
     } catch (error) {
       console.error("Error fetching maintenance requests:", error);
       toast.error("Failed to load maintenance requests");
+      setMaintenanceLoading(false);
     }
   }, [user]);
 
@@ -486,18 +511,7 @@ export default function LandlordDashboard() {
     calculateStats();
   }, [calculateStats]);
 
-  if (loading || dataLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">
-            {loading ? "Loading..." : "Loading dashboard data..."}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Removed circular loading spinner - now using skeleton components for better UX
 
   if (!user || !userData) {
     return null;
@@ -521,7 +535,6 @@ export default function LandlordDashboard() {
     setSelectedProperty(null);
   };
 
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header Section */}
@@ -541,30 +554,38 @@ export default function LandlordDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Enhanced Stats Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          {dashboardStats.map((stat, index) => (
-            <Card key={index} className="relative overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <stat.icon className="h-5 w-5 text-primary" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-foreground mb-1">
-                  {stat.value}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-green-600 flex items-center">
-                    <ArrowUpRight className="h-3 w-3 mr-1" />
-                    {stat.percentage}
-                  </span>
-                  <p className="text-xs text-muted-foreground">{stat.change}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {dataLoading
+            ? Array.from({ length: 4 }).map((_, index) => (
+                <StaggeredSkeleton key={index} delay={index * 100}>
+                  <DashboardStatSkeleton />
+                </StaggeredSkeleton>
+              ))
+            : dashboardStats.map((stat, index) => (
+                <Card key={index} className="relative overflow-hidden">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      {stat.title}
+                    </CardTitle>
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <stat.icon className="h-5 w-5 text-primary" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-foreground mb-1">
+                      {stat.value}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-green-600 flex items-center">
+                        <ArrowUpRight className="h-3 w-3 mr-1" />
+                        {stat.percentage}
+                      </span>
+                      <p className="text-xs text-muted-foreground">
+                        {stat.change}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
         </div>
 
         {/* Main Content Grid */}
@@ -599,7 +620,13 @@ export default function LandlordDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                {filteredProperties.length === 0 ? (
+                {propertiesLoading ? (
+                  <LoadingGrid count={4} className="grid gap-4 md:grid-cols-2">
+                    <StaggeredSkeleton>
+                      <PropertyCardSkeleton />
+                    </StaggeredSkeleton>
+                  </LoadingGrid>
+                ) : filteredProperties.length === 0 ? (
                   <div className="text-center py-8">
                     <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">
@@ -717,7 +744,13 @@ export default function LandlordDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {maintenanceRequests.length === 0 ? (
+                {maintenanceLoading ? (
+                  <LoadingList count={5}>
+                    <StaggeredSkeleton>
+                      <MaintenanceRequestSkeleton />
+                    </StaggeredSkeleton>
+                  </LoadingList>
+                ) : maintenanceRequests.length === 0 ? (
                   <div className="text-center py-8">
                     <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">
@@ -741,9 +774,11 @@ export default function LandlordDashboard() {
                               {request.propertyTitle} • {request.requesterName}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {request.createdAt instanceof Date 
-                                ? request.createdAt.toLocaleDateString() 
-                                : new Date(request.createdAt).toLocaleDateString()}
+                              {request.createdAt instanceof Date
+                                ? request.createdAt.toLocaleDateString()
+                                : new Date(
+                                    request.createdAt
+                                  ).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
@@ -801,33 +836,41 @@ export default function LandlordDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {upcomingTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                    >
+                {dataLoading ? (
+                  <LoadingList count={4}>
+                    <StaggeredSkeleton>
+                      <TaskSkeleton />
+                    </StaggeredSkeleton>
+                  </LoadingList>
+                ) : (
+                  <div className="space-y-3">
+                    {upcomingTasks.map((task) => (
                       <div
-                        className={`w-2 h-2 rounded-full ${
-                          task.priority === "high"
-                            ? "bg-red-500"
-                            : task.priority === "medium"
-                            ? "bg-yellow-500"
-                            : "bg-green-500"
-                        }`}
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{task.task}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {task.dueDate}
-                        </p>
+                        key={task.id}
+                        className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            task.priority === "high"
+                              ? "bg-red-500"
+                              : task.priority === "medium"
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                          }`}
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{task.task}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {task.dueDate}
+                          </p>
+                        </div>
+                        <Button size="sm" variant="ghost">
+                          <ArrowUpRight className="h-3 w-3" />
+                        </Button>
                       </div>
-                      <Button size="sm" variant="ghost">
-                        <ArrowUpRight className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -838,7 +881,13 @@ export default function LandlordDashboard() {
                 <CardDescription>Latest rental applications</CardDescription>
               </CardHeader>
               <CardContent>
-                {applications.length === 0 ? (
+                {applicationsLoading ? (
+                  <LoadingList count={5}>
+                    <StaggeredSkeleton>
+                      <ApplicationSkeleton />
+                    </StaggeredSkeleton>
+                  </LoadingList>
+                ) : applications.length === 0 ? (
                   <div className="text-center py-8">
                     <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">
@@ -893,35 +942,43 @@ export default function LandlordDashboard() {
                 <CardDescription>Common tasks and shortcuts</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-2">
-                  <Button variant="outline" className="justify-start h-12">
-                    <Plus className="mr-3 h-4 w-4" />
-                    <div className="text-left">
-                      <div className="font-medium">Add New Property</div>
-                      <div className="text-xs text-muted-foreground">
-                        List a new rental
+                {dataLoading ? (
+                  <LoadingList count={4}>
+                    <StaggeredSkeleton>
+                      <QuickActionSkeleton />
+                    </StaggeredSkeleton>
+                  </LoadingList>
+                ) : (
+                  <div className="grid gap-2">
+                    <Button variant="outline" className="justify-start h-12">
+                      <Plus className="mr-3 h-4 w-4" />
+                      <div className="text-left">
+                        <div className="font-medium">Add New Property</div>
+                        <div className="text-xs text-muted-foreground">
+                          List a new rental
+                        </div>
                       </div>
-                    </div>
-                  </Button>
-                  <Button variant="outline" className="justify-start h-12">
-                    <CreditCard className="mr-3 h-4 w-4" />
-                    <div className="text-left">
-                      <div className="font-medium">Payment Tracking</div>
-                      <div className="text-xs text-muted-foreground">
-                        Monitor rent payments
+                    </Button>
+                    <Button variant="outline" className="justify-start h-12">
+                      <CreditCard className="mr-3 h-4 w-4" />
+                      <div className="text-left">
+                        <div className="font-medium">Payment Tracking</div>
+                        <div className="text-xs text-muted-foreground">
+                          Monitor rent payments
+                        </div>
                       </div>
-                    </div>
-                  </Button>
-                  <Button variant="outline" className="justify-start h-12">
-                    <BarChart3 className="mr-3 h-4 w-4" />
-                    <div className="text-left">
-                      <div className="font-medium">Financial Reports</div>
-                      <div className="text-xs text-muted-foreground">
-                        View income & expenses
+                    </Button>
+                    <Button variant="outline" className="justify-start h-12">
+                      <BarChart3 className="mr-3 h-4 w-4" />
+                      <div className="text-left">
+                        <div className="font-medium">Financial Reports</div>
+                        <div className="text-xs text-muted-foreground">
+                          View income & expenses
+                        </div>
                       </div>
-                    </div>
-                  </Button>
-                </div>
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

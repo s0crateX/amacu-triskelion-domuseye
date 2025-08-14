@@ -500,10 +500,10 @@ export default function AddPropertyForm({
                         className="resize-none"
                       />
                     </div>
-                    
+
                     {/* AI Description Generator */}
                     <div className="mt-4">
-                      <DescriptionMaker 
+                      <DescriptionMaker
                         onDescriptionGenerated={(description) => {
                           handleInputChange("description", description);
                           toast.success("Description applied successfully!");

@@ -99,6 +99,8 @@ export default function CommunityBoardPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -144,6 +146,7 @@ export default function CommunityBoardPage() {
 
     // Create a query for each property and combine results
     const fetchPosts = async () => {
+      setPostsLoading(true);
       try {
         const allPosts: CommunityPost[] = [];
 
@@ -180,6 +183,8 @@ export default function CommunityBoardPage() {
       } catch (error) {
         console.error("Error fetching posts:", error);
         toast.error("Failed to load community posts");
+      } finally {
+        setPostsLoading(false);
       }
     };
 
@@ -224,6 +229,16 @@ export default function CommunityBoardPage() {
         postData
       );
 
+      // Add the new post to the current posts state
+      const newPost: CommunityPost = {
+        id: "temp-" + Date.now(), // Temporary ID until we get the real one
+        ...postData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as CommunityPost;
+
+      setPosts((prevPosts) => [newPost, ...prevPosts]);
+
       toast.success("Post created successfully!");
       setShowCreateForm(false);
       setFormData({
@@ -233,8 +248,43 @@ export default function CommunityBoardPage() {
         type: "update",
       });
 
-      // Refresh posts
-      window.location.reload();
+      // Refresh posts to get the real data
+      setTimeout(() => {
+        const propertyIds = properties.map((p) => p.id);
+        const fetchPosts = async () => {
+          try {
+            const allPosts: CommunityPost[] = [];
+            for (const propertyId of propertyIds) {
+              const postsQuery = query(
+                collection(db, "properties", propertyId, "community-board"),
+                orderBy("createdAt", "desc")
+              );
+              const snapshot = await getDocs(postsQuery);
+              const propertyPosts = snapshot.docs.map((doc) => {
+                const data = doc.data();
+                return {
+                  id: doc.id,
+                  ...data,
+                  createdAt: data.createdAt?.toDate
+                    ? data.createdAt.toDate()
+                    : new Date(data.createdAt),
+                  updatedAt: data.updatedAt?.toDate
+                    ? data.updatedAt.toDate()
+                    : new Date(data.updatedAt),
+                };
+              }) as CommunityPost[];
+              allPosts.push(...propertyPosts);
+            }
+            allPosts.sort(
+              (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+            );
+            setPosts(allPosts);
+          } catch (error) {
+            console.error("Error refreshing posts:", error);
+          }
+        };
+        fetchPosts();
+      }, 1000);
     } catch (error) {
       console.error("Error creating post:", error);
       toast.error("Failed to create post");
@@ -266,6 +316,21 @@ export default function CommunityBoardPage() {
         updatedAt: serverTimestamp(),
       });
 
+      // Update the post in the current posts state
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === editingPost.id
+            ? {
+                ...post,
+                title: formData.title.trim(),
+                content: formData.content.trim(),
+                type: formData.type,
+                updatedAt: new Date(),
+              }
+            : post
+        )
+      );
+
       toast.success("Post updated successfully!");
       setShowEditForm(false);
       setEditingPost(null);
@@ -275,9 +340,6 @@ export default function CommunityBoardPage() {
         content: "",
         type: "update",
       });
-
-      // Refresh posts
-      window.location.reload();
     } catch (error) {
       console.error("Error updating post:", error);
       toast.error("Failed to update post");
@@ -289,6 +351,7 @@ export default function CommunityBoardPage() {
   const handleDeletePost = async (post: CommunityPost) => {
     if (!confirm("Are you sure you want to delete this post?")) return;
 
+    setDeletingPostId(post.id);
     try {
       const postRef = doc(
         db,
@@ -299,13 +362,16 @@ export default function CommunityBoardPage() {
       );
 
       await deleteDoc(postRef);
-      toast.success("Post deleted successfully!");
 
-      // Refresh posts
-      window.location.reload();
+      // Remove the post from the current posts state
+      setPosts((prevPosts) => prevPosts.filter((p) => p.id !== post.id));
+
+      toast.success("Post deleted successfully!");
     } catch (error) {
       console.error("Error deleting post:", error);
       toast.error("Failed to delete post");
+    } finally {
+      setDeletingPostId(null);
     }
   };
 
@@ -352,10 +418,17 @@ export default function CommunityBoardPage() {
     });
   };
 
+
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="container mx-auto px-6 sm:px-8 lg:px-12 xl:px-16 py-4 sm:py-6 max-w-7xl">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading community board...</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -394,6 +467,14 @@ export default function CommunityBoardPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
+          {searchTerm && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <div className="text-xs text-muted-foreground">
+                {filteredPosts.length} result
+                {filteredPosts.length !== 1 ? "s" : ""}
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
@@ -402,14 +483,27 @@ export default function CommunityBoardPage() {
           </div>
           <div className="flex items-center gap-1">
             <MessageSquare className="h-4 w-4" />
-            {posts.length} Posts
+            {postsLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              posts.length
+            )}{" "}
+            Posts
           </div>
         </div>
       </div>
 
       {/* Posts List */}
       <div className="space-y-4">
-        {filteredPosts.length === 0 ? (
+        {postsLoading && posts.length === 0 ? (
+          // Show circular spinner while posts are loading for the first time
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading posts...</p>
+            </div>
+          </div>
+        ) : filteredPosts.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
@@ -430,8 +524,12 @@ export default function CommunityBoardPage() {
         ) : (
           filteredPosts.map((post) => {
             const typeInfo = getPostTypeInfo(post.type);
+            const isDeleting = deletingPostId === post.id;
             return (
-              <Card key={post.id}>
+              <Card
+                key={post.id}
+                className={isDeleting ? "opacity-50 pointer-events-none" : ""}
+              >
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="space-y-2">
@@ -454,6 +552,7 @@ export default function CommunityBoardPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => openEditForm(post)}
+                        disabled={isDeleting}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -461,8 +560,13 @@ export default function CommunityBoardPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleDeletePost(post)}
+                        disabled={isDeleting}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {isDeleting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -517,9 +621,9 @@ export default function CommunityBoardPage() {
               <Label htmlFor="type">Post Type *</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: "update" | "news" | "announcement" | "maintenance") =>
-                  setFormData({ ...formData, type: value })
-                }
+                onValueChange={(
+                  value: "update" | "news" | "announcement" | "maintenance"
+                ) => setFormData({ ...formData, type: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -616,9 +720,9 @@ export default function CommunityBoardPage() {
               <Label htmlFor="edit-type">Post Type *</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: "update" | "news" | "announcement" | "maintenance") =>
-                  setFormData({ ...formData, type: value })
-                }
+                onValueChange={(
+                  value: "update" | "news" | "announcement" | "maintenance"
+                ) => setFormData({ ...formData, type: value })}
               >
                 <SelectTrigger>
                   <SelectValue />

@@ -27,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+// Removed ApplicationsLoadingSkeleton import - replaced with circular spinner
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   collection,
@@ -94,7 +95,10 @@ export default function ApplicationsPage() {
             appData.appliedAt &&
             typeof appData.appliedAt === "object" &&
             "toDate" in appData.appliedAt
-              ? (appData.appliedAt as Timestamp).toDate().toISOString().split("T")[0]
+              ? (appData.appliedAt as Timestamp)
+                  .toDate()
+                  .toISOString()
+                  .split("T")[0]
               : new Date().toISOString().split("T")[0];
 
           allApplications.push({
@@ -136,7 +140,8 @@ export default function ApplicationsPage() {
       }
 
       // Determine the actual status to set
-      const actualStatus = newStatus === "approved" ? "awaiting_tenant_confirmation" : "rejected";
+      const actualStatus =
+        newStatus === "approved" ? "awaiting_tenant_confirmation" : "rejected";
 
       // Update the application status in the property's applications subcollection
       await updateDoc(
@@ -189,27 +194,33 @@ export default function ApplicationsPage() {
       case "approved":
         return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
       case "awaiting_tenant_confirmation":
-        return <Badge className="bg-blue-100 text-blue-800">Awaiting Confirmation</Badge>;
+        return (
+          <Badge className="bg-blue-100 text-blue-800">
+            Awaiting Confirmation
+          </Badge>
+        );
       case "confirmed":
-        return <Badge className="bg-emerald-100 text-emerald-800">Confirmed</Badge>;
+        return (
+          <Badge className="bg-emerald-100 text-emerald-800">Confirmed</Badge>
+        );
       case "rejected":
         return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
       case "declined_by_tenant":
-        return <Badge className="bg-gray-100 text-gray-800">Declined by Tenant</Badge>;
+        return (
+          <Badge className="bg-gray-100 text-gray-800">
+            Declined by Tenant
+          </Badge>
+        );
       default:
         return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
     }
   };
 
-
-
   return (
     <div className="container mx-auto px-6 sm:px-8 lg:px-12 xl:px-16 py-4 sm:py-6 max-w-7xl">
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-          Tenant Applications
-        </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Tenant Applications</h1>
+        <p className="text-muted-foreground">
           Review and manage applications from potential tenants
         </p>
       </div>
@@ -221,14 +232,14 @@ export default function ApplicationsPage() {
             placeholder="Search by tenant name or property..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
           />
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="flex items-center gap-2 w-full sm:w-auto"
+              className="flex items-center gap-2 w-full sm:w-auto hover:bg-muted/50 transition-colors duration-200"
             >
               <Filter className="h-4 w-4" />
               {statusFilter === "all"
@@ -259,7 +270,9 @@ export default function ApplicationsPage() {
             <DropdownMenuItem onClick={() => setStatusFilter("approved")}>
               Approved
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter("awaiting_tenant_confirmation")}>
+            <DropdownMenuItem
+              onClick={() => setStatusFilter("awaiting_tenant_confirmation")}
+            >
               Awaiting Confirmation
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setStatusFilter("confirmed")}>
@@ -268,7 +281,9 @@ export default function ApplicationsPage() {
             <DropdownMenuItem onClick={() => setStatusFilter("rejected")}>
               Rejected
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter("declined_by_tenant")}>
+            <DropdownMenuItem
+              onClick={() => setStatusFilter("declined_by_tenant")}
+            >
               Declined by Tenant
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -277,29 +292,46 @@ export default function ApplicationsPage() {
 
       <div className="space-y-4">
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin" />
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading applications...</p>
+            </div>
           </div>
         ) : filteredApplications.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
+          <div className="text-center py-16">
+            <div className="bg-muted/30 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+              <FileText className="h-10 w-10 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold mb-3">
               No applications found
             </h3>
-            <p className="text-muted-foreground text-sm sm:text-base">
+            <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
               {searchTerm || statusFilter !== "all"
-                ? "Try adjusting your search or filter"
-                : "No tenant applications yet"}
+                ? "Try adjusting your search criteria or filter settings to find the applications you're looking for."
+                : "You haven't received any tenant applications yet. Applications will appear here when tenants apply for your properties."}
             </p>
+            {(searchTerm || statusFilter !== "all") && (
+              <Button
+                variant="outline"
+                className="mt-4 hover:bg-primary/5 transition-colors duration-200"
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                }}
+              >
+                Clear filters
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3">
             {filteredApplications.map((application) => (
               <Card
                 key={application.id}
-                className="hover:shadow-lg transition-all duration-200 shadow-sm not-[]:overflow-hidden"
+                className="hover:shadow-lg transition-all duration-200 shadow-sm border-0 overflow-hidden"
               >
-                <CardHeader className="pb-4">
+                <CardHeader className="pb-6">
                   <div className="flex justify-between items-start gap-3">
                     <div className="flex-1 min-w-0">
                       <CardTitle className="text-lg font-semibold truncate">
@@ -337,7 +369,11 @@ export default function ApplicationsPage() {
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full hover:bg-primary/5 transition-colors duration-200"
+                    >
                       <Eye className="h-4 w-4 mr-2" />
                       View Details
                     </Button>
@@ -345,7 +381,7 @@ export default function ApplicationsPage() {
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          className="flex-1"
+                          className="flex-1 hover:bg-primary/90 transition-colors duration-200"
                           onClick={() =>
                             handleStatusUpdate(
                               application.id,
@@ -360,7 +396,7 @@ export default function ApplicationsPage() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          className="flex-1"
+                          className="flex-1 hover:bg-destructive/90 transition-colors duration-200"
                           onClick={() =>
                             handleStatusUpdate(
                               application.id,
@@ -374,23 +410,25 @@ export default function ApplicationsPage() {
                         </Button>
                       </div>
                     )}
-                    
+
                     {application.status === "awaiting_tenant_confirmation" && (
                       <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <p className="text-sm text-blue-800 font-medium">
-                          ⏳ Awaiting tenant confirmation. The tenant needs to confirm this approved application.
+                          ⏳ Awaiting tenant confirmation. The tenant needs to
+                          confirm this approved application.
                         </p>
                       </div>
                     )}
-                    
+
                     {application.status === "confirmed" && (
                       <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                         <p className="text-sm text-green-800 font-medium">
-                          ✅ Application confirmed by tenant. This application is now finalized.
+                          ✅ Application confirmed by tenant. This application
+                          is now finalized.
                         </p>
                       </div>
                     )}
-                    
+
                     {application.status === "declined_by_tenant" && (
                       <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
                         <p className="text-sm text-gray-700 font-medium">
