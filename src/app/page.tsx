@@ -65,11 +65,21 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative py-5 lg:py-8 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Background SVG */}
+        <div className="absolute left-20 top-70 -translate-y-1/2 w-180 h-180 opacity-20 pointer-events-none z-0">
+          <Image
+            src="/assets/svgs/real-estate-bg.svg"
+            alt="Real Estate Background"
+            width={500}
+            height={500}
+            className="w-full h-full object-contain"
+          />
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8 mx-4">
+            <div className="space-y-8 mx-4 relative z-20">
               <div className="space-y-4">
-                <Badge variant="secondary" className="w-fit">
+                <Badge variant="default" className="w-fit">
                   Modern Property Management
                 </Badge>
                 <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
@@ -94,7 +104,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Search BarBox Section */}
+            {/* AIBOT BOX Section */}
             <div className="relative">
               <div className="bg-gradient-to-br from-primary/20 via-secondary/15 to-primary/10 rounded-3xl p-7 backdrop-blur-lg border border-border/30 shadow-2xl">
                 <div className="space-y-8">
@@ -182,15 +192,15 @@ export default function Home() {
                   {/* Feature highlights */}
                   <div className="flex justify-center gap-6 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                       <span>Always Online</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
                       <span>Helpful Navigator</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                       <span>24/7 Support</span>
                     </div>
                   </div>

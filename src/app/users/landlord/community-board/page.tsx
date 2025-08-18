@@ -90,7 +90,7 @@ const postTypes = [
   {
     value: "maintenance",
     label: "Maintenance Notice",
-    color: "bg-orange-100 text-orange-800",
+    color: "bg-blue-100 text-blue-800",
   },
 ];
 

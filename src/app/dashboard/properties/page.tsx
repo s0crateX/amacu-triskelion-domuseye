@@ -140,32 +140,40 @@ const PropertiesPage = () => {
         {/* --- Hero Section: Search & Advanced Filters --- */}
         <div className="py-6">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold mb-10 mt-20 text-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-10 mt-16 md:mt-20 text-foreground">
               Find Your Perfect Property
             </h1>
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col md:flex-row gap-3 md:gap-4">
               {/* Search Bar */}
               <div className="relative flex-1">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                 <Input
                   placeholder="Search by location, property type, or keywords..."
-                  className="pl-10 h-12 text-base border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="pl-9 md:pl-10 h-10 md:h-12 text-sm md:text-base border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               {/* Buttons Container */}
-              <div className="flex gap-3">
+              <div className="flex gap-2 md:gap-3">
                 {/* Map View Button */}
                 <button
                   onClick={() => setIsMapModalOpen(true)}
-                  className="bg-slate-700 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors"
+                  className="bg-slate-700 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500 text-white px-3 md:px-6 py-2.5 md:py-3 rounded-lg text-sm md:text-base font-medium flex items-center justify-center transition-colors"
                 >
-                  <Map size={18} className="mr-2" />
-                  Map View
+                  <Map
+                    size={16}
+                    className="mr-1.5 md:mr-2 md:w-[18px] md:h-[18px]"
+                  />
+                  <span className="hidden sm:inline">Map View</span>
+                  <span className="sm:hidden">Map</span>
                 </button>
                 {/* Advanced Filters Button */}
-                <button className="bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors">
-                  <SlidersHorizontal size={18} className="mr-2" />
-                  Advanced Filters
+                <button className="bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-3 md:px-6 py-2.5 md:py-3 rounded-lg text-sm md:text-base font-medium flex items-center justify-center transition-colors">
+                  <SlidersHorizontal
+                    size={16}
+                    className="mr-1.5 md:mr-2 md:w-[18px] md:h-[18px]"
+                  />
+                  <span className="hidden sm:inline">Advanced Filters</span>
+                  <span className="sm:hidden">Filters</span>
                 </button>
               </div>
             </div>
@@ -173,22 +181,28 @@ const PropertiesPage = () => {
         </div>
 
         {/* --- Main Content Section --- */}
-        <div className="py-10">
+        <div className="py-6 md:py-10">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Filter Controls */}
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-foreground hidden xl:block">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 md:mb-8 gap-3 sm:gap-0">
+              <h2 className="text-xl md:text-2xl font-bold text-foreground hidden sm:block">
                 All Properties
               </h2>
               <div className="flex items-center space-x-2">
-                <span className="text-muted-foreground">Filter by:</span>
+                <span className="text-sm md:text-base text-muted-foreground">
+                  Filter by:
+                </span>
                 <Select value={activeFilter} onValueChange={setActiveFilter}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[160px] md:w-[200px] h-9 md:h-10 text-sm md:text-base">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
                     {propertyTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
+                      <SelectItem
+                        key={type.value}
+                        value={type.value}
+                        className="text-sm md:text-base"
+                      >
                         {type.label}
                       </SelectItem>
                     ))}
@@ -236,15 +250,17 @@ const PropertiesPage = () => {
 
           {/* Error Message */}
           <div className="space-y-3">
-            <h2 className="text-xl font-semibold text-foreground">
+            <h2 className="text-lg md:text-xl font-semibold text-foreground">
               Unable to Load Properties
             </h2>
-            <p className="text-muted-foreground">{error}</p>
+            <p className="text-sm md:text-base text-muted-foreground">
+              {error}
+            </p>
 
             {/* Retry Button */}
             <button
               onClick={() => window.location.reload()}
-              className="mt-6 px-6 py-3 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-lg transition-colors duration-200 font-medium"
+              className="mt-4 md:mt-6 px-4 md:px-6 py-2.5 md:py-3 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-lg transition-colors duration-200 text-sm md:text-base font-medium"
             >
               Try Again
             </button>
@@ -259,32 +275,40 @@ const PropertiesPage = () => {
       {/* --- Hero Section: Search & Advanced Filters --- */}
       <div className="py-6">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold mb-10 mt-20 text-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-10 mt-16 md:mt-20 text-foreground">
             Find Your Perfect Property
           </h1>
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-3 md:gap-4">
             {/* Search Bar */}
             <div className="relative flex-1">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
               <Input
                 placeholder="Search by location, property type, or keywords..."
-                className="pl-10 h-12 text-base border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="pl-9 md:pl-10 h-10 md:h-12 text-sm md:text-base border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
             {/* Buttons Container */}
-            <div className="flex gap-3">
+            <div className="flex gap-2 md:gap-3">
               {/* Map View Button */}
               <button
                 onClick={() => setIsMapModalOpen(true)}
-                className="bg-slate-700 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors"
+                className="bg-slate-700 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500 text-white px-3 md:px-6 py-2.5 md:py-3 rounded-lg text-sm md:text-base font-medium flex items-center justify-center transition-colors"
               >
-                <Map size={18} className="mr-2" />
-                Map View
+                <Map
+                  size={16}
+                  className="mr-1.5 md:mr-2 md:w-[18px] md:h-[18px]"
+                />
+                <span className="hidden sm:inline">Map View</span>
+                <span className="sm:hidden">Map</span>
               </button>
               {/* Advanced Filters Button */}
-              <button className="bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors">
-                <SlidersHorizontal size={18} className="mr-2" />
-                Advanced Filters
+              <button className="bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-3 md:px-6 py-2.5 md:py-3 rounded-lg text-sm md:text-base font-medium flex items-center justify-center transition-colors">
+                <SlidersHorizontal
+                  size={16}
+                  className="mr-1.5 md:mr-2 md:w-[18px] md:h-[18px]"
+                />
+                <span className="hidden sm:inline">Advanced Filters</span>
+                <span className="sm:hidden">Filters</span>
               </button>
             </div>
           </div>
@@ -292,22 +316,28 @@ const PropertiesPage = () => {
       </div>
 
       {/* --- Main Content Section --- */}
-      <div className="py-10">
+      <div className="py-6 md:py-10">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Filter Controls */}
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-foreground hidden xl:block">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 md:mb-8 gap-3 sm:gap-0">
+            <h2 className="text-xl md:text-2xl font-bold text-foreground hidden sm:block">
               All Properties
             </h2>
             <div className="flex items-center space-x-2">
-              <span className="text-muted-foreground">Filter by:</span>
+              <span className="text-sm md:text-base text-muted-foreground">
+                Filter by:
+              </span>
               <Select value={activeFilter} onValueChange={setActiveFilter}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[160px] md:w-[200px] h-9 md:h-10 text-sm md:text-base">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
                   {propertyTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
+                    <SelectItem
+                      key={type.value}
+                      value={type.value}
+                      className="text-sm md:text-base"
+                    >
                       {type.label}
                     </SelectItem>
                   ))}
@@ -317,15 +347,15 @@ const PropertiesPage = () => {
           </div>
 
           {/* --- Properties Grid --- */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-15">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8 lg:gap-15">
             {currentProperties.map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))}
           </div>
 
           {filteredProperties.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">
+            <div className="text-center py-8 md:py-12">
+              <p className="text-muted-foreground text-base md:text-lg">
                 No properties found matching your criteria.
               </p>
             </div>
@@ -333,9 +363,9 @@ const PropertiesPage = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-12 flex justify-center">
+            <div className="mt-8 md:mt-12 flex justify-center">
               <Pagination>
-                <PaginationContent>
+                <PaginationContent className="gap-1 md:gap-2">
                   <PaginationItem>
                     <PaginationPrevious
                       href="#"

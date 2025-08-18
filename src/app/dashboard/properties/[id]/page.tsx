@@ -30,6 +30,9 @@ import {
   Bike,
   Zap,
   FileText,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import Image from "next/image";
@@ -56,6 +59,8 @@ const PropertyDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImageIndex, setModalImageIndex] = useState(0);
   const [landlordProfile, setLandlordProfile] = useState<{
     displayName?: string;
     firstName?: string;
@@ -282,6 +287,27 @@ const PropertyDetailPage = () => {
   const handleImageChange = (index: number) => {
     setActiveImageIndex(index);
   };
+
+  // Modal functions
+  const openImageModal = (index: number) => {
+    setModalImageIndex(index);
+    setShowImageModal(true);
+  };
+
+  const closeImageModal = () => {
+    setShowImageModal(false);
+  };
+
+  const nextImage = () => {
+    const images = property?.images || propertyinfo?.images || [];
+    setModalImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    const images = property?.images || propertyinfo?.images || [];
+    setModalImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
   const handleScheduleViewing = (date: string) => {
     setSelectedDate(date);
   };
@@ -373,6 +399,30 @@ const PropertyDetailPage = () => {
       }
     };
   }, [id]);
+
+  // Keyboard navigation for image modal
+  useEffect(() => {
+    if (!showImageModal) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case "Escape":
+          closeImageModal();
+          break;
+        case "ArrowLeft":
+          event.preventDefault();
+          prevImage();
+          break;
+        case "ArrowRight":
+          event.preventDefault();
+          nextImage();
+          break;
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showImageModal]);
 
   // Early returns for loading and error states
   if (loading) {
@@ -481,7 +531,10 @@ const PropertyDetailPage = () => {
           <div className="container mx-auto px-4 lg:px-8 xl:px-16 2xl:px-24">
             <div className="relative">
               {/* Main Image */}
-              <div className="w-full h-[300px] xl:h-[500px] relative bg-muted/30 border border-border/10 rounded-lg overflow-hidden">
+              <div
+                className="w-full h-[300px] xl:h-[500px] relative bg-muted/30 border border-border/10 rounded-lg overflow-hidden cursor-pointer group"
+                onClick={() => openImageModal(activeImageIndex)}
+              >
                 <div className="absolute inset-2 bg-background rounded-md shadow-sm">
                   <Image
                     src={
@@ -491,8 +544,14 @@ const PropertyDetailPage = () => {
                     }
                     alt={property.title}
                     fill
-                    className="w-full h-full object-cover rounded-md"
+                    className="w-full h-full object-cover rounded-md group-hover:scale-105 transition-transform duration-300"
                   />
+                  {/* Overlay hint */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 px-3 py-1 rounded-full text-sm font-medium">
+                      Click to view full size
+                    </div>
+                  </div>
                 </div>
               </div>
               {/* Image Navigation - Show up to 7 images */}
@@ -506,11 +565,13 @@ const PropertyDetailPage = () => {
                         <button
                           key={index}
                           onClick={() => handleImageChange(index)}
-                          className={`w-16 h-16 rounded-md overflow-hidden border-2 ${
+                          onDoubleClick={() => openImageModal(index)}
+                          className={`w-16 h-16 rounded-md overflow-hidden border-2 cursor-pointer hover:scale-105 transition-transform duration-200 ${
                             index === activeImageIndex
                               ? "border-[#cdb323]"
-                              : "border-transparent"
+                              : "border-transparent hover:border-gray-300"
                           }`}
+                          title="Click to preview, double-click for full view"
                         >
                           <Image
                             src={images}
@@ -955,6 +1016,68 @@ const PropertyDetailPage = () => {
         propertyId={id}
         propertyTitle={property?.title || ""}
       />
+
+      {/* Image Modal */}
+      {showImageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
+          <div className="relative w-full h-full flex items-center justify-center p-4">
+            {/* Close Button */}
+            <button
+              onClick={closeImageModal}
+              className="absolute top-4 right-4 z-10 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors duration-200"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+
+            {/* Navigation Buttons */}
+            {((property?.images && property.images.length > 1) ||
+              (propertyinfo?.images && propertyinfo.images.length > 1)) && (
+              <>
+                <button
+                  onClick={prevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors duration-200"
+                >
+                  <ChevronLeft className="w-8 h-8 text-white" />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors duration-200"
+                >
+                  <ChevronRight className="w-8 h-8 text-white" />
+                </button>
+              </>
+            )}
+
+            {/* Main Modal Image */}
+            <div className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center">
+              <Image
+                src={
+                  (property?.images && property.images[modalImageIndex]) ||
+                  (propertyinfo?.images &&
+                    propertyinfo.images[modalImageIndex]) ||
+                  "/assets/images/empty-profile.png"
+                }
+                alt={`${property?.title || "Property"} - Image ${
+                  modalImageIndex + 1
+                }`}
+                width={1200}
+                height={800}
+                className="max-w-full max-h-full object-contain rounded-lg"
+                priority
+              />
+            </div>
+
+            {/* Image Counter */}
+            {((property?.images && property.images.length > 1) ||
+              (propertyinfo?.images && propertyinfo.images.length > 1)) && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
+                {modalImageIndex + 1} /{" "}
+                {(property?.images || propertyinfo?.images || []).length}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 };

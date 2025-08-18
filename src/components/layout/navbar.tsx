@@ -18,6 +18,8 @@ import {
   Settings,
   FileText,
   MessageSquare,
+  Mailbox,
+  Wallet,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { logoutUser } from "@/lib/auth/auth-utils";
@@ -72,21 +74,11 @@ const landlordNavigation = [
     icon: Building,
   },
   {
-    name: "Applications",
-    href: "/users/landlord/applications",
-    icon: FileText,
-  },
-  {
     name: "Community Board",
     href: "/users/landlord/community-board",
     icon: Users,
   },
   { name: "Requests", href: "/users/landlord/requests", icon: MessageSquare },
-  {
-    name: "Payment History",
-    href: "/users/landlord/payment-history",
-    icon: CreditCard,
-  },
 ];
 
 const agentNavigation = [
@@ -102,6 +94,25 @@ export function Navbar() {
   const [lastScrollY, setLastScrollY] = React.useState(0);
   const { user, userData, isAuthenticated, loading } = useAuth();
   const router = useRouter();
+
+  // Determine authentication state to prevent flicker
+  const authState = React.useMemo(() => {
+    // If user is not authenticated, immediately show visitor navbar (no loading state)
+    if (!isAuthenticated || !user) {
+      return "visitor";
+    }
+
+    // If user is authenticated but userData is still loading, show loading state
+    if (isAuthenticated && !userData) {
+      return "authenticated-loading";
+    }
+
+    // User is fully authenticated with userData available
+    return "authenticated";
+  }, [loading, isAuthenticated, user, userData]);
+
+  // Only show loading skeleton for authenticated users waiting for userData
+  const isLoadingAuth = authState === "authenticated-loading";
 
   // Handle scroll to show/hide navbar
   React.useEffect(() => {
@@ -141,35 +152,38 @@ export function Navbar() {
     };
   }, [lastScrollY]);
 
-  // Debug logging to understand state changes
-  React.useEffect(() => {
-    console.log("Navbar state:", {
-      loading,
-      isAuthenticated,
-      hasUser: !!user,
-      hasUserData: !!userData,
-      userType: userData?.userType,
-    });
-  }, [loading, isAuthenticated, user, userData]);
+  // Optional: Debug logging for development
+  // React.useEffect(() => {
+  //   console.log("Navbar auth state:", authState, {
+  //     loading,
+  //     isAuthenticated,
+  //     hasUser: !!user,
+  //     hasUserData: !!userData,
+  //     userType: userData?.userType,
+  //   });
+  // }, [authState, loading, isAuthenticated, user, userData]);
 
-  // Determine which navigation to show based on user role
+  // Determine which navigation to show based on auth state
   const getNavigation = () => {
-    // If still loading or user is authenticated but userData is not yet loaded, don't show any navigation
-    if (loading || (isAuthenticated && !userData)) {
-      return [];
-    }
-
-    if (!isAuthenticated || !user) {
-      return visitorNavigation;
-    }
-
-    switch (userData?.userType) {
-      case "tenant":
-        return tenantNavigation;
-      case "landlord":
-        return landlordNavigation;
-      case "agent":
-        return agentNavigation;
+    switch (authState) {
+      case "visitor":
+        // Immediately show visitor navigation for non-authenticated users
+        return visitorNavigation;
+      case "authenticated-loading":
+        // Don't show navigation while userData is loading for authenticated users
+        return [];
+      case "authenticated":
+        // Show role-based navigation for fully authenticated users
+        switch (userData?.userType) {
+          case "tenant":
+            return tenantNavigation;
+          case "landlord":
+            return landlordNavigation;
+          case "agent":
+            return agentNavigation;
+          default:
+            return visitorNavigation;
+        }
       default:
         return visitorNavigation;
     }
@@ -182,7 +196,6 @@ export function Navbar() {
       await logoutUser();
       toast.success("Tenant logged out successfully");
 
-      // Use router.push for immediate redirect to main page
       router.push("/");
     } catch (error) {
       console.error("Tenant logout error:", error);
@@ -195,7 +208,6 @@ export function Navbar() {
       await logoutUser();
       toast.success("Landlord logged out successfully");
 
-      // Use router.push for immediate redirect to main page
       router.push("/");
     } catch (error) {
       console.error("Landlord logout error:", error);
@@ -203,7 +215,6 @@ export function Navbar() {
     }
   };
 
-  // Generic logout handler that determines user type and calls appropriate function
   const handleLogout = async () => {
     if (userData?.userType === "tenant") {
       await handleTenantLogout();
@@ -266,17 +277,17 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center justify-center flex-1 mx-8">
             <div className="flex items-center space-x-8">
-              {loading || (isAuthenticated && !userData) ? (
+              {authState === "authenticated-loading" ? (
                 <NavbarNavigationSkeleton
                   userType={userData?.userType}
-                  isLoading={loading || (isAuthenticated && !userData)}
+                  isLoading={true}
                 />
               ) : (
                 navigation.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap px-2 py-1 rounded-md hover:bg-accent/50"
+                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/10"
                   >
                     {item.name}
                   </Link>
@@ -285,139 +296,12 @@ export function Navbar() {
             </div>
           </nav>
 
-          {/* Right side - Theme toggle and CTA */}
+          {/* Right side - CTA */}
           <div className="flex items-center space-x-3 min-w-0 flex-shrink-0">
-            <ThemeToggle />
-
-            {isAuthenticated ? (
-              <>
-                {/* Desktop Profile Dropdown */}
-                <div className="hidden sm:flex items-center">
-                  {loading || !userData ? (
-                    <ProfileAvatarSkeleton
-                      userType={userData?.userType}
-                      isLoading={loading || !userData}
-                    />
-                  ) : (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage
-                              src={
-                                userData?.profilePicture || user?.photoURL || ""
-                              }
-                              alt={userData?.firstName || "User"}
-                            />
-                            <AvatarFallback className="text-sm">
-                              {getInitials(
-                                userData?.firstName,
-                                userData?.lastName
-                              )}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="hidden lg:block text-sm font-medium whitespace-nowrap">
-                            {userData?.firstName || "User"}
-                          </span>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuLabel>
-                          <div className="flex flex-col space-y-1">
-                            <p className="text-sm font-medium leading-none">
-                              {userData?.firstName} {userData?.lastName}
-                            </p>
-                            <p className="text-xs leading-none text-muted-foreground capitalize">
-                              {userData?.userType}
-                            </p>
-                          </div>
-                        </DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() =>
-                            router.push(
-                              userData?.userType === "tenant"
-                                ? "/users/tenant/profile"
-                                : "/profile"
-                            )
-                          }
-                        >
-                          <User className="mr-2 h-4 w-4" />
-                          <span>Profile</span>
-                        </DropdownMenuItem>
-                        {userData?.userType === "landlord" && (
-                          <DropdownMenuItem
-                            onClick={() => router.push("/dashboard/properties")}
-                          >
-                            <Building className="mr-2 h-4 w-4" />
-                            <span>My Properties</span>
-                          </DropdownMenuItem>
-                        )}
-                        {userData?.userType === "tenant" && (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              router.push("/users/tenant/application")
-                            }
-                          >
-                            <FileText className="mr-2 h-4 w-4" />
-                            <span>Application</span>
-                          </DropdownMenuItem>
-                        )}
-                        {userData?.userType === "tenant" && (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              router.push("/users/tenant/payment-history")
-                            }
-                          >
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            <span>Payment History</span>
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={handleLogout}>
-                          <LogOut className="mr-2 h-4 w-4" />
-                          <span>Log out</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-
-                {/* Mobile Profile Picture Button */}
-                {loading || !userData ? (
-                  <div className="sm:hidden">
-                    <ProfileAvatarSkeleton
-                      userType={userData?.userType}
-                      isLoading={loading || !userData}
-                    />
-                  </div>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="sm:hidden"
-                    onClick={() =>
-                      router.push(
-                        userData?.userType === "tenant"
-                          ? "/users/tenant/profile"
-                          : "/profile"
-                      )
-                    }
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src={userData?.profilePicture || user?.photoURL || ""}
-                        alt={userData?.firstName || "User"}
-                      />
-                      <AvatarFallback className="text-sm">
-                        {getInitials(userData?.firstName, userData?.lastName)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                )}
-              </>
-            ) : (
+            {authState === "visitor" ? (
+              // Immediately show login/register buttons for visitors
               <div className="hidden sm:flex items-center space-x-3">
+                <ThemeToggle />
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/dashboard/login" className="whitespace-nowrap">
                     Login
@@ -432,7 +316,148 @@ export function Navbar() {
                   </Link>
                 </Button>
               </div>
-            )}
+            ) : authState === "authenticated-loading" ? (
+              <>
+                {/* Desktop Profile Skeleton */}
+                <div className="hidden sm:flex items-center">
+                  <ProfileAvatarSkeleton
+                    userType={userData?.userType}
+                    isLoading={true}
+                  />
+                </div>
+                {/* Mobile Profile Skeleton */}
+                <div className="sm:hidden">
+                  <ProfileAvatarSkeleton
+                    userType={userData?.userType}
+                    isLoading={true}
+                  />
+                </div>
+              </>
+            ) : authState === "authenticated" ? (
+              <>
+                {/* Desktop Profile Dropdown */}
+                <div className="hidden sm:flex items-center space-x-3">
+                  <ThemeToggle />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={
+                              userData?.profilePicture || user?.photoURL || ""
+                            }
+                            alt={userData?.firstName || "User"}
+                          />
+                          <AvatarFallback className="text-sm">
+                            {getInitials(
+                              userData?.firstName,
+                              userData?.lastName
+                            )}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="hidden lg:block text-sm font-medium whitespace-nowrap">
+                          {userData?.firstName || "User"}
+                        </span>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel>
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">
+                            {userData?.firstName} {userData?.lastName}
+                          </p>
+                          <p className="text-xs leading-none text-muted-foreground capitalize">
+                            {userData?.userType}
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() =>
+                          router.push(
+                            userData?.userType === "tenant"
+                              ? "/users/tenant/profile"
+                              : "/profile"
+                          )
+                        }
+                      >
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                      </DropdownMenuItem>
+                      {userData?.userType === "landlord" && (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push("/users/landlord/applications")
+                          }
+                        >
+                          <Mailbox className="mr-2 h-4 w-4" />
+                          <span>Applicants</span>
+                        </DropdownMenuItem>
+                      )}
+                      {userData?.userType === "landlord" && (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push("/users/landlord/payment-history")
+                          }
+                        >
+                          <Wallet className="mr-2 h-4 w-4" />
+                          <span>Payment History</span>
+                        </DropdownMenuItem>
+                      )}
+                      {userData?.userType === "tenant" && (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push("/users/tenant/application")
+                          }
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          <span>Application</span>
+                        </DropdownMenuItem>
+                      )}
+                      {userData?.userType === "tenant" && (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push("/users/tenant/payment-history")
+                          }
+                        >
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          <span>Payment History</span>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Mobile Profile Picture Button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="sm:hidden"
+                  onClick={() =>
+                    router.push(
+                      userData?.userType === "tenant"
+                        ? "/users/tenant/profile"
+                        : "/profile"
+                    )
+                  }
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src={userData?.profilePicture || user?.photoURL || ""}
+                      alt={userData?.firstName || "User"}
+                    />
+                    <AvatarFallback className="text-sm">
+                      {getInitials(userData?.firstName, userData?.lastName)}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </>
+            ) : null}
 
             {/* Mobile menu button */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -444,26 +469,26 @@ export function Navbar() {
               </SheetTrigger>
               <SheetContent
                 side="right"
-                className="w-[300px] sm:w-[400px] px-6 py-6"
+                className="w-[280px] sm:w-[320px] px-4 py-3"
               >
-                <SheetHeader className="mb-6">
+                <SheetHeader className="mb-3">
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col h-full">
                   {/* Mobile Menu Content */}
-                  {loading || (isAuthenticated && !userData) ? (
+                  {authState === "authenticated-loading" ? (
                     <MobileMenuSkeleton
                       userType={userData?.userType}
-                      isLoading={loading || (isAuthenticated && !userData)}
+                      isLoading={true}
                     />
                   ) : (
                     <>
                       {/* User Profile Section - Show at top for authenticated users */}
-                      {isAuthenticated && userData && (
-                        <div className="pb-6 border-b border-border/40 mb-6">
+                      {authState === "authenticated" && (
+                        <div className="pb-3 border-b border-border/40 mb-4">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-12 w-12">
+                            <div className="flex items-center space-x-2">
+                              <Avatar className="h-10 w-10">
                                 <AvatarImage
                                   src={
                                     userData?.profilePicture ||
@@ -472,7 +497,7 @@ export function Navbar() {
                                   }
                                   alt={userData?.firstName || "User"}
                                 />
-                                <AvatarFallback className="text-sm font-medium">
+                                <AvatarFallback className="text-xs font-medium">
                                   {getInitials(
                                     userData?.firstName,
                                     userData?.lastName
@@ -480,10 +505,10 @@ export function Navbar() {
                                 </AvatarFallback>
                               </Avatar>
                               <div className="flex flex-col min-w-0 flex-1">
-                                <span className="text-lg font-semibold text-foreground truncate">
+                                <span className="text-base font-semibold text-foreground truncate">
                                   {userData?.firstName} {userData?.lastName}
                                 </span>
-                                <span className="text-sm text-muted-foreground capitalize">
+                                <span className="text-xs text-muted-foreground capitalize">
                                   {userData?.userType}
                                 </span>
                               </div>
@@ -491,7 +516,7 @@ export function Navbar() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-9 w-9 text-muted-foreground hover:text-foreground flex-shrink-0"
+                              className="h-8 w-8 text-muted-foreground hover:text-foreground flex-shrink-0"
                               onClick={() => {
                                 setIsOpen(false);
                                 router.push(
@@ -503,90 +528,131 @@ export function Navbar() {
                                 );
                               }}
                             >
-                              <Settings className="h-4 w-4" />
+                              <Settings className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         </div>
                       )}
 
                       {/* Navigation Items */}
-                      <div className="space-y-2 flex-1">
+                      <div className="space-y-1 flex-1">
                         {navigation.map((item) => {
                           const Icon = item.icon;
                           return (
                             <Link
                               key={item.name}
                               href={item.href}
-                              className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-accent/50"
+                              className="flex items-center space-x-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-primary/10"
                               onClick={() => setIsOpen(false)}
                             >
-                              <Icon className="h-5 w-5 flex-shrink-0" />
-                              <span>{item.name}</span>
+                              <Icon className="h-4 w-4 flex-shrink-0" />
+                              <span className="text-sm">{item.name}</span>
                             </Link>
                           );
                         })}
                       </div>
-
                       {/* Additional authenticated user options */}
-                      {isAuthenticated &&
-                        userData &&
-                        userData?.userType === "landlord" && (
-                          <div className="pt-6 border-t border-border/40 mt-6">
+                      {authState === "authenticated" && (
+                        <div className="pt-3 border-t border-border/40 mt-4 space-y-1">
+                          {/* Landlord specific links */}
+                          {userData?.userType === "landlord" && (
+                            <>
+                              <Link
+                                href="/users/landlord/applications"
+                                className="flex items-center space-x-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-primary/10"
+                                onClick={() => setIsOpen(false)}
+                              >
+                                <Mailbox className="h-4 w-4 flex-shrink-0" />
+                                <span className="text-sm">Applicants</span>
+                              </Link>
+                              <Link
+                                href="/users/landlord/payment-history"
+                                className="flex items-center space-x-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-primary/10"
+                                onClick={() => setIsOpen(false)}
+                              >
+                                <Wallet className="h-4 w-4 flex-shrink-0" />
+                                <span className="text-sm">Payment History</span>
+                              </Link>
+                            </>
+                          )}
+
+                          {/* Tenant specific links */}
+                          {userData?.userType === "tenant" && (
+                            <>
+                              <Link
+                                href="/users/tenant/application"
+                                className="flex items-center space-x-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-primary/10"
+                                onClick={() => setIsOpen(false)}
+                              >
+                                <FileText className="h-4 w-4 flex-shrink-0" />
+                                <span className="text-sm">Application</span>
+                              </Link>
+                              <Link
+                                href="/users/tenant/payment-history"
+                                className="flex items-center space-x-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-primary/10"
+                                onClick={() => setIsOpen(false)}
+                              >
+                                <CreditCard className="h-4 w-4 flex-shrink-0" />
+                                <span className="text-sm">Payment History</span>
+                              </Link>
+                            </>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Bottom Action Section */}
+                      {(authState === "visitor" ||
+                        authState === "authenticated") && (
+                        <div className="pt-4 border-t border-border/40 mt-4 space-y-3">
+                          {/* Theme Toggle - Always show for mobile */}
+                          <div className="flex items-center justify-between px-3">
+                            <span className="text-sm font-medium text-muted-foreground">
+                              Theme
+                            </span>
+                            <ThemeToggle />
+                          </div>
+
+                          {authState === "authenticated" ? (
                             <Button
                               variant="ghost"
-                              className="w-full justify-start px-4 py-3 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200"
+                              className="w-full justify-start px-3 py-2.5 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/10 rounded-lg transition-all duration-200"
                               onClick={() => {
                                 setIsOpen(false);
-                                router.push("/dashboard/properties");
+                                handleLogout();
                               }}
                             >
-                              <Building className="mr-3 h-5 w-5 flex-shrink-0" />
-                              My Properties
+                              <LogOut className="mr-2.5 h-4 w-4 flex-shrink-0" />
+                              <span className="text-sm">Log out</span>
                             </Button>
-                          </div>
-                        )}
-
-                      <div className="pt-6 border-t border-border/40 mt-6">
-                        {isAuthenticated ? (
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start px-4 py-3 h-auto text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-200"
-                            onClick={() => {
-                              setIsOpen(false);
-                              handleLogout();
-                            }}
-                          >
-                            <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
-                            Log out
-                          </Button>
-                        ) : (
-                          <div className="space-y-3">
-                            <Button
-                              variant="ghost"
-                              className="w-full h-11 text-sm font-medium"
-                              asChild
-                            >
-                              <Link
-                                href="/dashboard/login"
-                                onClick={() => setIsOpen(false)}
+                          ) : authState === "visitor" ? (
+                            <div className="space-y-2.5">
+                              <Button
+                                variant="ghost"
+                                className="w-full h-9 text-sm font-medium"
+                                asChild
                               >
-                                Login
-                              </Link>
-                            </Button>
-                            <Button
-                              className="w-full h-11 text-sm font-medium"
-                              asChild
-                            >
-                              <Link
-                                href="/dashboard/register"
-                                onClick={() => setIsOpen(false)}
+                                <Link
+                                  href="/dashboard/login"
+                                  onClick={() => setIsOpen(false)}
+                                >
+                                  Login
+                                </Link>
+                              </Button>
+                              <Button
+                                className="w-full h-9 text-sm font-medium"
+                                asChild
                               >
-                                Sign Up
-                              </Link>
-                            </Button>
-                          </div>
-                        )}
-                      </div>
+                                <Link
+                                  href="/dashboard/register"
+                                  onClick={() => setIsOpen(false)}
+                                >
+                                  Sign Up
+                                </Link>
+                              </Button>
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

@@ -764,7 +764,7 @@ export default function AddPropertyForm({
 
                 <TabsContent value="images" className="space-y-8 mt-6">
                   <div className="space-y-6">
-                    <div className="border-l-4 border-orange-500 pl-4">
+                    <div className="border-l-4 border-blue-600 pl-4">
                       <h3 className="text-lg font-semibold mb-1">
                         Property Photos
                       </h3>

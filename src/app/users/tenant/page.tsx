@@ -549,7 +549,7 @@ export default function ModernTenantDashboard() {
         value: "maintenance",
         label: "Maintenance Notice",
         color:
-          "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300",
+          "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300",
       },
     ];
     return postTypes.find((pt) => pt.value === type) || postTypes[0];
@@ -1076,10 +1076,10 @@ export default function ModernTenantDashboard() {
             <Card className="hover:shadow-lg transition-all duration-300">
               <CardHeader className="border-b p-4 sm:p-6">
                 <CardTitle className="flex items-center text-base sm:text-lg">
-                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-orange-500" />
+                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-600" />
                   Outstanding Dues
                 </CardTitle>
-                <p className="text-xl sm:text-2xl font-bold text-orange-600 mt-2">
+                <p className="text-xl sm:text-2xl font-bold text-blue-700 mt-2">
                   ₱{totalOutstanding.toLocaleString()}
                 </p>
               </CardHeader>

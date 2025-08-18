@@ -57,7 +57,7 @@ export default function RequestsPage() {
       case "urgent":
         return <Badge className="bg-red-100 text-red-800">Urgent</Badge>;
       case "high":
-        return <Badge className="bg-orange-100 text-orange-800">High</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800">High</Badge>;
       case "medium":
         return <Badge className="bg-yellow-100 text-yellow-800">Medium</Badge>;
       default:

@@ -243,7 +243,7 @@ export const NavbarLogo = () => {
           alt="DomusEye Logo"
           width={32}
           height={32}
-          className="h-8 w-8 dark:invert "
+          className="h-8 w-8 dark:invert"
         />
         <span className="text-xl font-bold text-foreground">DomusEye</span>
       </Link>

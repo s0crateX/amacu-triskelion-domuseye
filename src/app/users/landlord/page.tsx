@@ -765,8 +765,8 @@ export default function LandlordDashboard() {
                         className="flex items-center justify-between p-4 border rounded-lg bg-card"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="flex items-center justify-center w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full">
-                            <Wrench className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                          <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full">
+                  <Wrench className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div>
                             <p className="font-medium">{request.title}</p>
