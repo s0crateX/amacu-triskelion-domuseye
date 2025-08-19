@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { logoutUser } from "@/lib/auth/auth-utils";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -92,8 +92,20 @@ export function Navbar() {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isVisible, setIsVisible] = React.useState(true);
   const [lastScrollY, setLastScrollY] = React.useState(0);
-  const { user, userData, isAuthenticated, loading } = useAuth();
+  const { user, userData, isAuthenticated } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Check if a navigation item is active
+  const isActiveRoute = (href: string) => {
+    // Exact match for root path
+    if (href === "/" && pathname === "/") return true;
+
+    // For non-root paths, only match exact paths
+    if (href !== "/" && pathname === href) return true;
+
+    return false;
+  };
 
   // Determine authentication state to prevent flicker
   const authState = React.useMemo(() => {
@@ -109,10 +121,7 @@ export function Navbar() {
 
     // User is fully authenticated with userData available
     return "authenticated";
-  }, [loading, isAuthenticated, user, userData]);
-
-  // Only show loading skeleton for authenticated users waiting for userData
-  const isLoadingAuth = authState === "authenticated-loading";
+  }, [isAuthenticated, user, userData]);
 
   // Handle scroll to show/hide navbar
   React.useEffect(() => {
@@ -283,15 +292,22 @@ export function Navbar() {
                   isLoading={true}
                 />
               ) : (
-                navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/10"
-                  >
-                    {item.name}
-                  </Link>
-                ))
+                navigation.map((item) => {
+                  const isActive = isActiveRoute(item.href);
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`text-sm font-medium transition-all duration-300 ease-in-out whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/10 ${
+                        isActive
+                          ? "text-primary bg-primary/10 font-semibold transform scale-105"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
+                  );
+                })
               )}
             </div>
           </nav>
@@ -538,11 +554,16 @@ export function Navbar() {
                       <div className="space-y-1 flex-1">
                         {navigation.map((item) => {
                           const Icon = item.icon;
+                          const isActive = isActiveRoute(item.href);
                           return (
                             <Link
                               key={item.name}
                               href={item.href}
-                              className="flex items-center space-x-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-primary/10"
+                              className={`flex items-center space-x-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out hover:bg-primary/10 ${
+                                isActive
+                                  ? "text-primary bg-primary/10 font-semibold transform translate-x-1"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
                               onClick={() => setIsOpen(false)}
                             >
                               <Icon className="h-4 w-4 flex-shrink-0" />

@@ -27,7 +27,7 @@ interface TenantApplication {
     | "approved"
     | "rejected"
     | "awaiting_tenant_confirmation"
-    | "confirmed"
+    | "completed"
     | "declined_by_tenant";
   appliedAt: string;
   updatedAt?: string;
@@ -389,7 +389,7 @@ export default function TenantApplicationPage() {
                   </div>
                 )}
 
-                {application.status === "confirmed" && (
+                {application.status === "completed" && (
                   <div className="mt-4 pt-4 border-t">
                     <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                       <p className="text-sm text-green-800 font-medium">

@@ -35,7 +35,7 @@ export interface Property {
   // Additional fields for internal use
   inquiries?: number;
   tenant?: string | null;
-  status?: 'Available' | 'Occupied';
+  status?: "Available" | "Occupied";
   rating?: number;
 }
 
@@ -65,7 +65,14 @@ export interface TenantApplication {
   tenantName: string;
   email: string;
   message: string;
-  status: "pending" | "approved" | "rejected" | "awaiting_tenant_confirmation" | "confirmed" | "declined_by_tenant";
+  validationImages: string[]; // Array of ImageKit URLs for ID/school ID validation
+  status:
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "awaiting_tenant_confirmation"
+    | "completed"
+    | "declined_by_tenant";
   propertyTitle: string;
   appliedAt: FieldValue; // Firestore timestamp
   propertyId?: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2, FileText } from "lucide-react";
+import { Loader2, FileText, Upload, X, Shield } from "lucide-react";
+import { IKUpload } from "imagekitio-react";
+import { getImageKitClientConfig } from "@/lib/imagekit";
+import Image from "next/image";
 
 // Firebase imports
 import {
@@ -23,6 +26,8 @@ import {
   FieldValue,
   collection,
   getDocs,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -49,6 +54,57 @@ export default function TenantApplicationForm({
   const { user, userData } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [validationImages, setValidationImages] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const uploadRef = useRef<HTMLInputElement>(null);
+
+  // ImageKit configuration
+  const imageKitConfig = getImageKitClientConfig();
+
+  // ImageKit upload handlers
+  const onUploadStart = () => {
+    setUploadingImages(true);
+    toast.info("Uploading ID image...");
+  };
+
+  const onUploadSuccess = (response: {
+    url: string;
+    [key: string]: unknown;
+  }) => {
+    const imageUrl = response.url;
+    setValidationImages((prev) => [...prev, imageUrl]);
+    setUploadingImages(false);
+    toast.success("ID image uploaded successfully");
+  };
+
+  const onUploadError = (error: Error) => {
+    console.error("Upload error:", error);
+    setUploadingImages(false);
+    toast.error("Failed to upload ID image");
+  };
+
+  // Get authentication parameters for ImageKit
+  const authenticator = async () => {
+    try {
+      const response = await fetch("/api/imagekit-auth", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get authentication parameters");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Authentication error:", error);
+      throw error;
+    }
+  };
+
+  // Remove validation image
+  const removeValidationImage = (index: number) => {
+    setValidationImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,16 +124,53 @@ export default function TenantApplicationForm({
       return;
     }
 
+    if (validationImages.length === 0) {
+      toast.error("Please upload at least one ID image for validation");
+      return;
+    }
+
     try {
       setLoading(true);
 
-      // Get existing applications count to generate incremental ID
+      // Check if tenant already has an application for this property
       const applicationsRef = collection(
         db,
         "properties",
         propertyId,
         "applications"
       );
+
+      // Query for existing applications from this tenant
+      const existingApplicationQuery = query(
+        applicationsRef,
+        where("tenantId", "==", user.uid)
+      );
+      const existingApplicationsSnapshot = await getDocs(
+        existingApplicationQuery
+      );
+
+      // Check if tenant has any non-rejected applications
+      const hasActiveApplication = existingApplicationsSnapshot.docs.some(
+        (doc) => {
+          const data = doc.data();
+          return (
+            data.status === "pending" ||
+            data.status === "approved" ||
+            data.status === "awaiting_tenant_confirmation" ||
+            data.status === "completed"
+          );
+        }
+      );
+
+      if (hasActiveApplication) {
+        toast.error(
+          "You already have an active application for this property. Please wait for the current application to be processed or contact the landlord."
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Get existing applications count to generate incremental ID
       const applicationsSnapshot = await getDocs(applicationsRef);
       const applicationNumber = applicationsSnapshot.size + 1;
 
@@ -91,6 +184,7 @@ export default function TenantApplicationForm({
         tenantName: `${userData.firstName} ${userData.lastName}`,
         email: userData.email,
         message: message.trim(),
+        validationImages: validationImages,
         status: "pending",
         propertyTitle: propertyTitle,
         appliedAt: serverTimestamp(),
@@ -104,6 +198,7 @@ export default function TenantApplicationForm({
 
       toast.success("Application submitted successfully!");
       setMessage("");
+      setValidationImages([]);
       onClose();
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -187,6 +282,112 @@ export default function TenantApplicationForm({
                   className="bg-muted"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* ID Validation Section */}
+          <div className="space-y-4">
+            <div className="border-l-4 border-orange-500 pl-4">
+              <h3 className="text-base sm:text-lg font-semibold mb-1 flex items-center gap-2">
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
+                ID Validation
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Upload your valid ID or school ID for verification to prevent
+                fraud
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {/* Upload Button */}
+              <div className="flex flex-col gap-3">
+                <Label className="text-xs sm:text-sm font-medium flex items-center gap-1">
+                  Upload ID Images
+                  <span className="text-red-500">*</span>
+                </Label>
+
+                {/* Hidden ImageKit Upload Component */}
+                <IKUpload
+                  ref={uploadRef}
+                  publicKey={imageKitConfig.publicKey}
+                  urlEndpoint={imageKitConfig.urlEndpoint}
+                  authenticator={authenticator}
+                  fileName="tenant-id-validation.jpg"
+                  folder="/Tenant-ID-Validation"
+                  onUploadStart={onUploadStart}
+                  onUploadProgress={() => {
+                    // Upload progress tracking
+                  }}
+                  onSuccess={onUploadSuccess}
+                  onError={onUploadError}
+                  style={{ display: "none" }}
+                />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => uploadRef.current?.click()}
+                  disabled={uploadingImages}
+                  className="w-full sm:w-auto flex items-center gap-2"
+                >
+                  {uploadingImages ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Uploading ID...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4" />
+                      Upload ID Image
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs text-muted-foreground">
+                  Accepted formats: JPG, PNG, PDF. Maximum file size: 10MB.
+                  Please ensure your ID is clearly visible and readable.
+                </p>
+              </div>
+
+              {/* Uploaded Images Preview */}
+              {validationImages.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-xs sm:text-sm font-medium">
+                    Uploaded ID Images ({validationImages.length})
+                  </Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {validationImages.map((imageUrl, index) => (
+                      <div
+                        key={index}
+                        className="relative group border rounded-lg overflow-hidden bg-muted"
+                      >
+                        <div className="aspect-video relative">
+                          <Image
+                            src={imageUrl}
+                            alt={`ID validation ${index + 1}`}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeValidationImage(index)}
+                          className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                        <div className="p-2 bg-background/80 backdrop-blur-sm">
+                          <p className="text-xs text-muted-foreground truncate">
+                            ID Document {index + 1}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

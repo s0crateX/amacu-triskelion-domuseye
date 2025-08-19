@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   MapPin,
@@ -298,15 +298,15 @@ const PropertyDetailPage = () => {
     setShowImageModal(false);
   };
 
-  const nextImage = () => {
+  const nextImage = useCallback(() => {
     const images = property?.images || propertyinfo?.images || [];
     setModalImageIndex((prev) => (prev + 1) % images.length);
-  };
+  }, [property?.images, propertyinfo?.images]);
 
-  const prevImage = () => {
+  const prevImage = useCallback(() => {
     const images = property?.images || propertyinfo?.images || [];
     setModalImageIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
+  }, [property?.images, propertyinfo?.images]);
 
   const handleScheduleViewing = (date: string) => {
     setSelectedDate(date);
@@ -422,7 +422,7 @@ const PropertyDetailPage = () => {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showImageModal]);
+  }, [showImageModal, nextImage, prevImage]);
 
   // Early returns for loading and error states
   if (loading) {

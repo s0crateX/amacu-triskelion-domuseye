@@ -38,7 +38,7 @@ const AboutPage = () => {
               assist with real estate operations. It streamlines the management
               of properties, tenants, and maintenance tasks efficiently.
             </p>
-            <button className="px-6 py-3 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md font-medium transition-colors hidden xl:block">
+            <button className="px-6 py-3 bg-primary hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md font-medium transition-colors hidden xl:block">
               <Link href={"/contact"}>Contact Us</Link>
             </button>
           </div>
@@ -62,7 +62,9 @@ const AboutPage = () => {
               <div className="from-slate-600 to-slate-500 dark:from-slate-500 dark:to-slate-400 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-lg">
                 <Zap className="h-6 w-6" />
               </div>
-              <h2 className="text-2xl font-bold tracking-tight text-foreground">Our Mission</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                Our Mission
+              </h2>
               <p className="text-muted-foreground text-base leading-relaxed">
                 Lorem ipsum dolor sit amet consectetur adipiscing elit.
                 Consectetur adipiscing elit quisque faucibus ex sapien vitae. Ex
@@ -82,7 +84,9 @@ const AboutPage = () => {
               <div className="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-slate-600 to-slate-500 dark:from-slate-500 dark:to-slate-400 text-white shadow-lg">
                 <LineChart className="h-6 w-6" />
               </div>
-              <h2 className="text-2xl font-bold tracking-tight text-foreground">Our Vision</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                Our Vision
+              </h2>
               <p className="text-muted-foreground text-base leading-relaxed">
                 Lorem ipsum dolor sit amet consectetur adipiscing elit.
                 Consectetur adipiscing elit quisque faucibus ex sapien vitae. Ex
@@ -140,7 +144,10 @@ const AboutPage = () => {
               <div className="space-y-8">
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <Search size={24} className="text-slate-600 dark:text-slate-400" />
+                    <Search
+                      size={24}
+                      className="text-slate-600 dark:text-slate-400"
+                    />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -155,7 +162,10 @@ const AboutPage = () => {
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <MessageCircle size={24} className="text-slate-600 dark:text-slate-400" />
+                    <MessageCircle
+                      size={24}
+                      className="text-slate-600 dark:text-slate-400"
+                    />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -170,7 +180,10 @@ const AboutPage = () => {
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <Bot size={24} className="text-slate-600 dark:text-slate-400" />
+                    <Bot
+                      size={24}
+                      className="text-slate-600 dark:text-slate-400"
+                    />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -185,7 +198,10 @@ const AboutPage = () => {
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <Home size={24} className="text-slate-600 dark:text-slate-400" />
+                    <Home
+                      size={24}
+                      className="text-slate-600 dark:text-slate-400"
+                    />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground mb-2">

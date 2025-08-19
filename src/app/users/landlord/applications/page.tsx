@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import {
   FileText,
   Search,
@@ -8,8 +9,9 @@ import {
   Eye,
   CheckCircle,
   XCircle,
-  Loader2,
   ChevronDown,
+  Shield,
+  X,
 } from "lucide-react";
 import {
   Card,
@@ -27,7 +29,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// Removed ApplicationsLoadingSkeleton import - replaced with circular spinner
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   collection,
@@ -55,6 +62,15 @@ export default function ApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [selectedApplication, setSelectedApplication] =
+    useState<ApplicationWithId | null>(null);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [showFullImageDialog, setShowFullImageDialog] = useState(false);
+  const [fullSizeImage, setFullSizeImage] = useState<{
+    url: string;
+    index: number;
+  } | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -199,9 +215,9 @@ export default function ApplicationsPage() {
             Awaiting Confirmation
           </Badge>
         );
-      case "confirmed":
+      case "completed":
         return (
-          <Badge className="bg-emerald-100 text-emerald-800">Confirmed</Badge>
+          <Badge className="bg-emerald-100 text-emerald-800">completed</Badge>
         );
       case "rejected":
         return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
@@ -250,8 +266,8 @@ export default function ApplicationsPage() {
                 ? "Approved"
                 : statusFilter === "awaiting_tenant_confirmation"
                 ? "Awaiting Confirmation"
-                : statusFilter === "confirmed"
-                ? "Confirmed"
+                : statusFilter === "completed"
+                ? "Completed"
                 : statusFilter === "rejected"
                 ? "Rejected"
                 : statusFilter === "declined_by_tenant"
@@ -275,8 +291,8 @@ export default function ApplicationsPage() {
             >
               Awaiting Confirmation
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter("confirmed")}>
-              Confirmed
+            <DropdownMenuItem onClick={() => setStatusFilter("completed")}>
+              Completed
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setStatusFilter("rejected")}>
               Rejected
@@ -351,32 +367,20 @@ export default function ApplicationsPage() {
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="space-y-4 mb-6">
-                    <div>
-                      <span className="text-sm font-semibold text-foreground block mb-1">
-                        Email Address
-                      </span>
-                      <p className="text-sm text-muted-foreground break-words">
-                        {application.email}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-semibold text-foreground block mb-2">
-                        Application Message
-                      </span>
-                      <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg leading-relaxed border">
-                        {application.message}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       className="w-full hover:bg-primary/5 transition-colors duration-200"
+                      onClick={() => {
+                        setSelectedApplication(application);
+                        setSelectedImages(application.validationImages || []);
+                        setShowDetailsDialog(true);
+                      }}
                     >
                       <Eye className="h-4 w-4 mr-2" />
-                      View Details
+                      View All Details
                     </Button>
+
                     {application.status === "pending" && (
                       <div className="flex gap-2">
                         <Button
@@ -420,11 +424,11 @@ export default function ApplicationsPage() {
                       </div>
                     )}
 
-                    {application.status === "confirmed" && (
+                    {application.status === "completed" && (
                       <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                         <p className="text-sm text-green-800 font-medium">
-                          ✅ Application confirmed by tenant. This application
-                          is now finalized.
+                          ✅ Application completed by tenant. This application
+                          is now complete.
                         </p>
                       </div>
                     )}
@@ -443,6 +447,249 @@ export default function ApplicationsPage() {
           </div>
         )}
       </div>
+
+      {/* Application Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-blue-600" />
+              Application Details - {selectedApplication?.tenantName}
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedApplication && (
+            <div className="space-y-6 mt-4">
+              {/* Application Information Section */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Application Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm font-semibold text-foreground block mb-1">
+                      Tenant Name
+                    </span>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedApplication.tenantName}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-foreground block mb-1">
+                      Email Address
+                    </span>
+                    <p className="text-sm text-muted-foreground break-words">
+                      {selectedApplication.email}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-foreground block mb-1">
+                      Property
+                    </span>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedApplication.propertyTitle}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-foreground block mb-1">
+                      Application Date
+                    </span>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedApplication.applicationDate}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <span className="text-sm font-semibold text-foreground block mb-2">
+                    Application Message
+                  </span>
+                  <div className="text-sm text-muted-foreground bg-white p-3 rounded-lg leading-relaxed border">
+                    {selectedApplication.message}
+                  </div>
+                </div>
+              </div>
+
+              {/* ID Verification Section */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-blue-600" />
+                  ID Verification Documents
+                  {selectedImages.length > 0 && (
+                    <span className="text-sm font-normal text-blue-600">
+                      ({selectedImages.length} images)
+                    </span>
+                  )}
+                </h3>
+
+                {selectedImages.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      {selectedImages.map((imageUrl, index) => (
+                        <div key={index} className="space-y-2">
+                          <div
+                            className="relative aspect-[4/3] rounded-lg overflow-hidden border bg-white cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                            onClick={() => {
+                              setFullSizeImage({ url: imageUrl, index });
+                              setShowFullImageDialog(true);
+                            }}
+                          >
+                            <Image
+                              src={imageUrl}
+                              alt={`ID verification ${index + 1}`}
+                              fill
+                              className="object-contain"
+                              sizes="(max-width: 768px) 100vw, 50vw"
+                            />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-medium text-blue-700">
+                              ID Document {index + 1}
+                            </p>
+                            <p className="text-xs text-blue-600">
+                              Click to view full size
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="p-3 bg-white border border-blue-200 rounded-lg">
+                      <h4 className="font-semibold text-blue-900 mb-2">
+                        Verification Guidelines:
+                      </h4>
+                      <ul className="text-sm text-blue-800 space-y-1">
+                        <li>• Check for clear, readable text and photos</li>
+                        <li>
+                          • Verify document authenticity and validity dates
+                        </li>
+                        <li>
+                          • Ensure photos match the applicant&apos;s identity
+                        </li>
+                        <li>• Look for signs of tampering or forgery</li>
+                        <li>
+                          • Cross-reference information with application details
+                        </li>
+                      </ul>
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-sm text-amber-800 font-medium flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      ⚠️ No ID verification images provided
+                    </p>
+                    <p className="text-xs text-amber-700 mt-1">
+                      This application was submitted without ID verification
+                      images. Exercise caution when reviewing.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowDetailsDialog(false)}
+              className="flex items-center gap-2"
+            >
+              <X className="h-4 w-4" />
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Full Size Image Dialog */}
+      <Dialog open={showFullImageDialog} onOpenChange={setShowFullImageDialog}>
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-0">
+          <DialogHeader className="sticky top-0 bg-white z-10 p-4 md:p-6 pb-2 border-b">
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-blue-600" />
+              ID Document {fullSizeImage ? fullSizeImage.index + 1 : ""} - Full
+              Size View
+            </DialogTitle>
+          </DialogHeader>
+
+          {fullSizeImage && (
+            <div className="p-4 md:p-6 pt-2 space-y-4">
+              <div className="relative w-full min-h-[50vh] md:min-h-[60vh] max-h-[80vh] rounded-lg overflow-hidden bg-gray-100">
+                <Image
+                  src={fullSizeImage.url}
+                  alt={`ID verification ${fullSizeImage.index + 1} - Full size`}
+                  fill
+                  className="object-contain"
+                  sizes="100vw"
+                  priority
+                />
+              </div>
+
+              <div className="p-3 md:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-2 text-sm md:text-base">
+                  Document Examination Tips:
+                </h4>
+                <ul className="text-xs md:text-sm text-blue-800 space-y-1">
+                  <li>• Zoom in to check text clarity and photo quality</li>
+                  <li>
+                    • Look for security features like holograms or watermarks
+                  </li>
+                  <li>• Verify expiration dates and document validity</li>
+                  <li>• Check for consistent fonts and formatting</li>
+                  <li>• Compare photo with applicant if available</li>
+                </ul>
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-2">
+                <div className="text-xs md:text-sm text-gray-600">
+                  Document {fullSizeImage.index + 1} of {selectedImages.length}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {fullSizeImage.index > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setFullSizeImage({
+                          url: selectedImages[fullSizeImage.index - 1],
+                          index: fullSizeImage.index - 1,
+                        })
+                      }
+                      className="text-xs md:text-sm"
+                    >
+                      Previous
+                    </Button>
+                  )}
+                  {fullSizeImage.index < selectedImages.length - 1 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setFullSizeImage({
+                          url: selectedImages[fullSizeImage.index + 1],
+                          index: fullSizeImage.index + 1,
+                        })
+                      }
+                      className="text-xs md:text-sm"
+                    >
+                      Next
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFullImageDialog(false)}
+                    className="flex items-center gap-2 text-xs md:text-sm"
+                  >
+                    <X className="h-3 w-3 md:h-4 md:w-4" />
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

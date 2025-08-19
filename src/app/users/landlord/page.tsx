@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Plus,
   Users,
-  DollarSign,
+  PiggyBank,
   Eye,
   Edit,
   BarChart3,
@@ -472,11 +472,11 @@ export default function LandlordDashboard() {
           properties.filter((p) => p.status === "Occupied").length
         } occupied units`,
         percentage: "100%",
-        icon: DollarSign,
+        icon: PiggyBank,
         trend: "up",
       },
       {
-        title: "Maintenance Requests",
+        title: "Maintenances",
         value: pendingRequests.toString(),
         change: `${pendingRequests} pending`,
         percentage: "100%",
@@ -539,21 +539,21 @@ export default function LandlordDashboard() {
     <div className="min-h-screen bg-background">
       {/* Header Section */}
       <div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
               Welcome back, {userData.firstName}! 👋
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
               Here&apos;s what&apos;s happening with your properties today
             </p>
           </div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Enhanced Stats Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        {/* Enhanced Stats Cards - Mobile Optimized */}
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 mb-6">
           {dataLoading
             ? Array.from({ length: 4 }).map((_, index) => (
                 <StaggeredSkeleton key={index} delay={index * 100}>
@@ -562,24 +562,24 @@ export default function LandlordDashboard() {
               ))
             : dashboardStats.map((stat, index) => (
                 <Card key={index} className="relative overflow-hidden">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
+                    <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground truncate pr-1">
                       {stat.title}
                     </CardTitle>
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <stat.icon className="h-5 w-5 text-primary" />
+                    <div className="p-1.5 rounded-lg bg-primary/10 flex-shrink-0">
+                      <stat.icon className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-foreground mb-1">
+                  <CardContent className="px-3 pb-3">
+                    <div className="text-lg sm:text-2xl lg:text-3xl font-bold text-foreground mb-1">
                       {stat.value}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2">
                       <span className="text-xs font-medium text-green-600 flex items-center">
-                        <ArrowUpRight className="h-3 w-3 mr-1" />
+                        <ArrowUpRight className="h-2 w-2 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                         {stat.percentage}
                       </span>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground truncate">
                         {stat.change}
                       </p>
                     </div>
@@ -595,26 +595,28 @@ export default function LandlordDashboard() {
             {/* Properties Overview with Search */}
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                   <div>
-                    <CardTitle className="text-xl">Your Properties</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">
+                      Your Properties
+                    </CardTitle>
                     <CardDescription>
                       Manage and monitor your rental properties
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Search properties..."
-                        className="pl-10 w-64"
+                        className="pl-10 w-full sm:w-48 lg:w-64"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
-                    <Button>
+                    <Button className="w-full sm:w-auto">
                       <Plus className="mr-2 h-4 w-4" />
-                      Add Property
+                      <span className="sm:inline">Add Property</span>
                     </Button>
                   </div>
                 </div>
@@ -766,7 +768,7 @@ export default function LandlordDashboard() {
                       >
                         <div className="flex items-center gap-4">
                           <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full">
-                  <Wrench className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            <Wrench className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div>
                             <p className="font-medium">{request.title}</p>
@@ -919,14 +921,37 @@ export default function LandlordDashboard() {
                         </div>
                         <Badge
                           variant={
+                            application.status === "completed" ||
                             application.status === "approved"
                               ? "default"
-                              : application.status === "pending"
+                              : application.status === "pending" ||
+                                application.status ===
+                                  "awaiting_tenant_confirmation"
                               ? "secondary"
-                              : "destructive"
+                              : application.status === "rejected" ||
+                                application.status === "declined_by_tenant"
+                              ? "destructive"
+                              : "secondary"
+                          }
+                          className={
+                            application.status === "completed"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+                              : application.status === "approved"
+                              ? "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                              : application.status === "pending"
+                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
+                              : application.status ===
+                                "awaiting_tenant_confirmation"
+                              ? "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400"
+                              : application.status === "rejected" ||
+                                application.status === "declined_by_tenant"
+                              ? "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
+                              : ""
                           }
                         >
-                          {application.status}
+                          {application.status
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (l) => l.toUpperCase())}
                         </Badge>
                       </div>
                     ))}

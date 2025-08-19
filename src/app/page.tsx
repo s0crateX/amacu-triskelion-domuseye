@@ -1,3 +1,5 @@
+"use client";
+import React, { useRef } from "react";
 import {
   Building2,
   Users,
@@ -8,6 +10,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
+import { motion, useInView } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -61,6 +64,14 @@ const features = [
 ];
 
 export default function Home() {
+  const heroRef = useRef(null);
+  const featuresRef = useRef(null);
+  const ctaRef = useRef(null);
+
+  const heroInView = useInView(heroRef, { once: true, amount: 0.3 });
+  const featuresInView = useInView(featuresRef, { once: true, amount: 0.2 });
+  const ctaInView = useInView(ctaRef, { once: true, amount: 0.3 });
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -75,37 +86,85 @@ export default function Home() {
             className="w-full h-full object-contain"
           />
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
+          ref={heroRef}
+        >
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8 mx-4 relative z-20">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={
+                heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+              }
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+              className="space-y-8 mx-4 relative z-20"
+            >
               <div className="space-y-4">
-                <Badge variant="default" className="w-fit">
-                  Modern Property Management
-                </Badge>
-                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={
+                    heroInView
+                      ? { opacity: 1, scale: 1 }
+                      : { opacity: 0, scale: 0.8 }
+                  }
+                  transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+                >
+                  <Badge variant="default" className="w-fit">
+                    Modern Property Management
+                  </Badge>
+                </motion.div>
+                <motion.h1
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={
+                    heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
+                  }
+                  transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+                  className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground"
+                >
                   Streamline Your{" "}
                   <span className="text-primary">Rental Business</span>
-                </h1>
-                <p className="text-[14px] xl:text-[16px] text-muted-foreground max-w-2xl">
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={
+                    heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
+                  }
+                  transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+                  className="text-[14px] xl:text-[16px] text-muted-foreground max-w-2xl"
+                >
                   DomusEye provides comprehensive rental property management
                   solutions that helps you manage properties, tenants, and
                   maintenance operations efficiently, while providing future
                   tenants many choices and good agent support.
-                </p>
+                </motion.p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 xl:mx-auto justify-start items-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={
+                  heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
+                }
+                transition={{ duration: 0.5, delay: 0.4, ease: "easeOut" }}
+                className="flex flex-col sm:flex-row gap-4 xl:mx-auto justify-start items-center"
+              >
                 <Link href="/dashboard/login" scroll={true}>
                   <Button size="lg" className="text-lg xl:px-8 cursor-pointer">
                     Get Started
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
             {/* AIBOT BOX Section */}
-            <div className="relative">
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={
+                heroInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }
+              }
+              transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+              className="relative"
+            >
               <div className="bg-gradient-to-br from-primary/20 via-secondary/15 to-primary/10 rounded-3xl p-7 backdrop-blur-lg border border-border/30 shadow-2xl">
                 <div className="space-y-8">
                   {/* Enhanced Title Section */}
@@ -206,50 +265,93 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
         <div className="py-10"></div>
       </section>
 
       {/* Features Section */}
-      <section className="py-5 lg:py-8 bg-muted/30">
+      <section className="py-5 lg:py-8 bg-muted/30" ref={featuresRef}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-4 mb-16">
-            <Badge variant="secondary" className="w-fit mx-auto">
-              Features
-            </Badge>
-            <h2 className="text-2xl sm:text-4xl lg:text-4xl font-bold tracking-tight">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={
+              featuresInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
+            }
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            className="text-center space-y-4 mb-16"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={
+                featuresInView
+                  ? { opacity: 1, scale: 1 }
+                  : { opacity: 0, scale: 0.8 }
+              }
+              transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+            >
+              <Badge variant="default" className="w-fit mx-auto">
+                Features
+              </Badge>
+            </motion.div>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              animate={
+                featuresInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
+              }
+              transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+              className="text-2xl sm:text-4xl lg:text-4xl font-bold tracking-tight"
+            >
               Everything You Need to Manage Properties
-            </h2>
-            <p className="text-[16px] text-muted-foreground max-w-3xl mx-auto">
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={
+                featuresInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
+              }
+              transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+              className="text-[16px] text-muted-foreground max-w-3xl mx-auto"
+            >
               DomusEye provides comprehensive rental property management
               solutions that helps you manage properties, tenants, and
               maintenance operations efficiently, while providing future tenants
               many choices and good agent support.
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <Card
+                <motion.div
                   key={index}
-                  className="border-border/50 hover:border-border transition-colors"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={
+                    featuresInView
+                      ? { opacity: 1, y: 0 }
+                      : { opacity: 0, y: 30 }
+                  }
+                  transition={{
+                    duration: 0.4,
+                    delay: 0.4 + index * 0.05,
+                    ease: "easeOut",
+                  }}
                 >
-                  <CardHeader>
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                      <Icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-base">
-                      {feature.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
+                  <Card className="border-border/50 hover:border-border transition-colors h-full">
+                    <CardHeader>
+                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                        <Icon className="h-6 w-6 text-primary" />
+                      </div>
+                      <CardTitle className="text-xl">{feature.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="text-base">
+                        {feature.description}
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               );
             })}
           </div>
@@ -257,7 +359,10 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 lg:py-32 bg-primary text-primary-foreground relative overflow-hidden">
+      <section
+        className="py-20 lg:py-32 bg-primary text-primary-foreground relative overflow-hidden"
+        ref={ctaRef}
+      >
         <div className="absolute lg:right-0 lg:top-10 w-1/3 h-full opacity-80">
           <Image
             src="/assets/svgs/house_search.svg"
@@ -267,17 +372,37 @@ export default function Home() {
           />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="space-y-8 max-w-3xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={ctaInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+            transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+            className="space-y-8 max-w-3xl mx-auto"
+          >
+            <motion.h2
+              initial={{ opacity: 0, y: 30 }}
+              animate={ctaInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight"
+            >
               Find Your Dream Property
-            </h2>
-            <p className="text-xl opacity-90">
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={ctaInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+              className="text-xl opacity-90"
+            >
               This option is more benefit-oriented. It directly tells the user
               what they will achieve by clicking &ndash; finding the property
               they desire. This aligns well with your headline &ldquo;Ready to
               Get Your Dream Property?&rdquo;
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={ctaInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, delay: 0.4, ease: "easeOut" }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
               <Button
                 size="lg"
                 variant="secondary"
@@ -297,8 +422,8 @@ export default function Home() {
               >
                 <Link href="/dashboard/properties">Browse More</Link>
               </Button>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 

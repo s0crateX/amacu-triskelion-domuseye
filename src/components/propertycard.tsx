@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { 
-  MapPin, 
-  Bed, 
-  Bath, 
-  Home, 
-  CheckCircle, 
+import {
+  MapPin,
+  Bed,
+  Bath,
+  Home,
+  CheckCircle,
   Car,
   Calendar,
   Eye,
@@ -15,7 +15,7 @@ import {
   Utensils,
   Dumbbell,
   Shield,
-  Heart
+  Heart,
 } from "lucide-react";
 import {
   Card,
@@ -34,7 +34,9 @@ interface PropertyCardProps {
 }
 
 // Amenities icons mapping
-const amenityIcons: { [key: string]: React.ComponentType<{ size?: number; className?: string }> } = {
+const amenityIcons: {
+  [key: string]: React.ComponentType<{ size?: number; className?: string }>;
+} = {
   wifi: Wifi,
   tv: Tv,
   ac: AirVent,
@@ -43,7 +45,10 @@ const amenityIcons: { [key: string]: React.ComponentType<{ size?: number; classN
   security: Shield,
 };
 
-export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => {
+export const PropertyCard = ({
+  property,
+  onViewDetails,
+}: PropertyCardProps) => {
   const router = useRouter();
   const [currentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
@@ -62,14 +67,23 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
   };
 
   // Get the main image to display
-  const mainImage = property.images && property.images.length > 0 
-    ? property.images[currentImageIndex] 
-    : property.image || "/next.svg";
+  const mainImage =
+    property.images && property.images.length > 0
+      ? property.images[currentImageIndex]
+      : property.image || "/next.svg";
 
   // Format price
   const formatPrice = (price: string) => {
     if (!price) return "Price not available";
-    return price.includes("₱") ? price : `₱${price}`;
+
+    // Extract numeric value from price string
+    const numericPrice = price.replace(/[^0-9]/g, "");
+    if (!numericPrice) return price.includes("₱") ? price : `₱${price}`;
+
+    // Format number with commas
+    const formattedNumber = parseInt(numericPrice).toLocaleString();
+
+    return price.includes("₱") ? `₱${formattedNumber}` : `₱${formattedNumber}`;
   };
 
   // Format date
@@ -115,17 +129,19 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
           onClick={toggleLike}
           className="absolute top-3 right-3 bg-white/80 hover:bg-white rounded-full p-2 transition-colors"
         >
-          <Heart 
-            size={18} 
+          <Heart
+            size={18}
             className={`transition-colors ${
               isLiked ? "text-red-500 fill-red-500" : "text-gray-600"
-            }`} 
+            }`}
           />
         </button>
 
         {/* Price Badge */}
-        <div className="absolute bottom-3 right-3 bg-black/80 text-white px-3 py-1 rounded-full">
-          <span className="font-bold text-sm">{formatPrice(property.price)}</span>
+        <div className="absolute bottom-3 right-3 bg-black/65 text-white px-3 py-1 rounded-full">
+          <span className="font-bold text-sm">
+            {formatPrice(property.price)}
+          </span>
           <span className="text-xs opacity-80">/month</span>
         </div>
       </div>
@@ -138,12 +154,12 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
             <div className="flex items-center text-gray-600">
               <MapPin size={14} className="mr-1 flex-shrink-0" />
               <span className="text-sm line-clamp-1">
-                {property.location || property.address || "Location not specified"}
+                {property.location ||
+                  property.address ||
+                  "Location not specified"}
               </span>
             </div>
-            <p className="text-[#1e40af] font-bold text-sm">
-              {formatPrice(property.price)}
-            </p>
+            <p className="text-[#1e40af] font-bold text-sm"></p>
           </div>
         </div>
       </CardHeader>
@@ -173,7 +189,8 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
         {property.amenities && property.amenities.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {property.amenities.slice(0, 3).map((amenity, index) => {
-              const IconComponent = amenityIcons[amenity.toLowerCase()] || Shield;
+              const IconComponent =
+                amenityIcons[amenity.toLowerCase()] || Shield;
               return (
                 <div
                   key={index}
@@ -209,7 +226,9 @@ export const PropertyCard = ({ property, onViewDetails }: PropertyCardProps) => 
           {property.landlordName && (
             <div className="flex items-center gap-1 max-w-[100px]">
               <User size={10} />
-              <span className="line-clamp-1 text-xs">{property.landlordName}</span>
+              <span className="line-clamp-1 text-xs">
+                {property.landlordName}
+              </span>
             </div>
           )}
         </div>

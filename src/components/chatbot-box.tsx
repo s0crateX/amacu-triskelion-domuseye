@@ -300,10 +300,10 @@ function AiInput({
             type="submit"
             size="icon"
             variant="outline"
-            className="hover:bg-primary/90"
+            className="hover:bg-primary/40"
             disabled={!value.trim()}
           >
-            <CornerRightUp className="h-4 w-4 text-white" />
+            <CornerRightUp className="h-4 w-4 text-primary" />
           </Button>
         </form>
       </div>
