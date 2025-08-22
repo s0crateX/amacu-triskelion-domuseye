@@ -37,6 +37,8 @@ export interface Property {
   tenant?: string | null;
   status?: "Available" | "Occupied";
   rating?: number;
+  createdAt?: FieldValue | string;
+  updatedAt?: FieldValue | string;
 }
 
 export interface PropertyFormData {

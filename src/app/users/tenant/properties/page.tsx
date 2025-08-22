@@ -318,10 +318,10 @@ const PropertiesPage = () => {
   }
 
   return (
-    <div className="bg-background min-h-screen lg:mx-8 xl:mx-30">
+    <div className="bg-background min-h-screen">
       {/* --- Hero Section: Search & Advanced Filters --- */}
-      <div className="py-0 px-4">
-        <div className="container mx-auto">
+      <div className="py-6">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-foreground mb-10 mt-20">
             Available Properties
           </h1>
@@ -357,9 +357,9 @@ const PropertiesPage = () => {
       </div>
 
       {/* --- Main Content Section --- */}
-      <div className="container mx-auto py-10 px-4">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Filter Controls */}
-        <div className="flex items-center justify-between mb-8 mx-4 xl:mx-10">
+        <div className="flex items-center justify-between mb-8">
           <div className="space-y-1">
             <h2 className="text-2xl font-bold text-foreground hidden xl:block">
               Available Properties

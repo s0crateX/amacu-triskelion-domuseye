@@ -154,9 +154,9 @@ export const PropertyCard = ({
             <div className="flex items-center text-gray-600">
               <MapPin size={14} className="mr-1 flex-shrink-0" />
               <span className="text-sm line-clamp-1">
-                {property.location ||
-                  property.address ||
-                  "Location not specified"}
+                {property.address ||
+                  property.location ||
+                  "Address not specified"}
               </span>
             </div>
             <p className="text-[#1e40af] font-bold text-sm"></p>

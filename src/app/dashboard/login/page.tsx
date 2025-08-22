@@ -46,6 +46,8 @@ export default function LoginPage() {
       // Redirect based on user type
       if (userData.userType === 'tenant') {
         router.push('/users/tenant')
+      } else if (userData.userType === 'agent') {
+        router.push('/users/agent')
       } else {
         router.push('/users/landlord')
       }

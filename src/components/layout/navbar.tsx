@@ -82,10 +82,9 @@ const landlordNavigation = [
 ];
 
 const agentNavigation = [
-  { name: "Home", href: "/users/agent", icon: Home },
-  { name: "My Properties", href: "/users/agent/my-properties", icon: Building },
-  { name: "Profile", href: "/users/agent/profile", icon: User },
-  { name: "Support", href: "/users/agent/support", icon: HeadphonesIcon },
+  { name: "Dashboard", href: "/users/agent", icon: Home },
+  { name: "Properties", href: "/users/agent/properties", icon: Building },
+  { name: "Messages", href: "/users/agent/messages", icon: MessageSquare },
 ];
 
 export function Navbar() {
@@ -269,7 +268,10 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center min-w-0 flex-shrink-0">
-            <Link href="/" className="flex items-center space-x-3">
+            <Link 
+              href={userData?.userType === 'agent' ? '/users/agent' : '/'} 
+              className="flex items-center space-x-3"
+            >
               <Image
                 src="/assets/images/logo.png"
                 alt="DomusEye Logo"

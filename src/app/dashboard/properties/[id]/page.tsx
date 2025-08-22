@@ -10,8 +10,6 @@ import {
   Calendar,
   Phone,
   Mail,
-  Share2,
-  Heart,
   Star,
   Snowflake,
   Wifi,
@@ -29,10 +27,15 @@ import {
   PawPrint,
   Bike,
   Zap,
-  FileText,
   X,
   ChevronLeft,
   ChevronRight,
+  MessageCircle,
+  FileText,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import Image from "next/image";
@@ -42,7 +45,62 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
-import TenantApplicationForm from "@/app/dashboard/properties/[id]/apply/tenant-application-form";
+import { conversationService } from "@/lib/database/messages";
+import dynamic from "next/dynamic";
+import { Loader2 } from "lucide-react";
+import "leaflet/dist/leaflet.css";
+
+// Interfaces for OpenStreetMap API responses
+interface OSMElement {
+  lat: number;
+  lon: number;
+  tags?: {
+    name?: string;
+    amenity?: string;
+    shop?: string;
+    leisure?: string;
+    tourism?: string;
+  };
+}
+
+interface NearbyPlace {
+  name: string;
+  distance: string;
+  type: string;
+  lat: number;
+  lon: number;
+}
+
+// Dynamic import for Leaflet components to avoid SSR issues
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+const Marker = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Marker),
+  { ssr: false }
+);
+const Popup = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Popup),
+  { ssr: false }
+);
+
+// Fix for default markers in react-leaflet
+if (typeof window !== "undefined") {
+  import("leaflet").then((L) => {
+    delete ((L.Icon.Default.prototype as unknown) as Record<string, unknown>)._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+      iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+      shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+    });
+  });
+}
+
 //import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api'
 
 const PropertyDetailPage = () => {
@@ -58,7 +116,6 @@ const PropertyDetailPage = () => {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImageIndex, setModalImageIndex] = useState(0);
   const [landlordProfile, setLandlordProfile] = useState<{
@@ -70,6 +127,15 @@ const PropertyDetailPage = () => {
     phone?: string;
     email?: string;
   } | null>(null);
+  const [nearbyPlaces, setNearbyPlaces] = useState<Array<{
+    name: string;
+    distance: string;
+    type: string;
+  }>>([]);
+  
+  // Property Management states (UI only)
+  const [propertyStatus, setPropertyStatus] = useState<'pending' | 'handling' | 'approved' | 'rejected'>('pending');
+
 
   // Icon mapping functions
   const getFeatureIcon = (feature: string) => {
@@ -143,6 +209,113 @@ const PropertyDetailPage = () => {
 
     return unsubscribe;
   };
+
+  // Function to calculate distance between two coordinates
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in kilometers
+    return distance;
+  };
+
+  // Function to fetch nearby places using Overpass API
+  const fetchNearbyPlaces = useCallback(async (latitude: number, longitude: number) => {
+    try {
+      const radius = 2000; // 2km radius
+      const overpassQuery = `
+        [out:json][timeout:25];
+        (
+          node["amenity"~"^(restaurant|cafe|hospital|school|bank|pharmacy|supermarket|gas_station|post_office|library|police|fire_station)$"](around:${radius},${latitude},${longitude});
+          node["shop"~"^(supermarket|convenience|mall|department_store)$"](around:${radius},${latitude},${longitude});
+          node["leisure"~"^(park|playground|fitness_centre|swimming_pool)$"](around:${radius},${latitude},${longitude});
+          node["tourism"~"^(attraction|museum|hotel)$"](around:${radius},${latitude},${longitude});
+        );
+        out geom;
+      `;
+
+      const response = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `data=${encodeURIComponent(overpassQuery)}`,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch nearby places');
+      }
+
+      const data = await response.json();
+      const places = data.elements
+        .filter((element: OSMElement) => element.tags && element.tags.name)
+        .map((element: OSMElement) => {
+          const distance = calculateDistance(latitude, longitude, element.lat, element.lon);
+          const distanceStr = distance < 1 
+            ? `${Math.round(distance * 1000)}m` 
+            : `${distance.toFixed(1)}km`;
+          
+          // Determine place type
+          let type = 'Place';
+          if (element.tags?.amenity) {
+            const amenityTypes: { [key: string]: string } = {
+              restaurant: 'Restaurant',
+              cafe: 'Cafe',
+              hospital: 'Hospital',
+              school: 'School',
+              bank: 'Bank',
+              pharmacy: 'Pharmacy',
+              supermarket: 'Supermarket',
+              gas_station: 'Gas Station',
+              post_office: 'Post Office',
+              library: 'Library',
+              police: 'Police',
+              fire_station: 'Fire Station'
+            };
+            type = amenityTypes[element.tags.amenity!] || 'Amenity';
+          } else if (element.tags?.shop) {
+            type = 'Shop';
+          } else if (element.tags?.leisure) {
+            const leisureTypes: { [key: string]: string } = {
+              park: 'Park',
+              playground: 'Playground',
+              fitness_centre: 'Gym',
+              swimming_pool: 'Pool'
+            };
+            type = leisureTypes[element.tags.leisure!] || 'Leisure';
+          } else if (element.tags?.tourism) {
+            type = 'Tourism';
+          }
+
+          return {
+            name: element.tags?.name || 'Unknown',
+            distance: distanceStr,
+            type: type,
+            lat: element.lat,
+            lon: element.lon
+          };
+        })
+        .sort((a: NearbyPlace, b: NearbyPlace) => {
+          const distA = parseFloat(a.distance);
+          const distB = parseFloat(b.distance);
+          return distA - distB;
+        })
+        .slice(0, 12); // Limit to 12 closest places
+
+      setNearbyPlaces(places);
+    } catch (error) {
+      console.error('Error fetching nearby places:', error);
+      // Fallback to some default places if API fails
+      setNearbyPlaces([
+        { name: 'Local Area', distance: 'N/A', type: 'General' }
+      ]);
+    }
+  }, []);
 
   // Mock property data
   const propertyinfo = {
@@ -222,28 +395,7 @@ const PropertyDetailPage = () => {
           "Great place, very clean and well-maintained. The only downside is limited parking options.",
       },
     ],
-    nearbyPlaces: [
-      {
-        name: "Central Park",
-        distance: "0.5 miles",
-      },
-      {
-        name: "Grocery Store",
-        distance: "0.2 miles",
-      },
-      {
-        name: "Shopping Mall",
-        distance: "1.2 miles",
-      },
-      {
-        name: "Hospital",
-        distance: "2.0 miles",
-      },
-      {
-        name: "School",
-        distance: "0.8 miles",
-      },
-    ],
+    // nearbyPlaces now fetched dynamically based on property coordinates
   };
 
   // Generate dates for next 2 weeks
@@ -281,7 +433,7 @@ const PropertyDetailPage = () => {
     const formattedNumber = parseFloat(numericPrice).toLocaleString("en-US", {
       maximumFractionDigits: 0,
     });
-    return formattedNumber;
+    return price.includes("₱") ? `₱${formattedNumber}` : `₱${formattedNumber}`;
   };
 
   const handleImageChange = (index: number) => {
@@ -294,9 +446,9 @@ const PropertyDetailPage = () => {
     setShowImageModal(true);
   };
 
-  const closeImageModal = () => {
+  const closeImageModal = useCallback(() => {
     setShowImageModal(false);
-  };
+  }, []);
 
   const nextImage = useCallback(() => {
     const images = property?.images || propertyinfo?.images || [];
@@ -319,6 +471,45 @@ const PropertyDetailPage = () => {
       setSelectedDate(null);
     }, 3000);
   };
+
+  // Function to handle opening property messages with automatic conversation creation
+  const handleOpenPropertyMessages = async () => {
+    if (!property || !landlordProfile || !userData) {
+      console.error('Missing required data for creating conversation');
+      return;
+    }
+
+    try {
+      // Create or find existing conversation with the landlord
+      const conversationId = await conversationService.createNewConversation(
+        userData.uid, // agent ID
+        `${userData.firstName} ${userData.lastName}`, // agent name
+        property.uid, // landlord ID (property.uid is the landlord's uid)
+        landlordProfile.displayName || `${landlordProfile.firstName} ${landlordProfile.lastName}`, // landlord name
+        'landlord', // landlord type
+        property.id, // property ID
+        property.title // property title
+      );
+
+      // Create initial message with property details
+      const propertyDetailsMessage = `Hello! I'm reaching out regarding the property: "${property.title}"\n\n` +
+        `Property Details:\n` +
+        `📍 Address: ${property.address}\n` +
+        `💰 Price: ${property.price}\n` +
+        `🏠 Type: ${property.type}\n` +
+        `🛏️ Bedrooms: ${property.beds}\n` +
+        `🚿 Bathrooms: ${property.baths}\n` +
+        `📐 Area: ${property.sqft} sqft\n\n` +
+        `I would like to discuss this property further. Please let me know if you have any questions or if we can schedule a time to talk.`;
+
+      // Navigate to messages page with the conversation and pre-populated message
+      router.push(`/users/agent/messages?propertyId=${property.id}&propertyTitle=${encodeURIComponent(property.title)}&conversationId=${conversationId}&draftMessage=${encodeURIComponent(propertyDetailsMessage)}`);
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      // Fallback to regular navigation
+       router.push(`/users/agent/messages?propertyId=${property.id}&propertyTitle=${encodeURIComponent(property.title)}`);
+     }
+   };
   // Firebase data fetching effect
   useEffect(() => {
     let landlordUnsubscribe: (() => void) | null = null;
@@ -379,6 +570,11 @@ const PropertyDetailPage = () => {
               propertyData.uid
             );
           }
+
+          // Fetch nearby places if coordinates are available
+          if (propertyData.latitude && propertyData.longitude) {
+            fetchNearbyPlaces(propertyData.latitude, propertyData.longitude);
+          }
         } else {
           setError("Property not found.");
         }
@@ -392,13 +588,13 @@ const PropertyDetailPage = () => {
 
     if (id) fetchProperty();
 
-    // Cleanup function to unsubscribe from real-time listeners
+    // Cleanup function
     return () => {
       if (landlordUnsubscribe) {
         landlordUnsubscribe();
       }
     };
-  }, [id]);
+  }, [id, fetchNearbyPlaces, setupLandlordProfileListener]);
 
   // Keyboard navigation for image modal
   useEffect(() => {
@@ -422,7 +618,7 @@ const PropertyDetailPage = () => {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showImageModal, nextImage, prevImage]);
+  }, [showImageModal, nextImage, prevImage, closeImageModal]);
 
   // Early returns for loading and error states
   if (loading) {
@@ -517,7 +713,7 @@ const PropertyDetailPage = () => {
 
   if (!propertyinfo) {
     return (
-      <div className="container mx-auto py-12 px-4 lg:px-8 xl:px-16 2xl:px-24">
+      <div className="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         Property not found
       </div>
     );
@@ -525,10 +721,10 @@ const PropertyDetailPage = () => {
 
   return (
     <>
-      <div className="bg-background min-h-screen lg:mx-8 xl:mx-30">
+      <div className="bg-background min-h-screen">
         {/* Property Images Gallery */}
         <div className="bg-background/30">
-          <div className="container mx-auto px-4 lg:px-8 xl:px-16 2xl:px-24">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="relative">
               {/* Main Image */}
               <div
@@ -594,7 +790,7 @@ const PropertyDetailPage = () => {
           </div>
         </div>
         {/* Property Info */}
-        <div className="container mx-auto py-8 px-4 lg:px-8 xl:px-16 2xl:px-24">
+        <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Main Property Info */}
             <div className="lg:col-span-2">
@@ -608,7 +804,7 @@ const PropertyDetailPage = () => {
                       <div className="flex items-center text-muted-foreground mb-4">
                         <MapPin size={16} className="mr-1.5" />
                         <span className="text-sm sm:text-base">
-                          {property.location}
+                          {property.address || property.location}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2 mb-4">
@@ -634,7 +830,6 @@ const PropertyDetailPage = () => {
                     </div>
                     <div className="text-right">
                       <div className="flex flex-row text-md sm:text-xl md:text-2xl font-bold text-primary">
-                        <span>₱ </span>
                         {formatPrice(property.price)}
                       </div>
                       <div className="text-muted-foreground text-xs sm:text-sm">
@@ -750,162 +945,270 @@ const PropertyDetailPage = () => {
                   </div>
                 </CardContent>
               </Card>
-              {/* Location Section */}
+              {/* Nearby Places Section */}
               <Card className="mb-6">
                 <CardHeader>
-                  <CardTitle>Location</CardTitle>
+                  <CardTitle>Nearby Places</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="rounded-lg overflow-hidden mb-4">
-                    {/*
-                  <LoadScript googleMapsApiKey="API">
-                    <GoogleMap
-                      mapContainerStyle={mapContainerStyle}
-                      center={property.coordinates}
-                      zoom={15}
-                    >
-                      <Marker position={property.coordinates} />
-                    </GoogleMap>
-                  </LoadScript>*/}
-                  </div>
-                  <h3 className="font-semibold mb-2 text-foreground">
-                    Nearby Places
-                  </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {propertyinfo.nearbyPlaces.map((place, index) => (
-                      <div key={index} className="flex items-center">
-                        <MapPin
-                          size={16}
-                          className="mr-2 text-muted-foreground"
-                        />
-                        <div>
-                          <div className="text-foreground">{place.name}</div>
-                          <div className="text-[10px] sm:text-xs text-muted-foreground">
-                            {place.distance}
+                    {nearbyPlaces.length > 0 ? (
+                      nearbyPlaces.map((place, index) => (
+                        <div key={index} className="flex items-center">
+                          <MapPin
+                            size={16}
+                            className="mr-2 text-muted-foreground"
+                          />
+                          <div>
+                            <div className="text-foreground text-sm">{place.name}</div>
+                            <div className="text-[10px] sm:text-xs text-muted-foreground">
+                              {place.distance} • {place.type}
+                            </div>
                           </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center text-muted-foreground text-sm py-4">
+                        {property?.latitude && property?.longitude ? (
+                          <div className="flex items-center justify-center">
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            Loading nearby places...
+                          </div>
+                        ) : (
+                          "Location coordinates not available"
+                        )}
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
-              {/* Reviews Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Reviews</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {propertyinfo.reviews.map((review) => (
-                    <div
-                      key={review.id}
-                      className="border-b border-border pb-4 mb-4 last:border-0"
-                    >
-                      <div className="flex justify-between mb-2">
-                        <div className="font-medium text-foreground">
-                          {review.user}
+              {/* Reviews Section - Only show for tenants */}
+              {userData?.userType === "tenant" && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Reviews</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {propertyinfo.reviews.map((review) => (
+                      <div
+                        key={review.id}
+                        className="border-b border-border pb-4 mb-4 last:border-0"
+                      >
+                        <div className="flex justify-between mb-2">
+                          <div className="font-medium text-foreground">
+                            {review.user}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {review.date}
+                          </div>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {review.date}
+                        <div className="flex items-center mb-2">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              size={16}
+                              className={
+                                i < review.rating
+                                  ? "text-[#cdb323] fill-[#cdb323]"
+                                  : "text-muted-foreground"
+                              }
+                            />
+                          ))}
                         </div>
+                        <p className="text-sm sm:text-base text-muted-foreground">
+                          {review.comment}
+                        </p>
                       </div>
-                      <div className="flex items-center mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={16}
-                            className={
-                              i < review.rating
-                                ? "text-[#cdb323] fill-[#cdb323]"
-                                : "text-muted-foreground"
-                            }
-                          />
-                        ))}
-                      </div>
-                      <p className="text-sm sm:text-base text-muted-foreground">
-                        {review.comment}
-                      </p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
             </div>
             {/* Right Column - Contact & Scheduling */}
             <div className="lg:col-span-1">
-              {/* Schedule Viewing Card */}
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>Schedule a Viewing</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {showScheduleSuccess ? (
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded-md mb-4">
-                      Your viewing has been scheduled! We&apos;ll be in touch
-                      shortly to confirm.
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-sm sm:text-base text-muted-foreground mb-4">
-                        Select an available date to schedule a viewing of this
-                        property:
-                      </p>
-                      <div className="grid grid-cols-7 gap-1 mb-6">
-                        {calendarDates.map((date, index) => (
-                          <button
-                            key={index}
-                            onClick={() =>
-                              date.isAvailable
-                                ? handleScheduleViewing(date.date)
-                                : null
-                            }
-                            disabled={!date.isAvailable}
-                            className={`
-                            p-2 rounded-md text-center transition-colors
-                            ${
-                              date.isAvailable
-                                ? date.date === selectedDate
-                                  ? "bg-[#1e40af] text-white"
-                                  : "hover:bg-accent border border-border text-foreground"
-                                : "bg-muted text-muted-foreground cursor-not-allowed"
-                            }
-                            ${date.isToday ? "border-2 border-[#cdb323]" : ""}
-                          `}
-                          >
-                            <div className="text-xs">{date.month}</div>
-                            <div className="font-medium">{date.day}</div>
-                          </button>
-                        ))}
+              {/* Schedule Viewing Card - Only show for tenants */}
+              {userData?.userType === "tenant" && (
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle>Schedule a Viewing</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {showScheduleSuccess ? (
+                      <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded-md mb-4">
+                        Your viewing has been scheduled! We&apos;ll be in touch
+                        shortly to confirm.
                       </div>
-                      {selectedDate && (
-                        <div className="mb-6">
-                          <h3 className="font-medium mb-2 text-foreground">
-                            Available Time Slots:
-                          </h3>
-                          <div className="grid grid-cols-2 gap-2">
-                            {propertyinfo.availableDates
-                              .find((d) => d.date === selectedDate)
-                              ?.timeSlots.map((time, index) => (
-                                <Button
-                                  key={index}
-                                  variant="outline"
-                                  className="py-2 px-3"
-                                >
-                                  {time}
-                                </Button>
-                              ))}
+                    ) : (
+                      <>
+                        <p className="text-sm sm:text-base text-muted-foreground mb-4">
+                          Select an available date to schedule a viewing of this
+                          property:
+                        </p>
+                        <div className="grid grid-cols-7 gap-1 mb-6">
+                          {calendarDates.map((date, index) => (
+                            <button
+                              key={index}
+                              onClick={() =>
+                                date.isAvailable
+                                  ? handleScheduleViewing(date.date)
+                                  : null
+                              }
+                              disabled={!date.isAvailable}
+                              className={`
+                              p-2 rounded-md text-center transition-colors
+                              ${
+                                date.isAvailable
+                                  ? date.date === selectedDate
+                                    ? "bg-[#1e40af] text-white"
+                                    : "hover:bg-accent border border-border text-foreground"
+                                  : "bg-muted text-muted-foreground cursor-not-allowed"
+                              }
+                              ${date.isToday ? "border-2 border-[#cdb323]" : ""}
+                            `}
+                            >
+                              <div className="text-xs">{date.month}</div>
+                              <div className="font-medium">{date.day}</div>
+                            </button>
+                          ))}
+                        </div>
+                        {selectedDate && (
+                          <div className="mb-6">
+                            <h3 className="font-medium mb-2 text-foreground">
+                              Available Time Slots:
+                            </h3>
+                            <div className="grid grid-cols-2 gap-2">
+                              {propertyinfo.availableDates
+                                .find((d) => d.date === selectedDate)
+                                ?.timeSlots.map((time, index) => (
+                                  <Button
+                                    key={index}
+                                    variant="outline"
+                                    className="py-2 px-3"
+                                  >
+                                    {time}
+                                  </Button>
+                                ))}
+                            </div>
                           </div>
+                        )}
+                        <Button
+                          onClick={handleSubmitSchedule}
+                          disabled={!selectedDate}
+                          className="w-full"
+                        >
+                          Schedule Viewing
+                        </Button>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Property Management Card - Only for Agents */}
+              {userData?.userType === "agent" && (
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Property Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Property Status */}
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm font-medium">Status:</span>
+                        {propertyStatus === 'pending' && (
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            Pending Review
+                          </Badge>
+                        )}
+                        {propertyStatus === 'handling' && (
+                          <Badge variant="default" className="flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            Under Review
+                          </Badge>
+                        )}
+                        {propertyStatus === 'approved' && (
+                          <Badge variant="default" className="bg-green-500 hover:bg-green-600 flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Approved
+                          </Badge>
+                        )}
+                        {propertyStatus === 'rejected' && (
+                          <Badge variant="destructive" className="flex items-center gap-1">
+                            <XCircle className="h-3 w-3" />
+                            Rejected
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="space-y-3">
+                      {propertyStatus === 'pending' && (
+                        <Button 
+                          className="w-full" 
+                          onClick={() => {
+                            setPropertyStatus('handling');
+                          }}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Handle Property
+                        </Button>
+                      )}
+                      
+                      {propertyStatus === 'handling' && (
+                        <div className="grid grid-cols-2 gap-3">
+                          <Button 
+                            variant="default" 
+                            className="bg-green-500 hover:bg-green-600"
+                            onClick={() => setPropertyStatus('approved')}
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Approve
+                          </Button>
+                          <Button 
+                            variant="destructive"
+                            onClick={() => setPropertyStatus('rejected')}
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Reject
+                          </Button>
                         </div>
                       )}
-                      <Button
-                        onClick={handleSubmitSchedule}
-                        disabled={!selectedDate}
-                        className="w-full"
-                      >
-                        Schedule Viewing
-                      </Button>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
+                      
+                      {(propertyStatus === 'approved' || propertyStatus === 'rejected') && (
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => {
+                            setPropertyStatus('pending');
+                          }}
+                        >
+                          Reset Status
+                        </Button>
+                      )}
+                      
+                      {/* Property Messages Button */}
+                      {(propertyStatus === 'handling' || propertyStatus === 'approved' || propertyStatus === 'rejected') && (
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={handleOpenPropertyMessages}
+                        >
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Open Property Messages
+                        </Button>
+                      )}
+                    </div>
+
+
+                  </CardContent>
+                </Card>
+              )}
+              
               {/* Landlord Contact Card */}
               <Card className="mb-6">
                 <CardHeader>
@@ -963,44 +1266,45 @@ const PropertyDetailPage = () => {
                   </div>
                 </CardContent>
               </Card>
-              {/* Actions Card */}
-              <Card>
-                <CardContent className="p-6">
-                  <div className="space-y-3">
-                    {/* Apply Now Button */}
-                    <Button
-                      className="w-full bg-[#1e40af] hover:bg-[#1e40af]/90 text-white"
-                      onClick={() => {
-                        if (!userData) {
-                          router.push("/dashboard/login");
-                        } else if (userData.userType === "tenant") {
-                          // Open application form dialog
-                          setShowApplicationForm(true);
-                        } else {
-                          // Non-tenant users cannot apply
-                          alert("Only tenants can apply for properties.");
-                        }
-                      }}
-                    >
-                      <FileText size={18} className="mr-2 text-white" />
-                      {!userData
-                        ? "Login to Apply"
-                        : userData.userType === "tenant"
-                        ? "Apply Now"
-                        : "Tenant Access Only"}
-                    </Button>
-
-                    {/* Share and Save buttons */}
-                    <div className="flex justify-between">
-                      <Button variant="ghost" className="flex items-center">
-                        <Share2 size={18} className="mr-2" />
-                        Share
-                      </Button>
-                      <Button variant="ghost" className="flex items-center">
-                        <Heart size={18} className="mr-2" />
-                        Save
-                      </Button>
-                    </div>
+              
+              {/* Property Location Map */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Property Location</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64 w-full rounded-lg overflow-hidden">
+                    {property?.latitude && property?.longitude ? (
+                      <MapContainer
+                        center={[property.latitude, property.longitude]}
+                        zoom={15}
+                        style={{ height: "100%", width: "100%" }}
+                        attributionControl={true}
+                      >
+                        <TileLayer
+                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                          maxZoom={19}
+                        />
+                        <Marker position={[property.latitude, property.longitude]}>
+                          <Popup>
+                            <div className="text-center">
+                              <h3 className="font-semibold text-sm mb-1">{property.title}</h3>
+                              <p className="text-xs text-muted-foreground">
+                                {property.address || property.location}
+                              </p>
+                            </div>
+                          </Popup>
+                        </Marker>
+                      </MapContainer>
+                    ) : (
+                      <div className="h-full w-full bg-muted rounded-lg flex items-center justify-center">
+                        <div className="text-center text-muted-foreground">
+                          <MapPin className="h-8 w-8 mx-auto mb-2" />
+                          <p className="text-sm">Location not available</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1009,13 +1313,7 @@ const PropertyDetailPage = () => {
         </div>
       </div>
 
-      {/* Tenant Application Form Dialog */}
-      <TenantApplicationForm
-        isOpen={showApplicationForm}
-        onClose={() => setShowApplicationForm(false)}
-        propertyId={id}
-        propertyTitle={property?.title || ""}
-      />
+
 
       {/* Image Modal */}
       {showImageModal && (

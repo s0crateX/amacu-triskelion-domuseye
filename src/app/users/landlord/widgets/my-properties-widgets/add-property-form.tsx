@@ -41,7 +41,7 @@ import LocationMapModal from "@/components/location-map-modal";
 import DescriptionMaker from "./description-maker";
 
 // Firebase imports
-import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getImageKitClientConfig } from "@/lib/imagekit";
 
@@ -318,11 +318,18 @@ export default function AddPropertyForm({
 
       if (isEditMode && propertyToEdit?.id) {
         // Update existing property
-        await updateDoc(doc(db, "properties", propertyToEdit.id), propertyData);
+        await updateDoc(doc(db, "properties", propertyToEdit.id), {
+          ...propertyData,
+          updatedAt: serverTimestamp(),
+        });
         toast.success("Property updated successfully!");
       } else {
         // Add new property
-        await addDoc(collection(db, "properties"), propertyData);
+        await addDoc(collection(db, "properties"), {
+          ...propertyData,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
         toast.success("Property added successfully!");
       }
 

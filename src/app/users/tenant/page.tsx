@@ -219,15 +219,9 @@ export default function ModernTenantDashboard() {
     ];
   };
 
-  useEffect(() => {
-    if (user) {
-      fetchConfirmedProperties();
-    }
-  }, [user]);
-
   const fetchCommunityPosts = useCallback(async (properties: Property[]) => {
     try {
-      const allPosts: CommunityPost[] = [];
+  
 
       for (const property of properties) {
         const postsQuery = query(
@@ -422,6 +416,12 @@ export default function ModernTenantDashboard() {
       setLoading(false);
     }
   }, [user, fetchMaintenanceRequests, fetchCommunityPosts]);
+
+  useEffect(() => {
+    if (user) {
+      fetchConfirmedProperties();
+    }
+  }, [user, fetchConfirmedProperties, fetchMaintenanceRequests, fetchCommunityPosts]);
 
   const handleMaintenanceSubmit = async (formData: {
     title: string;
