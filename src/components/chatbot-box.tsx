@@ -65,7 +65,7 @@ declare global {
   }
 }
 
-import { useChat } from "ai/react";
+import { useChat } from "@ai-sdk/react";
 import Markdown from "react-markdown";
 
 function ChatBubble({
@@ -422,28 +422,24 @@ function AiInput({
 export default function FloatingChatbot() {
   const startTimeRef = useRef<number>(0);
   const [showChat, setShowChat] = useState(false);
+  const [input, setInput] = useState("");
 
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit: originalHandleSubmit,
-    status,
-    error,
-  } = useChat({
-    initialMessages: [],
-    api: "/api/chat",
-  });
+  const { messages, sendMessage, status, error } = useChat();
 
   const isLoading = status === "submitted" || status === "streaming";
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+  };
+
   const handleSubmit = useCallback(
-    (e?: React.FormEvent) => {
+    () => {
       if (!input.trim()) return;
       startTimeRef.current = performance.now();
-      originalHandleSubmit(e);
+      sendMessage({ text: input });
+      setInput("");
     },
-    [originalHandleSubmit, input]
+    [sendMessage, input]
   );
 
   const handleKeyDown = useCallback(
@@ -488,7 +484,9 @@ export default function FloatingChatbot() {
                 messages.map((m) => (
                   <ChatBubble
                     key={m.id}
-                    message={m.content}
+                    message={m.parts
+                      .map((part) => (part.type === "text" ? part.text : ""))
+                      .join("")}
                     isUser={m.role === "user"}
                     timestamp={new Date()}
                   />

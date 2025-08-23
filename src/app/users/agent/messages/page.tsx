@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef, Suspense } from "react"
+import Image from "next/image"
 import { useAuth } from "@/lib/auth/auth-context"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -760,9 +761,11 @@ function AgentMessagesContent() {
                                 >
                                   {message.type === 'image' && message.attachmentUrl ? (
                                     <div className="space-y-2">
-                                      <img 
+                                      <Image 
                                           src={message.attachmentUrl} 
                                           alt={message.attachmentName || 'Image'}
+                                          width={256}
+                                          height={192}
                                           className="w-64 h-48 object-cover rounded-lg cursor-pointer"
                                           onClick={() => setSelectedImage({url: message.attachmentUrl!, name: message.attachmentName || 'Image'})}
                                         />
@@ -973,9 +976,11 @@ function AgentMessagesContent() {
           </DialogHeader>
           <div className="p-4 pt-2 flex-1 overflow-hidden flex items-center justify-center">
             {selectedImage && (
-              <img 
+              <Image 
                 src={selectedImage.url} 
                 alt={selectedImage.name}
+                width={800}
+                height={600}
                 className="max-w-full max-h-full object-contain rounded-lg"
               />
             )}

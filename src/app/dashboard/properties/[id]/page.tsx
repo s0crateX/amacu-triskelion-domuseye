@@ -36,6 +36,8 @@ import {
   XCircle,
   Clock,
   AlertCircle,
+  Share2,
+  Heart,
 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import Image from "next/image";
@@ -49,6 +51,7 @@ import { conversationService } from "@/lib/database/messages";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
 import "leaflet/dist/leaflet.css";
+import TenantApplicationForm from "./apply/tenant-application-form";
 
 // Interfaces for OpenStreetMap API responses
 interface OSMElement {
@@ -84,19 +87,22 @@ const Marker = dynamic(
   () => import("react-leaflet").then((mod) => mod.Marker),
   { ssr: false }
 );
-const Popup = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Popup),
-  { ssr: false }
-);
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
+  ssr: false,
+});
 
 // Fix for default markers in react-leaflet
 if (typeof window !== "undefined") {
   import("leaflet").then((L) => {
-    delete ((L.Icon.Default.prototype as unknown) as Record<string, unknown>)._getIconUrl;
+    delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)
+      ._getIconUrl;
     L.Icon.Default.mergeOptions({
-      iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-      iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-      shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+      iconRetinaUrl:
+        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+      iconUrl:
+        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+      shadowUrl:
+        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
     });
   });
 }
@@ -127,15 +133,19 @@ const PropertyDetailPage = () => {
     phone?: string;
     email?: string;
   } | null>(null);
-  const [nearbyPlaces, setNearbyPlaces] = useState<Array<{
-    name: string;
-    distance: string;
-    type: string;
-  }>>([]);
-  
-  // Property Management states (UI only)
-  const [propertyStatus, setPropertyStatus] = useState<'pending' | 'handling' | 'approved' | 'rejected'>('pending');
+  const [nearbyPlaces, setNearbyPlaces] = useState<
+    Array<{
+      name: string;
+      distance: string;
+      type: string;
+    }>
+  >([]);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
 
+  // Property Management states (UI only)
+  const [propertyStatus, setPropertyStatus] = useState<
+    "pending" | "handling" | "approved" | "rejected"
+  >("pending");
 
   // Icon mapping functions
   const getFeatureIcon = (feature: string) => {
@@ -211,24 +221,32 @@ const PropertyDetailPage = () => {
   };
 
   // Function to calculate distance between two coordinates
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const calculateDistance = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number => {
     const R = 6371; // Radius of the Earth in kilometers
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c; // Distance in kilometers
     return distance;
   };
 
   // Function to fetch nearby places using Overpass API
-  const fetchNearbyPlaces = useCallback(async (latitude: number, longitude: number) => {
-    try {
-      const radius = 2000; // 2km radius
-      const overpassQuery = `
+  const fetchNearbyPlaces = useCallback(
+    async (latitude: number, longitude: number) => {
+      try {
+        const radius = 2000; // 2km radius
+        const overpassQuery = `
         [out:json][timeout:25];
         (
           node["amenity"~"^(restaurant|cafe|hospital|school|bank|pharmacy|supermarket|gas_station|post_office|library|police|fire_station)$"](around:${radius},${latitude},${longitude});
@@ -239,83 +257,97 @@ const PropertyDetailPage = () => {
         out geom;
       `;
 
-      const response = await fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `data=${encodeURIComponent(overpassQuery)}`,
-      });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch nearby places');
-      }
-
-      const data = await response.json();
-      const places = data.elements
-        .filter((element: OSMElement) => element.tags && element.tags.name)
-        .map((element: OSMElement) => {
-          const distance = calculateDistance(latitude, longitude, element.lat, element.lon);
-          const distanceStr = distance < 1 
-            ? `${Math.round(distance * 1000)}m` 
-            : `${distance.toFixed(1)}km`;
-          
-          // Determine place type
-          let type = 'Place';
-          if (element.tags?.amenity) {
-            const amenityTypes: { [key: string]: string } = {
-              restaurant: 'Restaurant',
-              cafe: 'Cafe',
-              hospital: 'Hospital',
-              school: 'School',
-              bank: 'Bank',
-              pharmacy: 'Pharmacy',
-              supermarket: 'Supermarket',
-              gas_station: 'Gas Station',
-              post_office: 'Post Office',
-              library: 'Library',
-              police: 'Police',
-              fire_station: 'Fire Station'
-            };
-            type = amenityTypes[element.tags.amenity!] || 'Amenity';
-          } else if (element.tags?.shop) {
-            type = 'Shop';
-          } else if (element.tags?.leisure) {
-            const leisureTypes: { [key: string]: string } = {
-              park: 'Park',
-              playground: 'Playground',
-              fitness_centre: 'Gym',
-              swimming_pool: 'Pool'
-            };
-            type = leisureTypes[element.tags.leisure!] || 'Leisure';
-          } else if (element.tags?.tourism) {
-            type = 'Tourism';
+        const response = await fetch(
+          "https://overpass-api.de/api/interpreter",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `data=${encodeURIComponent(overpassQuery)}`,
+            signal: controller.signal,
           }
+        );
 
-          return {
-            name: element.tags?.name || 'Unknown',
-            distance: distanceStr,
-            type: type,
-            lat: element.lat,
-            lon: element.lon
-          };
-        })
-        .sort((a: NearbyPlace, b: NearbyPlace) => {
-          const distA = parseFloat(a.distance);
-          const distB = parseFloat(b.distance);
-          return distA - distB;
-        })
-        .slice(0, 12); // Limit to 12 closest places
+        clearTimeout(timeoutId);
 
-      setNearbyPlaces(places);
-    } catch (error) {
-      console.error('Error fetching nearby places:', error);
-      // Fallback to some default places if API fails
-      setNearbyPlaces([
-        { name: 'Local Area', distance: 'N/A', type: 'General' }
-      ]);
-    }
-  }, []);
+        if (!response.ok) {
+          throw new Error("Failed to fetch nearby places");
+        }
+
+        const data = await response.json();
+        const places = data.elements
+          .filter((element: OSMElement) => element.tags && element.tags.name)
+          .map((element: OSMElement) => {
+            const distance = calculateDistance(
+              latitude,
+              longitude,
+              element.lat,
+              element.lon
+            );
+            const distanceStr =
+              distance < 1
+                ? `${Math.round(distance * 1000)}m`
+                : `${distance.toFixed(1)}km`;
+
+            // Determine place type
+            let type = "Place";
+            if (element.tags?.amenity) {
+              const amenityTypes: { [key: string]: string } = {
+                restaurant: "Restaurant",
+                cafe: "Cafe",
+                hospital: "Hospital",
+                school: "School",
+                bank: "Bank",
+                pharmacy: "Pharmacy",
+                supermarket: "Supermarket",
+                gas_station: "Gas Station",
+                post_office: "Post Office",
+                library: "Library",
+                police: "Police",
+                fire_station: "Fire Station",
+              };
+              type = amenityTypes[element.tags.amenity!] || "Amenity";
+            } else if (element.tags?.shop) {
+              type = "Shop";
+            } else if (element.tags?.leisure) {
+              const leisureTypes: { [key: string]: string } = {
+                park: "Park",
+                playground: "Playground",
+                fitness_centre: "Gym",
+                swimming_pool: "Pool",
+              };
+              type = leisureTypes[element.tags.leisure!] || "Leisure";
+            } else if (element.tags?.tourism) {
+              type = "Tourism";
+            }
+
+            return {
+              name: element.tags?.name || "Unknown",
+              distance: distanceStr,
+              type: type,
+              lat: element.lat,
+              lon: element.lon,
+            };
+          })
+          .sort((a: NearbyPlace, b: NearbyPlace) => {
+            const distA = parseFloat(a.distance);
+            const distB = parseFloat(b.distance);
+            return distA - distB;
+          })
+          .slice(0, 12); // Limit to 12 closest places
+
+        setNearbyPlaces(places);
+      } catch {
+        // Silently fail and set empty array to prevent flickering
+        setNearbyPlaces([]);
+      }
+    },
+    []
+  );
 
   // Mock property data
   const propertyinfo = {
@@ -475,7 +507,7 @@ const PropertyDetailPage = () => {
   // Function to handle opening property messages with automatic conversation creation
   const handleOpenPropertyMessages = async () => {
     if (!property || !landlordProfile || !userData) {
-      console.error('Missing required data for creating conversation');
+      console.error("Missing required data for creating conversation");
       return;
     }
 
@@ -485,14 +517,16 @@ const PropertyDetailPage = () => {
         userData.uid, // agent ID
         `${userData.firstName} ${userData.lastName}`, // agent name
         property.uid, // landlord ID (property.uid is the landlord's uid)
-        landlordProfile.displayName || `${landlordProfile.firstName} ${landlordProfile.lastName}`, // landlord name
-        'landlord', // landlord type
+        landlordProfile.displayName ||
+          `${landlordProfile.firstName} ${landlordProfile.lastName}`, // landlord name
+        "landlord", // landlord type
         property.id, // property ID
         property.title // property title
       );
 
       // Create initial message with property details
-      const propertyDetailsMessage = `Hello! I'm reaching out regarding the property: "${property.title}"\n\n` +
+      const propertyDetailsMessage =
+        `Hello! I'm reaching out regarding the property: "${property.title}"\n\n` +
         `Property Details:\n` +
         `📍 Address: ${property.address}\n` +
         `💰 Price: ${property.price}\n` +
@@ -503,13 +537,25 @@ const PropertyDetailPage = () => {
         `I would like to discuss this property further. Please let me know if you have any questions or if we can schedule a time to talk.`;
 
       // Navigate to messages page with the conversation and pre-populated message
-      router.push(`/users/agent/messages?propertyId=${property.id}&propertyTitle=${encodeURIComponent(property.title)}&conversationId=${conversationId}&draftMessage=${encodeURIComponent(propertyDetailsMessage)}`);
+      router.push(
+        `/users/agent/messages?propertyId=${
+          property.id
+        }&propertyTitle=${encodeURIComponent(
+          property.title
+        )}&conversationId=${conversationId}&draftMessage=${encodeURIComponent(
+          propertyDetailsMessage
+        )}`
+      );
     } catch (error) {
-      console.error('Error creating conversation:', error);
+      console.error("Error creating conversation:", error);
       // Fallback to regular navigation
-       router.push(`/users/agent/messages?propertyId=${property.id}&propertyTitle=${encodeURIComponent(property.title)}`);
-     }
-   };
+      router.push(
+        `/users/agent/messages?propertyId=${
+          property.id
+        }&propertyTitle=${encodeURIComponent(property.title)}`
+      );
+    }
+  };
   // Firebase data fetching effect
   useEffect(() => {
     let landlordUnsubscribe: (() => void) | null = null;
@@ -594,7 +640,7 @@ const PropertyDetailPage = () => {
         landlordUnsubscribe();
       }
     };
-  }, [id, fetchNearbyPlaces, setupLandlordProfileListener]);
+  }, [id, setupLandlordProfileListener, fetchNearbyPlaces]);
 
   // Keyboard navigation for image modal
   useEffect(() => {
@@ -960,7 +1006,9 @@ const PropertyDetailPage = () => {
                             className="mr-2 text-muted-foreground"
                           />
                           <div>
-                            <div className="text-foreground text-sm">{place.name}</div>
+                            <div className="text-foreground text-sm">
+                              {place.name}
+                            </div>
                             <div className="text-[10px] sm:text-xs text-muted-foreground">
                               {place.distance} • {place.type}
                             </div>
@@ -1103,7 +1151,7 @@ const PropertyDetailPage = () => {
                   </CardContent>
                 </Card>
               )}
-              
+
               {/* Property Management Card - Only for Agents */}
               {userData?.userType === "agent" && (
                 <Card className="mb-6">
@@ -1118,26 +1166,38 @@ const PropertyDetailPage = () => {
                     <div className="mb-4">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-sm font-medium">Status:</span>
-                        {propertyStatus === 'pending' && (
-                          <Badge variant="secondary" className="flex items-center gap-1">
+                        {propertyStatus === "pending" && (
+                          <Badge
+                            variant="secondary"
+                            className="flex items-center gap-1"
+                          >
                             <Clock className="h-3 w-3" />
                             Pending Review
                           </Badge>
                         )}
-                        {propertyStatus === 'handling' && (
-                          <Badge variant="default" className="flex items-center gap-1">
+                        {propertyStatus === "handling" && (
+                          <Badge
+                            variant="default"
+                            className="flex items-center gap-1"
+                          >
                             <AlertCircle className="h-3 w-3" />
                             Under Review
                           </Badge>
                         )}
-                        {propertyStatus === 'approved' && (
-                          <Badge variant="default" className="bg-green-500 hover:bg-green-600 flex items-center gap-1">
+                        {propertyStatus === "approved" && (
+                          <Badge
+                            variant="default"
+                            className="bg-green-500 hover:bg-green-600 flex items-center gap-1"
+                          >
                             <CheckCircle2 className="h-3 w-3" />
                             Approved
                           </Badge>
                         )}
-                        {propertyStatus === 'rejected' && (
-                          <Badge variant="destructive" className="flex items-center gap-1">
+                        {propertyStatus === "rejected" && (
+                          <Badge
+                            variant="destructive"
+                            className="flex items-center gap-1"
+                          >
                             <XCircle className="h-3 w-3" />
                             Rejected
                           </Badge>
@@ -1147,54 +1207,57 @@ const PropertyDetailPage = () => {
 
                     {/* Action Buttons */}
                     <div className="space-y-3">
-                      {propertyStatus === 'pending' && (
-                        <Button 
-                          className="w-full" 
+                      {propertyStatus === "pending" && (
+                        <Button
+                          className="w-full"
                           onClick={() => {
-                            setPropertyStatus('handling');
+                            setPropertyStatus("handling");
                           }}
                         >
                           <FileText className="h-4 w-4 mr-2" />
                           Handle Property
                         </Button>
                       )}
-                      
-                      {propertyStatus === 'handling' && (
+
+                      {propertyStatus === "handling" && (
                         <div className="grid grid-cols-2 gap-3">
-                          <Button 
-                            variant="default" 
+                          <Button
+                            variant="default"
                             className="bg-green-500 hover:bg-green-600"
-                            onClick={() => setPropertyStatus('approved')}
+                            onClick={() => setPropertyStatus("approved")}
                           >
                             <CheckCircle2 className="h-4 w-4 mr-2" />
                             Approve
                           </Button>
-                          <Button 
+                          <Button
                             variant="destructive"
-                            onClick={() => setPropertyStatus('rejected')}
+                            onClick={() => setPropertyStatus("rejected")}
                           >
                             <XCircle className="h-4 w-4 mr-2" />
                             Reject
                           </Button>
                         </div>
                       )}
-                      
-                      {(propertyStatus === 'approved' || propertyStatus === 'rejected') && (
-                        <Button 
-                          variant="outline" 
+
+                      {(propertyStatus === "approved" ||
+                        propertyStatus === "rejected") && (
+                        <Button
+                          variant="outline"
                           className="w-full"
                           onClick={() => {
-                            setPropertyStatus('pending');
+                            setPropertyStatus("pending");
                           }}
                         >
                           Reset Status
                         </Button>
                       )}
-                      
+
                       {/* Property Messages Button */}
-                      {(propertyStatus === 'handling' || propertyStatus === 'approved' || propertyStatus === 'rejected') && (
-                        <Button 
-                          variant="outline" 
+                      {(propertyStatus === "handling" ||
+                        propertyStatus === "approved" ||
+                        propertyStatus === "rejected") && (
+                        <Button
+                          variant="outline"
                           className="w-full"
                           onClick={handleOpenPropertyMessages}
                         >
@@ -1203,12 +1266,10 @@ const PropertyDetailPage = () => {
                         </Button>
                       )}
                     </div>
-
-
                   </CardContent>
                 </Card>
               )}
-              
+
               {/* Landlord Contact Card */}
               <Card className="mb-6">
                 <CardHeader>
@@ -1266,19 +1327,61 @@ const PropertyDetailPage = () => {
                   </div>
                 </CardContent>
               </Card>
-              
-              {/* Property Location Map */}
+
+              {/* Actions Card */}
               <Card className="mb-6">
+                <CardContent className="p-6">
+                  <div className="space-y-3">
+                    {/* Apply Now Button */}
+                    <Button
+                      className="w-full bg-[#1e40af] hover:bg-[#1e40af]/90 text-white"
+                      onClick={() => {
+                        if (!userData) {
+                          router.push("/dashboard/login");
+                        } else if (userData.userType === "tenant") {
+                          // Open application form dialog
+                          setShowApplicationForm(true);
+                        } else {
+                          // Non-tenant users cannot apply
+                          alert("Only tenants can apply for properties.");
+                        }
+                      }}
+                    >
+                      <FileText size={18} className="mr-2 text-white" />
+                      {!userData
+                        ? "Login to Apply"
+                        : userData.userType === "tenant"
+                        ? "Apply Now"
+                        : "Tenant Access Only"}
+                    </Button>
+
+                    {/* Share and Save buttons */}
+                    <div className="flex justify-between">
+                      <Button variant="ghost" className="flex items-center">
+                        <Share2 size={18} className="mr-2" />
+                        Share
+                      </Button>
+                      <Button variant="ghost" className="flex items-center">
+                        <Heart size={18} className="mr-2" />
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Property Location Map */}
+              <Card className="mb-6 relative z-0">
                 <CardHeader>
                   <CardTitle>Property Location</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 w-full rounded-lg overflow-hidden">
+                  <div className="h-64 w-full rounded-lg overflow-hidden relative z-0">
                     {property?.latitude && property?.longitude ? (
                       <MapContainer
                         center={[property.latitude, property.longitude]}
                         zoom={15}
-                        style={{ height: "100%", width: "100%" }}
+                        style={{ height: "100%", width: "100%", zIndex: 0 }}
                         attributionControl={true}
                       >
                         <TileLayer
@@ -1286,10 +1389,14 @@ const PropertyDetailPage = () => {
                           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                           maxZoom={19}
                         />
-                        <Marker position={[property.latitude, property.longitude]}>
+                        <Marker
+                          position={[property.latitude, property.longitude]}
+                        >
                           <Popup>
                             <div className="text-center">
-                              <h3 className="font-semibold text-sm mb-1">{property.title}</h3>
+                              <h3 className="font-semibold text-sm mb-1">
+                                {property.title}
+                              </h3>
                               <p className="text-xs text-muted-foreground">
                                 {property.address || property.location}
                               </p>
@@ -1312,8 +1419,6 @@ const PropertyDetailPage = () => {
           </div>
         </div>
       </div>
-
-
 
       {/* Image Modal */}
       {showImageModal && (
@@ -1376,6 +1481,14 @@ const PropertyDetailPage = () => {
           </div>
         </div>
       )}
+
+      {/* Tenant Application Form Dialog */}
+      <TenantApplicationForm
+        isOpen={showApplicationForm}
+        onClose={() => setShowApplicationForm(false)}
+        propertyId={id}
+        propertyTitle={property?.title || ""}
+      />
     </>
   );
 };

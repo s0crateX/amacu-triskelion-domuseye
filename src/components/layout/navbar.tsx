@@ -20,6 +20,7 @@ import {
   MessageSquare,
   Mailbox,
   Wallet,
+  Bot,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { logoutUser } from "@/lib/auth/auth-utils";
@@ -84,6 +85,7 @@ const landlordNavigation = [
 const agentNavigation = [
   { name: "Dashboard", href: "/users/agent", icon: Home },
   { name: "Properties", href: "/users/agent/properties", icon: Building },
+  { name: "Eyenalyzer", href: "/users/agent/eyenalyzer", icon: Bot },
   { name: "Messages", href: "/users/agent/messages", icon: MessageSquare },
 ];
 
@@ -268,8 +270,8 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center min-w-0 flex-shrink-0">
-            <Link 
-              href={userData?.userType === 'agent' ? '/users/agent' : '/'} 
+            <Link
+              href={userData?.userType === "agent" ? "/users/agent" : "/"}
               className="flex items-center space-x-3"
             >
               <Image

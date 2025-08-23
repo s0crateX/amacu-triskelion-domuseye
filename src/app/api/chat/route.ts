@@ -1,38 +1,24 @@
-import { createGroq } from "@ai-sdk/groq";
-import { smoothStream, streamText } from "ai";
+import { streamText, UIMessage, convertToModelMessages } from "ai";
+import { google } from "@ai-sdk/google";
 
-export const dynamic = "force-dynamic";
-export const maxDuration = 30;
-
-const groq = createGroq({
-  // custom settings
-});
-
-//API Fetching for the AI
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const { messages }: { messages: UIMessage[] } = await req.json();
 
     const result = streamText({
-      model: groq("meta-llama/llama-4-scout-17b-16e-instruct"),
+      model: google("gemini-2.5-flash"),
+      messages: convertToModelMessages(messages),
       system:
         "You are a jolly helpful assistant named EyeBot for the DomusEye website only. you are limted to the domuseye website and you can only answer questions related to the domuseye website. domuseye is a website" +
         "DomusEye is a modern property management website that helps manage properties, tenants seeking rents, and maintenance efficiently. It offers features like advanced search, financial reports, and tracking tools." +
         "Only answer questions related to DomusEye. Do not respond to anything outside this website." +
         "make it simple and clear when answering questions." +
-        "Calculate the monthly mortgage payment using the standard formula. show the final mortgage result do not include or display the formula in the response.",
-      messages,
-      maxSteps: 6,
-      maxRetries: 3,
-      maxTokens: 4096,
-      experimental_transform: smoothStream({
-        // Chunking/audio = "word" or "line"
-        chunking: "word",
-      }),
+        "When the user asks for help with a real-estate related calculation (e.g., rent, mortgage, commission, property tax, ROI, etc.), calculate the correct result and provide only the final answer. Do not show the formula or explanation—only the numeric result with the appropriate unit (e.g., $, %, sqm)",
     });
-    return result.toDataStreamResponse();
+
+    return result.toUIMessageStreamResponse();
   } catch (error) {
-    console.error("Unhandled error in chat API:", error);
-    throw error;
+    console.error("Error streaming chat completion:", error);
+    return new Response("Failed to stream chat completion", { status: 500 });
   }
 }
