@@ -27,39 +27,39 @@ import { Footer } from "@/components/layout/footer";
 const features = [
   {
     icon: Building2,
-    title: "Property Management",
+    title: "AI-Powered Property Management",
     description:
-      "Comprehensive property portfolio management with detailed analytics and reporting capabilities.",
+      "Intelligent property portfolio management with AI-driven analytics, automated reporting, and smart rental optimization for maximum efficiency.",
   },
   {
     icon: Users,
-    title: "Tenant Portal",
+    title: "Smart Tenant Portal",
     description:
       "Self-service tenant portal for rent payments, maintenance requests, and communication.",
   },
   {
     icon: Settings,
-    title: "Maintenance Tracking",
+    title: "Automated Maintenance Tracking",
     description:
-      "Streamlined maintenance workflow with automated scheduling and vendor management.",
+      "AI-driven maintenance workflow with smart scheduling, predictive maintenance alerts, and automated vendor management for rental properties.",
   },
   {
     icon: BarChart3,
-    title: "Financial Reports",
+    title: "Intelligent Financial Reports",
     description:
-      "Real-time financial insights with customizable reports and expense tracking.",
+      "AI-powered real-time financial insights with predictive analytics, automated expense tracking, and smart rental income optimization.",
   },
   {
     icon: Shield,
     title: "Secure & Compliant",
     description:
-      "Bank-level security with compliance to industry standards and data protection.",
+      "Advanced AI security with intelligent threat detection, automated compliance monitoring, and smart data protection for rental management.",
   },
   {
     icon: Clock,
-    title: "24/7 Support",
+    title: "AI-Powered 24/7 Support",
     description:
-      "Round-the-clock customer support with dedicated account management.",
+      "Intelligent chatbot support with AI-driven property management assistance and automated tenant service powered by modern web technology.",
   },
 ];
 
@@ -83,6 +83,7 @@ export default function Home() {
             alt="Real Estate Background"
             width={500}
             height={500}
+            priority
             className="w-full h-full object-contain"
           />
         </div>
@@ -110,7 +111,7 @@ export default function Home() {
                   transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
                 >
                   <Badge variant="default" className="w-fit">
-                    Modern Property Management
+                    AI-Powered Property Management
                   </Badge>
                 </motion.div>
                 <motion.h1
@@ -130,12 +131,13 @@ export default function Home() {
                     heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
                   }
                   transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-                  className="text-[14px] xl:text-[16px] text-muted-foreground max-w-2xl"
+                  className="text-[14px] xl:text-[16px] text-muted-foreground max-w-2xl text-justify"
                 >
-                  DomusEye provides comprehensive rental property management
-                  solutions that helps you manage properties, tenants, and
-                  maintenance operations efficiently, while providing future
-                  tenants many choices and good agent support.
+                  DomusEye is an AI-powered website for rental property
+                  management. Our intelligent platform streamlines property
+                  rentals, tenant management, and real estate operations with
+                  smart automation and modern web technology for landlords and
+                  property managers.
                 </motion.p>
               </div>
 
@@ -313,10 +315,10 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
               className="text-[16px] text-muted-foreground max-w-3xl mx-auto"
             >
-              DomusEye provides comprehensive rental property management
-              solutions that helps you manage properties, tenants, and
-              maintenance operations efficiently, while providing future tenants
-              many choices and good agent support.
+              DomusEye provides AI-Powered rental property management solutions
+              that helps you manage properties, tenants, and maintenance
+              operations efficiently, while providing future tenants many
+              choices and good agent support.
             </motion.p>
           </motion.div>
 

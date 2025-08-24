@@ -6,8 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const metadata: Metadata = {
-  title: "Agents | DomusEye",
-  description: "Meet our professional real estate agents",
+  title: "Tenant Services Agents - AI Powered Rental Platform | DomusEye Next.js",
+  description: "Connect with professional real estate agents specializing in tenant services through DomusEye's AI-powered rental property management platform built on Next.js. Get expert assistance for rental searches and tenant support.",
+  keywords: [
+    "domuseye tenant agents",
+    "ai powered tenant services",
+    "rental property agents",
+    "next js tenant platform",
+    "intelligent tenant support",
+    "rental assistance agents",
+    "smart tenant matching",
+    "ai rental consultants"
+  ],
 };
 
 // Mock data for agents

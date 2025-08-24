@@ -105,9 +105,66 @@ const poppins = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "DomusEye - Modern Rental Management System",
+  title: "DomusEye - AI Powered Rental Property Management Platform | Next.js",
   description:
-    "Streamline your property management with DomusEye's comprehensive rental management platform. Manage properties, tenants, and maintenance efficiently.",
+    "DomusEye is an AI-powered website for rental property management built with Next.js. Streamline property rentals, tenant management, and real estate operations with intelligent automation and modern web technology.",
+  keywords: [
+    "domuseye",
+    "ai powered website",
+    "rental property management",
+    "property rentals",
+    "next js",
+    "real estate management",
+    "tenant management",
+    "property management platform",
+    "ai rental system",
+    "smart property management",
+    "rental management software",
+    "property management next js",
+  ],
+  authors: [{ name: "Neurobytes Team" }],
+  creator: "DomusEye",
+  publisher: "DomusEye",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://amacu-triskelion-domuseye.vercel.app",
+    siteName: "DomusEye",
+    title: "DomusEye - AI Powered Rental Property Management Platform",
+    description:
+      "AI-powered website for rental property management built with Next.js. Modern, intelligent property and tenant management solution.",
+    images: [
+      {
+        url: "/assets/images/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "DomusEye AI Powered Rental Property Management Platform",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DomusEye - AI Powered Rental Property Management",
+    description:
+      "AI-powered website for rental property management built with Next.js",
+    images: ["/assets/images/domuseye-twitter-card.jpg"],
+    creator: "@domuseye",
+  },
+  alternates: {
+    canonical: "https://amacu-triskelion-domuseye.vercel.app/",
+  },
+  category: "Real Estate Technology",
 };
 
 export default function RootLayout({

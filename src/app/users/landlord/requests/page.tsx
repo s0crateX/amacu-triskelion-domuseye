@@ -7,8 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const metadata: Metadata = {
-  title: "Requests | DomusEye",
-  description: "Manage maintenance requests and tenant communications",
+  title: "Tenant Requests Management - AI Powered Property Platform | DomusEye Next.js",
+  description: "Efficiently manage maintenance requests and tenant communications with DomusEye's AI-powered rental property management platform built on Next.js. Streamline property maintenance and tenant relations with intelligent automation.",
+  keywords: [
+    "domuseye tenant requests",
+    "ai powered maintenance management",
+    "property request system",
+    "next js tenant communication",
+    "intelligent maintenance tracking",
+    "automated request handling",
+    "smart property maintenance",
+    "ai tenant management"
+  ],
 };
 
 // Mock data for requests

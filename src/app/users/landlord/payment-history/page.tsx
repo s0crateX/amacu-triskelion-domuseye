@@ -6,8 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "Payment History | DomusEye",
-  description: "Track rental payments and financial transactions",
+  title: "Payment History - AI Powered Rental Financial Management | DomusEye Next.js",
+  description: "Track rental payments and financial transactions with DomusEye's AI-powered property management platform built on Next.js. Monitor payment history, automate rent collection, and manage property finances intelligently.",
+  keywords: [
+    "domuseye payment history",
+    "ai powered rent collection",
+    "rental payment tracking",
+    "next js financial management",
+    "intelligent payment monitoring",
+    "automated rent payments",
+    "smart financial analytics",
+    "ai rental finances"
+  ],
 };
 
 // Mock data for payment history

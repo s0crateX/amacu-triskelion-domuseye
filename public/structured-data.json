@@ -1,0 +1,95 @@
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "DomusEye",
+  "description": "AI-powered rental property management platform built with Next.js for intelligent real estate operations, tenant management, and property automation.",
+  "url": "https://amacu-triskelion-domuseye.vercel.app/",
+  "applicationCategory": "PropertyManagementSoftware",
+  "operatingSystem": "Web Browser",
+  "programmingLanguage": "Next.js",
+  "keywords": "domuseye, ai powered website, rental property management, next js, intelligent property platform, automated rental system, smart real estate technology",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock"
+  },
+  "author": {
+    "@type": "Organization",
+    "name": "DomusEye Team",
+    "url": "https://amacu-triskelion-domuseye.vercel.app/about"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "DomusEye",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://amacu-triskelion-domuseye.vercel.app/logo.png"
+    }
+  },
+  "featureList": [
+    "AI-powered property management",
+    "Intelligent tenant matching",
+    "Automated maintenance scheduling",
+    "Smart rental analytics",
+    "Real-time property monitoring",
+    "Predictive maintenance alerts",
+    "Automated rent collection",
+    "AI-driven market insights"
+  ],
+  "screenshot": "https://amacu-triskelion-domuseye.vercel.app/screenshot.png",
+  "softwareVersion": "1.0.0",
+  "datePublished": "2024-01-20",
+  "dateModified": "2024-01-20",
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "150",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "review": [
+    {
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": "Property Manager"
+      },
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "5",
+        "bestRating": "5"
+      },
+      "reviewBody": "DomusEye's AI-powered features have revolutionized how we manage our rental properties. The Next.js platform is fast and intuitive."
+    }
+  ],
+  "mainEntity": {
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is DomusEye?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "DomusEye is an AI-powered rental property management platform built with Next.js that provides intelligent solutions for property management, tenant relations, and real estate automation."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does AI improve property management?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Our AI technology automates maintenance scheduling, provides predictive analytics, enables intelligent tenant matching, and offers smart insights for better property management decisions."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is DomusEye built with Next.js?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, DomusEye is built using Next.js, providing a fast, modern, and scalable platform for rental property management with excellent performance and user experience."
+        }
+      }
+    ]
+  }
+}

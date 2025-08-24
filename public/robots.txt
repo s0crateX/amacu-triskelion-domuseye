@@ -1,0 +1,28 @@
+# DomusEye - AI Powered Rental Property Management Platform
+# Built with Next.js for modern property management solutions
+
+User-agent: *
+Allow: /
+
+# Allow crawling of main pages
+Allow: /about
+Allow: /dashboard
+Allow: /dashboard/properties
+Allow: /users/landlord
+Allow: /users/tenant
+Allow: /users/agent
+
+# Disallow private/sensitive areas
+Disallow: /api/
+Disallow: /dashboard/login
+Disallow: /dashboard/register
+Disallow: /dashboard/forgot-password
+Disallow: /users/*/messages
+Disallow: /users/*/payment-history
+Disallow: /users/*/requests
+
+# Sitemap location
+Sitemap: https://amacu-triskelion-domuseye.vercel.app/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1

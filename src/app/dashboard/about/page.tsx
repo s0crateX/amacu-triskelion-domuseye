@@ -31,12 +31,12 @@ const AboutPage = () => {
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-20">
           <div className="max-w-2xl">
             <h1 className="text-3xl xl:text-5xl font-bold text-white mb-6 text-center xl:text-start">
-              DomusEye — Smart Property Management
+              DomusEye — AI-Powered Property Management Platform
             </h1>
             <p className="text-xl text-slate-200 dark:text-slate-300 mb-8 text-center xl:text-start">
-              DomusEye is a modern property management website designed to
-              assist with real estate operations. It streamlines the management
-              of properties, tenants, and maintenance tasks efficiently.
+              DomusEye is an innovative AI-powered website for rental property management built with Next.js. 
+              Our intelligent platform revolutionizes real estate operations by streamlining property management, 
+              tenant relations, and maintenance automation with cutting-edge artificial intelligence.
             </p>
             <button className="px-6 py-3 bg-primary hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md font-medium transition-colors hidden xl:block">
               <Link href={"/contact"}>Contact Us</Link>
@@ -66,11 +66,10 @@ const AboutPage = () => {
                 Our Mission
               </h2>
               <p className="text-muted-foreground text-base leading-relaxed">
-                Lorem ipsum dolor sit amet consectetur adipiscing elit.
-                Consectetur adipiscing elit quisque faucibus ex sapien vitae. Ex
-                sapien vitae pellentesque sem placerat in id. Placerat in id
-                cursus mi pretium tellus duis. Pretium tellus duis convallis
-                tempus leo eu aenean.
+                To revolutionize rental property management through AI-powered technology built on Next.js. 
+                We empower property owners, landlords, and tenants with intelligent automation, 
+                predictive analytics, and seamless digital experiences that transform how rental properties are managed, 
+                marketed, and maintained in the modern real estate landscape.
               </p>
             </motion.div>
             <motion.div
@@ -88,11 +87,10 @@ const AboutPage = () => {
                 Our Vision
               </h2>
               <p className="text-muted-foreground text-base leading-relaxed">
-                Lorem ipsum dolor sit amet consectetur adipiscing elit.
-                Consectetur adipiscing elit quisque faucibus ex sapien vitae. Ex
-                sapien vitae pellentesque sem placerat in id. Placerat in id
-                cursus mi pretium tellus duis. Pretium tellus duis convallis
-                tempus leo eu aenean.
+                To become the leading AI-powered rental property management platform globally, 
+                setting new standards for intelligent real estate technology. We envision a future where 
+                property management is fully automated, data-driven, and accessible to everyone, 
+                creating smarter communities and more efficient rental markets through innovative Next.js solutions.
               </p>
             </motion.div>
           </div>
@@ -106,11 +104,10 @@ const AboutPage = () => {
               <Building className="h-5 w-5" />
             </div>
             <p className="text-muted-foreground text-base leading-relaxed">
-              Lorem ipsum dolor sit amet consectetur adipiscing elit.
-              Consectetur adipiscing elit quisque faucibus ex sapien vitae. Ex
-              sapien vitae pellentesque sem placerat in id. Placerat in id
-              cursus mi pretium tellus duis. Pretium tellus duis convallis
-              tempus leo eu aenean.
+              Built with cutting-edge Next.js technology, DomusEye leverages artificial intelligence to provide 
+              comprehensive rental property management solutions. Our platform integrates smart automation, 
+              predictive maintenance alerts, intelligent tenant matching, and real-time analytics to deliver 
+              an unparalleled property management experience for the modern real estate market.
             </p>
           </motion.div>
         </div>

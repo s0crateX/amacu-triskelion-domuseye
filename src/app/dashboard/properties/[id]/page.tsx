@@ -1332,28 +1332,23 @@ const PropertyDetailPage = () => {
               <Card className="mb-6">
                 <CardContent className="p-6">
                   <div className="space-y-3">
-                    {/* Apply Now Button */}
-                    <Button
-                      className="w-full bg-[#1e40af] hover:bg-[#1e40af]/90 text-white"
-                      onClick={() => {
-                        if (!userData) {
-                          router.push("/dashboard/login");
-                        } else if (userData.userType === "tenant") {
-                          // Open application form dialog
-                          setShowApplicationForm(true);
-                        } else {
-                          // Non-tenant users cannot apply
-                          alert("Only tenants can apply for properties.");
-                        }
-                      }}
-                    >
-                      <FileText size={18} className="mr-2 text-white" />
-                      {!userData
-                        ? "Login to Apply"
-                        : userData.userType === "tenant"
-                        ? "Apply Now"
-                        : "Tenant Access Only"}
-                    </Button>
+                    {/* Apply Now Button - Only show for non-logged users or tenants */}
+                    {(!userData || userData.userType === "tenant") && (
+                      <Button
+                        className="w-full bg-[#1e40af] hover:bg-[#1e40af]/90 text-white"
+                        onClick={() => {
+                          if (!userData) {
+                            router.push("/dashboard/login");
+                          } else if (userData.userType === "tenant") {
+                            // Open application form dialog
+                            setShowApplicationForm(true);
+                          }
+                        }}
+                      >
+                        <FileText size={18} className="mr-2 text-white" />
+                        {!userData ? "Login to Apply" : "Apply Now"}
+                      </Button>
+                    )}
 
                     {/* Share and Save buttons */}
                     <div className="flex justify-between">

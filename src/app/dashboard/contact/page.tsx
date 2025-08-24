@@ -7,8 +7,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 export const metadata: Metadata = {
-  title: "Contact Us | DomusEye",
-  description: "Get in touch with DomusEye for any inquiries or support",
+  title: "Contact DomusEye - AI Powered Rental Property Management Support | Next.js",
+  description: "Contact DomusEye for support with our AI-powered rental property management platform built on Next.js. Get help with property management, tenant services, and intelligent real estate solutions.",
+  keywords: [
+    "domuseye contact",
+    "ai property management support",
+    "rental management help",
+    "next js property platform",
+    "intelligent real estate support",
+    "property management assistance",
+    "ai rental platform contact"
+  ],
 };
 
 const contactInfo = [
