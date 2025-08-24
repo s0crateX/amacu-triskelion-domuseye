@@ -20,9 +20,9 @@ const AboutPage = () => {
     <div className="bg-background min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-slate-900 dark:bg-slate-950">
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-800/90 to-slate-700/80 dark:from-slate-900/95 dark:to-slate-800/85 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-500/90 to-slate-400/80 dark:from-slate-900/95 dark:to-slate-800/85 z-10"></div>
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-20 dark:opacity-10"
+          className="absolute inset-0 bg-cover bg-center opacity-80 dark:opacity-80 bg-white"
           style={{
             backgroundImage:
               "url('https://mallettegoring.com/wp-content/uploads/2020/05/home_banner_buidlings.svg')",
@@ -34,9 +34,11 @@ const AboutPage = () => {
               DomusEye — AI-Powered Property Management Platform
             </h1>
             <p className="text-xl text-slate-200 dark:text-slate-300 mb-8 text-center xl:text-start">
-              DomusEye is an innovative AI-powered website for rental property management built with Next.js. 
-              Our intelligent platform revolutionizes real estate operations by streamlining property management, 
-              tenant relations, and maintenance automation with cutting-edge artificial intelligence.
+              DomusEye is an innovative AI-powered website for rental property
+              management built with Next.js. Our intelligent platform
+              revolutionizes real estate operations by streamlining property
+              management, tenant relations, and maintenance automation with
+              cutting-edge artificial intelligence.
             </p>
             <button className="px-6 py-3 bg-primary hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md font-medium transition-colors hidden xl:block">
               <Link href={"/contact"}>Contact Us</Link>
@@ -66,10 +68,12 @@ const AboutPage = () => {
                 Our Mission
               </h2>
               <p className="text-muted-foreground text-base leading-relaxed">
-                To revolutionize rental property management through AI-powered technology built on Next.js. 
-                We empower property owners, landlords, and tenants with intelligent automation, 
-                predictive analytics, and seamless digital experiences that transform how rental properties are managed, 
-                marketed, and maintained in the modern real estate landscape.
+                To revolutionize rental property management through AI-powered
+                technology built on Next.js. We empower property owners,
+                landlords, and tenants with intelligent automation, predictive
+                analytics, and seamless digital experiences that transform how
+                rental properties are managed, marketed, and maintained in the
+                modern real estate landscape.
               </p>
             </motion.div>
             <motion.div
@@ -87,10 +91,12 @@ const AboutPage = () => {
                 Our Vision
               </h2>
               <p className="text-muted-foreground text-base leading-relaxed">
-                To become the leading AI-powered rental property management platform globally, 
-                setting new standards for intelligent real estate technology. We envision a future where 
-                property management is fully automated, data-driven, and accessible to everyone, 
-                creating smarter communities and more efficient rental markets through innovative Next.js solutions.
+                To become the leading AI-powered rental property management
+                platform globally, setting new standards for intelligent real
+                estate technology. We envision a future where property
+                management is fully automated, data-driven, and accessible to
+                everyone, creating smarter communities and more efficient rental
+                markets through innovative Next.js solutions.
               </p>
             </motion.div>
           </div>
@@ -104,10 +110,12 @@ const AboutPage = () => {
               <Building className="h-5 w-5" />
             </div>
             <p className="text-muted-foreground text-base leading-relaxed">
-              Built with cutting-edge Next.js technology, DomusEye leverages artificial intelligence to provide 
-              comprehensive rental property management solutions. Our platform integrates smart automation, 
-              predictive maintenance alerts, intelligent tenant matching, and real-time analytics to deliver 
-              an unparalleled property management experience for the modern real estate market.
+              Built with cutting-edge Next.js technology, DomusEye leverages
+              artificial intelligence to provide comprehensive rental property
+              management solutions. Our platform integrates smart automation,
+              predictive maintenance alerts, intelligent tenant matching, and
+              real-time analytics to deliver an unparalleled property management
+              experience for the modern real estate market.
             </p>
           </motion.div>
         </div>
