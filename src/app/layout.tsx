@@ -5,6 +5,7 @@ import FloatingChatbot from "@/components/chatbot-box";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth/auth-context";
+import { NotificationProvider } from "@/contexts/notification-context";
 import { Toaster } from "sonner";
 import { Navbar } from "@/components/layout/navbar";
 
@@ -230,9 +231,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <Navbar />
-            {children}
-            <Toaster />
+            <NotificationProvider>
+              <Navbar />
+              {children}
+              <Toaster />
+            </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

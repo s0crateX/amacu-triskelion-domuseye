@@ -23,6 +23,7 @@ import {
   Bot,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useNotifications } from "@/contexts/notification-context";
 import { logoutUser } from "@/lib/auth/auth-utils";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
@@ -64,6 +65,7 @@ const tenantNavigation = [
   { name: "Home", href: "/users/tenant", icon: Home },
   { name: "Properties", href: "/users/tenant/properties", icon: Building2 },
   { name: "Agents", href: "/users/tenant/agents", icon: Users },
+  { name: "Messages", href: "/users/tenant/messages", icon: MessageSquare },
   { name: "Support", href: "/users/tenant/support", icon: HeadphonesIcon },
 ];
 
@@ -79,6 +81,7 @@ const landlordNavigation = [
     href: "/users/landlord/community-board",
     icon: Users,
   },
+  { name: "Messages", href: "/users/landlord/messages", icon: MessageSquare },
   { name: "Requests", href: "/users/landlord/requests", icon: MessageSquare },
 ];
 
@@ -89,11 +92,23 @@ const agentNavigation = [
   { name: "Messages", href: "/users/agent/messages", icon: MessageSquare },
 ];
 
+// Notification Badge Component
+const NotificationBadge: React.FC<{ count: number }> = ({ count }) => {
+  if (count === 0) return null;
+  
+  return (
+    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+      {count > 99 ? '99+' : count}
+    </span>
+  );
+};
+
 export function Navbar() {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isVisible, setIsVisible] = React.useState(true);
   const [lastScrollY, setLastScrollY] = React.useState(0);
   const { user, userData, isAuthenticated } = useAuth();
+  const { unreadCount } = useNotifications();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -298,17 +313,19 @@ export function Navbar() {
               ) : (
                 navigation.map((item) => {
                   const isActive = isActiveRoute(item.href);
+                  const isMessagesTab = item.name === "Messages";
                   return (
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`text-sm font-medium transition-all duration-300 ease-in-out whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/10 ${
+                      className={`relative text-sm font-medium transition-all duration-300 ease-in-out whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/10 ${
                         isActive
                           ? "text-primary bg-primary/10 font-semibold transform scale-105"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       {item.name}
+                      {isMessagesTab && <NotificationBadge count={unreadCount} />}
                     </Link>
                   );
                 })
@@ -559,18 +576,22 @@ export function Navbar() {
                         {navigation.map((item) => {
                           const Icon = item.icon;
                           const isActive = isActiveRoute(item.href);
+                          const isMessagesTab = item.name === "Messages";
                           return (
                             <Link
                               key={item.name}
                               href={item.href}
-                              className={`flex items-center space-x-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out hover:bg-primary/10 ${
+                              className={`relative flex items-center space-x-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out hover:bg-primary/10 ${
                                 isActive
                                   ? "text-primary bg-primary/10 font-semibold transform translate-x-1"
                                   : "text-muted-foreground hover:text-foreground"
                               }`}
                               onClick={() => setIsOpen(false)}
                             >
-                              <Icon className="h-4 w-4 flex-shrink-0" />
+                              <div className="relative">
+                                <Icon className="h-4 w-4 flex-shrink-0" />
+                                {isMessagesTab && <NotificationBadge count={unreadCount} />}
+                              </div>
                               <span className="text-sm">{item.name}</span>
                             </Link>
                           );

@@ -10,6 +10,13 @@ export interface Message {
   type: 'text' | 'image' | 'file';
   attachmentUrl?: string;
   attachmentName?: string;
+  replyToId?: string;
+  replyToMessage?: {
+    id: string;
+    content: string;
+    senderName: string;
+    senderType: 'agent' | 'landlord' | 'tenant';
+  };
 }
 
 export interface Conversation {
@@ -23,6 +30,17 @@ export interface Conversation {
   updatedAt: Date;
   propertyId?: string;
   propertyTitle?: string;
+  hiddenFrom?: string[]; // Array of user IDs who have hidden this conversation
+  deletedBy?: string[]; // Array of user IDs who have requested deletion (for dual-deletion)
+  deletionHistory?: DeletionRecord[]; // Track deletion attempts for audit purposes
+}
+
+export interface DeletionRecord {
+  userId: string;
+  userType: 'agent' | 'landlord' | 'tenant';
+  action: 'hide' | 'permanent_delete';
+  timestamp: Date;
+  reason?: string;
 }
 
 export interface Participant {
@@ -30,7 +48,7 @@ export interface Participant {
   name: string;
   email: string;
   type: 'agent' | 'landlord' | 'tenant';
-  avatar?: string;
+  avatar?: string | null;
   online?: boolean;
   lastSeen?: Date;
 }
@@ -40,6 +58,13 @@ export interface MessageInput {
   type: 'text' | 'image' | 'file';
   attachmentUrl?: string;
   attachmentName?: string;
+  replyToId?: string;
+  replyToMessage?: {
+    id: string;
+    content: string;
+    senderName: string;
+    senderType: 'agent' | 'landlord' | 'tenant';
+  };
 }
 
 export interface ConversationFilter {

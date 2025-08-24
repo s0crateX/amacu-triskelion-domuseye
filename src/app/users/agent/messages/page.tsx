@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, Suspense } from "react"
 import Image from "next/image"
 import { useAuth } from "@/lib/auth/auth-context"
+import { useNotifications } from "@/contexts/notification-context"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -39,9 +40,52 @@ import { messageService, conversationService, createNewConversation } from "@/li
 import { Message, Conversation, Participant } from "@/types/message"
 import { searchUsers, SearchUser } from "@/lib/database/users"
 import { formatDistanceToNow } from "date-fns"
+import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+
+// Helper function to wrap text at specified character limit
+const wrapText = (text: string, maxCharsPerLine: number = 30): string => {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    // If word is longer than maxCharsPerLine, break it
+    if (word.length > maxCharsPerLine) {
+      if (currentLine) {
+        lines.push(currentLine);
+        currentLine = '';
+      }
+      // Break long word into chunks
+      for (let i = 0; i < word.length; i += maxCharsPerLine) {
+        lines.push(word.substring(i, i + maxCharsPerLine));
+      }
+    } else if (currentLine.length + word.length + 1 <= maxCharsPerLine) {
+      currentLine += (currentLine ? ' ' : '') + word;
+    } else {
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+      currentLine = word;
+    }
+  }
+  
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  
+  return lines.join('\n');
+};
+
+// Helper function to truncate text with ellipsis
+const truncateText = (text: string, maxLength: number = 20): string => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+};
 
 function AgentMessagesContent() {
   const { userData, loading: authLoading } = useAuth()
+  const { unreadCount } = useNotifications()
   const router = useRouter()
   const searchParams = useSearchParams()
   const propertyId = searchParams.get('propertyId')
@@ -96,9 +140,32 @@ function AgentMessagesContent() {
       const targetConversation = conversations.find(conv => conv.id === conversationId)
       if (targetConversation) {
         setSelectedConversation(targetConversation)
+        // Immediately clear unread count for selected conversation
+        if (targetConversation.unreadCount > 0) {
+          setConversations(prevConversations => 
+            prevConversations.map(conv => 
+              conv.id === conversationId 
+                ? { ...conv, unreadCount: 0 }
+                : conv
+            )
+          )
+        }
       }
     }
   }, [conversationId, conversations])
+
+  // Clear unread count when conversation is selected
+  useEffect(() => {
+    if (selectedConversation && userData?.uid) {
+      setConversations(prevConversations => 
+        prevConversations.map(conv => 
+          conv.id === selectedConversation.id 
+            ? { ...conv, unreadCount: 0 }
+            : conv
+        )
+      )
+    }
+  }, [selectedConversation?.id, userData?.uid])
 
   // Load messages for selected conversation
   useEffect(() => {
@@ -118,6 +185,15 @@ function AgentMessagesContent() {
     // Mark messages as read
     if (userData?.uid) {
       messageService.markMessagesAsRead(selectedConversation.id, userData.uid)
+      
+      // Update local conversation state to set unread count to 0
+      setConversations(prevConversations => 
+        prevConversations.map(conv => 
+          conv.id === selectedConversation.id 
+            ? { ...conv, unreadCount: 0 }
+            : conv
+        )
+      )
     }
 
     return () => unsubscribe()
@@ -272,12 +348,12 @@ function AgentMessagesContent() {
     }
   }
 
-  // Delete conversation
+  // Delete conversation (dual-deletion logic)
   const handleDeleteConversation = async (conversationId: string) => {
     if (!userData?.uid) return
     
     try {
-      await conversationService.deleteConversation(conversationId, userData.uid)
+      await conversationService.deleteConversation(conversationId, userData.uid, 'agent')
       
       // Clear selected conversation if it was deleted
       if (selectedConversation?.id === conversationId) {
@@ -288,9 +364,10 @@ function AgentMessagesContent() {
       // Refresh conversations list
       const updatedConversations = await conversationService.getUserConversations(userData.uid)
       setConversations(updatedConversations)
+      // Conversation deleted silently without showing success message
     } catch (error) {
       console.error('Error deleting conversation:', error)
-      // You could add a toast notification here
+      toast.error('Failed to delete conversation')
     }
   }
 
@@ -426,15 +503,20 @@ function AgentMessagesContent() {
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-2rem)] flex flex-col overflow-hidden">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Messages
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Messages
+          </h1>
+          {unreadCount > 0 && (
+            <Badge variant="destructive" className="text-sm px-2 py-1">
+              {unreadCount} unread
+            </Badge>
+          )}
+        </div>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Communicate with clients and manage conversations
+          Communicate with tenants and landlord
         </p>
-        <Badge variant="secondary" className="mt-2">
-          Agent Messages
-        </Badge>
+        
       </div>
 
       {/* Messages Interface */}
@@ -494,7 +576,7 @@ function AgentMessagesContent() {
                                 <Avatar className="w-8 h-8">
                                   <AvatarImage src={user.profilePicture} />
                                   <AvatarFallback>
-                                    {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                                    {user.firstName?.charAt(0)?.toUpperCase() || ''}{user.lastName?.charAt(0)?.toUpperCase() || ''}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
@@ -582,6 +664,7 @@ function AgentMessagesContent() {
                   {sortedConversations.map((conversation) => {
                     const otherParticipant = getOtherParticipant(conversation)
                     const isSelected = selectedConversation?.id === conversation.id
+                    const hasUnreadMessages = conversation.unreadCount && conversation.unreadCount > 0
                     
                     const isPropertyRelated = conversation.propertyId === propertyId
                     
@@ -592,40 +675,61 @@ function AgentMessagesContent() {
                           isSelected ? 'bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-500' : ''
                         } ${
                           isPropertyRelated ? 'bg-green-50 dark:bg-green-900/20 border-l-2 border-green-500' : ''
+                        } ${
+                          hasUnreadMessages && !isSelected && !isPropertyRelated ? 'bg-orange-50 dark:bg-orange-900/20 border-l-2 border-orange-500' : ''
                         }`}
                       >
                         <div 
-                          onClick={() => setSelectedConversation(conversation)}
+                          onClick={() => {
+                          setSelectedConversation(conversation)
+                          // Update the conversation's unread count to 0 immediately
+                          if (conversation.unreadCount && conversation.unreadCount > 0) {
+                            setConversations(prevConversations => 
+                              prevConversations.map(conv => 
+                                conv.id === conversation.id 
+                                  ? { ...conv, unreadCount: 0 }
+                                  : conv
+                              )
+                            )
+                          }
+                        }}
                           className="flex items-center space-x-3 flex-1 cursor-pointer"
                         >
                           <Avatar className="w-10 h-10">
-                            <AvatarImage src={otherParticipant?.avatar} />
+                            {(() => {
+                              const avatarSrc = otherParticipant?.avatar;
+                              return avatarSrc ? <AvatarImage src={avatarSrc} /> : null;
+                            })()}
                             <AvatarFallback>
                               {otherParticipant?.name?.charAt(0)?.toUpperCase() || 'U'}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                              <h4 className="font-medium text-sm truncate">
-                                {otherParticipant?.name || 'Unknown User'}
+                              <h4 className={`font-medium text-sm truncate ${
+                                hasUnreadMessages ? 'font-bold text-orange-900 dark:text-orange-100' : ''
+                              }`}>
+                                {truncateText(otherParticipant?.name || 'Unknown User', 20)}
                               </h4>
                               <span className="text-xs text-gray-500">
                                 {conversation.lastMessage && formatMessageTime(conversation.lastMessage.timestamp)}
                               </span>
                             </div>
                             <div className="flex items-center justify-between">
-                              <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                                {conversation.lastMessage?.content || 'No messages yet'}
+                              <p className={`text-sm truncate ${
+                                hasUnreadMessages ? 'text-orange-800 dark:text-orange-200 font-medium' : 'text-gray-600 dark:text-gray-400'
+                              }`}>
+                                {truncateText(conversation.lastMessage?.content || 'No messages yet', 20)}
                               </p>
-                              {conversation.unreadCount > 0 && (
-                                <Badge variant="destructive" className="text-xs px-1.5 py-0.5 min-w-[20px] h-5">
+                              {conversation.unreadCount > 0 && !isSelected && (
+                                <Badge variant="destructive" className="text-xs px-1.5 py-0.5 min-w-[20px] h-5 bg-orange-600 hover:bg-orange-700">
                                   {conversation.unreadCount}
                                 </Badge>
                               )}
                             </div>
                             {conversation.propertyTitle && (
                               <p className="text-xs text-blue-600 dark:text-blue-400 truncate mt-1">
-                                Re: {conversation.propertyTitle}
+                                Re: {truncateText(conversation.propertyTitle, 20)}
                               </p>
                             )}
                           </div>
@@ -650,7 +754,7 @@ function AgentMessagesContent() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete this conversation with {otherParticipant?.name}? This action cannot be undone and will permanently delete all messages.
+                                Are you sure you want to delete this conversation with {otherParticipant?.name}?
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -682,7 +786,11 @@ function AgentMessagesContent() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <Avatar className="w-8 h-8">
-                      <AvatarImage src={getOtherParticipant(selectedConversation)?.avatar} />
+                      {(() => {
+                        const otherParticipant = getOtherParticipant(selectedConversation);
+                        const avatarSrc = otherParticipant?.avatar;
+                        return avatarSrc ? <AvatarImage src={avatarSrc} /> : null;
+                      })()}
                       <AvatarFallback>
                         {getOtherParticipant(selectedConversation)?.name?.charAt(0)?.toUpperCase() || 'U'}
                       </AvatarFallback>
@@ -696,17 +804,7 @@ function AgentMessagesContent() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button size="sm" variant="outline">
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Video className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </div>
+                 
                 </div>
                 {selectedConversation.propertyTitle && (
                   <div className="mt-2">
@@ -741,7 +839,11 @@ function AgentMessagesContent() {
                               {!isOwn && (
                                 <div className="flex items-center space-x-2 mb-1">
                                   <Avatar className="w-6 h-6">
-                                    <AvatarImage src={selectedConversation?.participants.find(p => p.id === message.senderId)?.avatar} />
+                                    {(() => {
+                                      const sender = selectedConversation?.participants.find(p => p.id === message.senderId);
+                                      const avatarSrc = sender?.avatar;
+                                      return avatarSrc ? <AvatarImage src={avatarSrc} /> : null;
+                                    })()}
                                     <AvatarFallback className="text-xs">
                                       {message.senderName?.charAt(0)?.toUpperCase() || 'U'}
                                     </AvatarFallback>
@@ -770,7 +872,7 @@ function AgentMessagesContent() {
                                           onClick={() => setSelectedImage({url: message.attachmentUrl!, name: message.attachmentName || 'Image'})}
                                         />
                                       {message.content !== 'Image' && (
-                                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                                        <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{wrapText(message.content)}</p>
                                       )}
                                     </div>
                                   ) : message.type === 'file' && message.attachmentUrl ? (
@@ -791,11 +893,11 @@ function AgentMessagesContent() {
                                          <Download className="h-4 w-4 flex-shrink-0 opacity-75" />
                                        </div>
                                        {message.content !== `File: ${message.attachmentName}` && (
-                                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                                         <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{wrapText(message.content)}</p>
                                        )}
                                      </div>
                                   ) : (
-                                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                                    <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{wrapText(message.content)}</p>
                                   )}
                                 </div>
                                 {isOwn && (

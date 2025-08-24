@@ -95,7 +95,7 @@ export default function AgentsPage() {
                 <Avatar className="h-16 w-16">
                   <AvatarImage src={agent.image} alt={agent.name} />
                   <AvatarFallback>
-                    {agent.name.split(' ').map(n => n[0]).join('')}
+                    {agent.name ? agent.name.split(' ').map(n => n[0] || '').join('').toUpperCase() || 'A' : 'A'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">

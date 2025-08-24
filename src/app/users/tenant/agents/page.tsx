@@ -94,9 +94,11 @@ export default function AgentsPage() {
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage src={agent.avatar} alt={agent.name} />
+                  {agent.avatar && (
+                    <AvatarImage src={agent.avatar} alt={agent.name} />
+                  )}
                   <AvatarFallback className="text-lg">
-                    {agent.name.split(' ').map(n => n[0]).join('')}
+                    {agent.name ? agent.name.split(' ').map(n => n[0] || '').join('').toUpperCase() || 'A' : 'A'}
                   </AvatarFallback>
                 </Avatar>
               </div>
