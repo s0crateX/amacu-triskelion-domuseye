@@ -1,25 +1,19 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useAuth } from '@/lib/auth/auth-context'
-import { useNotifications } from '@/contexts/notification-context'
-import { messageService, conversationService } from '@/lib/database/messages'
-import { Message, Conversation, Participant } from '@/types/message'
-import { searchUsers, SearchUser } from '@/lib/database/users'
-import { formatDistanceToNow } from 'date-fns'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/lib/auth/auth-context";
+import { messageService, conversationService } from "@/lib/database/messages";
+import { Message, Conversation, Participant } from "@/types/message";
+import { searchUsers, SearchUser } from "@/lib/database/users";
+import { formatDistanceToNow } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,13 +32,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
+} from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   Search,
   Send,
@@ -52,36 +46,34 @@ import {
   MoreVertical,
   Trash2,
   Paperclip,
-  Image as ImageIcon,
   Smile,
-  X,
   MessageSquare,
   FileText,
   Download,
-} from 'lucide-react'
-import Image from 'next/image'
-import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
+} from "lucide-react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 // Helper function to wrap text at specified character limit
 const wrapText = (text: string, maxCharsPerLine: number = 30): string => {
-  const words = text.split(' ');
+  const words = text.split(" ");
   const lines: string[] = [];
-  let currentLine = '';
+  let currentLine = "";
 
   for (const word of words) {
     // If word is longer than maxCharsPerLine, break it
     if (word.length > maxCharsPerLine) {
       if (currentLine) {
         lines.push(currentLine);
-        currentLine = '';
+        currentLine = "";
       }
       // Break long word into chunks
       for (let i = 0; i < word.length; i += maxCharsPerLine) {
         lines.push(word.substring(i, i + maxCharsPerLine));
       }
     } else if (currentLine.length + word.length + 1 <= maxCharsPerLine) {
-      currentLine += (currentLine ? ' ' : '') + word;
+      currentLine += (currentLine ? " " : "") + word;
     } else {
       if (currentLine) {
         lines.push(currentLine);
@@ -89,407 +81,445 @@ const wrapText = (text: string, maxCharsPerLine: number = 30): string => {
       currentLine = word;
     }
   }
-  
+
   if (currentLine) {
     lines.push(currentLine);
   }
-  
-  return lines.join('\n');
+
+  return lines.join("\n");
 };
 
 function TenantMessagesContent() {
-  const { userData, loading: authLoading } = useAuth()
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const propertyId = searchParams.get('propertyId')
-  const propertyTitle = searchParams.get('propertyTitle')
-  const conversationId = searchParams.get('conversationId')
-  const draftMessage = searchParams.get('draftMessage')
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
-  const [messages, setMessages] = useState<Message[]>([])
-  const [newMessage, setNewMessage] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSending, setIsSending] = useState(false)
-  
-  // New conversation states
-  const [showNewConversation, setShowNewConversation] = useState(false)
-  const [userSearchTerm, setUserSearchTerm] = useState('')
-  const [searchResults, setSearchResults] = useState<SearchUser[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [isCreatingConversation, setIsCreatingConversation] = useState(false)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { userData, loading: authLoading } = useAuth();
 
-  const [isUploading, setIsUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [selectedImage, setSelectedImage] = useState<{url: string, name: string} | null>(null)
+  const searchParams = useSearchParams();
+  const propertyId = searchParams.get("propertyId");
+  const propertyTitle = searchParams.get("propertyTitle");
+  const conversationId = searchParams.get("conversationId");
+  const draftMessage = searchParams.get("draftMessage");
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+
+  // New conversation states
+  const [showNewConversation, setShowNewConversation] = useState(false);
+  const [userSearchTerm, setUserSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isCreatingConversation, setIsCreatingConversation] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string;
+    name: string;
+  } | null>(null);
 
   // Load conversations with real-time updates
   useEffect(() => {
-    if (!userData?.uid) return
+    if (!userData?.uid) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     const unsubscribe = conversationService.subscribeToUserConversations(
       userData.uid,
       (fetchedConversations) => {
-        setConversations(fetchedConversations)
-        setIsLoading(false)
+        setConversations(fetchedConversations);
+        setIsLoading(false);
       }
-    )
+    );
 
-    return () => unsubscribe()
-  }, [userData?.uid])
+    return () => unsubscribe();
+  }, [userData?.uid]);
 
   // Handle URL parameters
   useEffect(() => {
     if (conversationId && conversations.length > 0) {
-      const conversation = conversations.find(c => c.id === conversationId)
+      const conversation = conversations.find((c) => c.id === conversationId);
       if (conversation) {
-        setSelectedConversation(conversation)
+        setSelectedConversation(conversation);
         // Immediately clear unread count for selected conversation
         if (conversation.unreadCount > 0) {
-          setConversations(prevConversations => 
-            prevConversations.map(conv => 
-              conv.id === conversationId 
-                ? { ...conv, unreadCount: 0 }
-                : conv
+          setConversations((prevConversations) =>
+            prevConversations.map((conv) =>
+              conv.id === conversationId ? { ...conv, unreadCount: 0 } : conv
             )
-          )
+          );
         }
       }
     }
-  }, [conversationId, conversations])
+  }, [conversationId, conversations]);
 
   // Clear unread count when conversation is selected
   useEffect(() => {
     if (selectedConversation && userData?.uid) {
-      setConversations(prevConversations => 
-        prevConversations.map(conv => 
-          conv.id === selectedConversation.id 
+      setConversations((prevConversations) =>
+        prevConversations.map((conv) =>
+          conv.id === selectedConversation.id
             ? { ...conv, unreadCount: 0 }
             : conv
         )
-      )
+      );
     }
-  }, [selectedConversation?.id, userData?.uid])
+  }, [selectedConversation?.id, userData?.uid]);
 
   // Set draft message
   useEffect(() => {
     if (draftMessage) {
-      setNewMessage(decodeURIComponent(draftMessage))
+      setNewMessage(decodeURIComponent(draftMessage));
     }
-  }, [draftMessage])
+  }, [draftMessage]);
 
   // Load messages with real-time updates when conversation is selected
   useEffect(() => {
     if (!selectedConversation) {
-      setMessages([])
-      return
+      setMessages([]);
+      return;
     }
 
     const unsubscribe = messageService.subscribeToMessages(
       selectedConversation.id,
       (fetchedMessages) => {
-        setMessages(fetchedMessages)
-        setTimeout(scrollToBottom, 100)
+        setMessages(fetchedMessages);
+        setTimeout(scrollToBottom, 100);
       }
-    )
+    );
 
     // Mark messages as read
     if (userData?.uid) {
-      messageService.markMessagesAsRead(selectedConversation.id, userData.uid)
-      
+      messageService.markMessagesAsRead(selectedConversation.id, userData.uid);
+
       // Update local conversation state to set unread count to 0
-      setConversations(prevConversations => 
-        prevConversations.map(conv => 
-          conv.id === selectedConversation.id 
+      setConversations((prevConversations) =>
+        prevConversations.map((conv) =>
+          conv.id === selectedConversation.id
             ? { ...conv, unreadCount: 0 }
             : conv
         )
-      )
+      );
     }
 
-    return () => unsubscribe()
-  }, [selectedConversation, userData?.uid])
+    return () => unsubscribe();
+  }, [selectedConversation, userData?.uid]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    scrollToBottom();
+  }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const loadConversations = async () => {
-    if (!userData?.uid) return
-    
+    if (!userData?.uid) return;
+
     try {
-      const userConversations = await conversationService.getUserConversations(userData.uid)
-      setConversations(userConversations)
+      const userConversations = await conversationService.getUserConversations(
+        userData.uid
+      );
+      setConversations(userConversations);
     } catch (error) {
-      console.error('Error loading conversations:', error)
-      toast.error('Failed to load conversations')
+      console.error("Error loading conversations:", error);
+      toast.error("Failed to load conversations");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const loadMessages = async (conversationId: string) => {
     try {
-      const conversationMessages = await messageService.getMessages(conversationId)
-      setMessages(conversationMessages)
-      
+      const conversationMessages = await messageService.getMessages(
+        conversationId
+      );
+      setMessages(conversationMessages);
+
       // Mark messages as read
       if (userData?.uid) {
-        await messageService.markMessagesAsRead(conversationId, userData.uid)
+        await messageService.markMessagesAsRead(conversationId, userData.uid);
       }
     } catch (error) {
-      console.error('Error loading messages:', error)
-      toast.error('Failed to load messages')
+      console.error("Error loading messages:", error);
+      toast.error("Failed to load messages");
     }
-  }
+  };
 
   // Send message
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation || !userData) return
+    if (!newMessage.trim() || !selectedConversation || !userData) return;
 
-    setIsSending(true)
+    setIsSending(true);
     try {
       await messageService.sendMessage(
         selectedConversation.id,
         userData.uid,
-        `${userData.firstName} ${userData.lastName}` || userData.email || 'Tenant',
-        'tenant',
+        `${userData.firstName} ${userData.lastName}` ||
+          userData.email ||
+          "Tenant",
+        "tenant",
         {
           content: newMessage.trim(),
-          type: 'text'
+          type: "text",
         }
-      )
-      setNewMessage('')
-      toast.success('Message sent successfully')
+      );
+      setNewMessage("");
+      toast.success("Message sent successfully");
     } catch (error) {
-      console.error('Error sending message:', error)
-      toast.error('Failed to send message')
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message");
     } finally {
-      setIsSending(false)
+      setIsSending(false);
     }
-  }
+  };
 
   // Handle Enter key press
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
-  }
+  };
 
   // Handle file upload
   const handleFileUpload = async (file: File) => {
-    if (!selectedConversation || !userData) return
+    if (!selectedConversation || !userData) return;
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel']
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
+    ];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Please select a valid file type (images, PDF, DOCX, or Excel files)')
-      return
+      toast.error(
+        "Please select a valid file type (images, PDF, DOCX, or Excel files)"
+      );
+      return;
     }
 
     // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size must be less than 10MB')
-      return
+      toast.error("File size must be less than 10MB");
+      return;
     }
 
-    setIsUploading(true)
+    setIsUploading(true);
     try {
       // Upload to ImageKit
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('fileName', file.name)
-      formData.append('folder', '/chatMedia')
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("fileName", file.name);
+      formData.append("folder", "/chatMedia");
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
+      const response = await fetch("/api/upload", {
+        method: "POST",
         body: formData,
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Upload failed')
+        throw new Error("Upload failed");
       }
 
-      const uploadResult = await response.json()
-      
+      const uploadResult = await response.json();
+
       // Determine message type
-      const messageType = file.type.startsWith('image/') ? 'image' : 'file'
-      
+      const messageType = file.type.startsWith("image/") ? "image" : "file";
+
       // Send message with attachment
       const messageInput = {
-        content: messageType === 'image' ? 'Image' : `File: ${file.name}`,
-        type: messageType as 'image' | 'file',
+        content: messageType === "image" ? "Image" : `File: ${file.name}`,
+        type: messageType as "image" | "file",
         attachmentUrl: uploadResult.url,
-        attachmentName: file.name
-      }
+        attachmentName: file.name,
+      };
 
       await messageService.sendMessage(
         selectedConversation.id,
         userData.uid,
-        `${userData.firstName} ${userData.lastName}` || userData.email || 'Tenant',
-        'tenant',
+        `${userData.firstName} ${userData.lastName}` ||
+          userData.email ||
+          "Tenant",
+        "tenant",
         messageInput
-      )
+      );
 
-      toast.success('File uploaded successfully')
+      toast.success("File uploaded successfully");
     } catch (error) {
-      console.error('Error uploading file:', error)
-      toast.error('Failed to upload file. Please try again.')
+      console.error("Error uploading file:", error);
+      toast.error("Failed to upload file. Please try again.");
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   // Handle attachment button click
   const handleAttachmentClick = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   // Handle file input change
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      handleFileUpload(file)
+      handleFileUpload(file);
     }
     // Reset input value to allow selecting the same file again
-    e.target.value = ''
-  }
+    e.target.value = "";
+  };
 
   // Handle emoji insertion
   const handleEmojiSelect = (emoji: string) => {
-    setNewMessage(prev => prev + emoji)
-    setShowEmojiPicker(false)
-  }
+    setNewMessage((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+  };
 
   // Search users for new conversation
   const handleUserSearch = async (searchTerm: string) => {
     if (!searchTerm.trim()) {
-      setSearchResults([])
-      return
+      setSearchResults([]);
+      return;
     }
 
-    setIsSearching(true)
+    setIsSearching(true);
     try {
       // Tenants can message agents and landlords
-      const results = await searchUsers(searchTerm, ['agent', 'landlord'])
-      setSearchResults(results)
+      const results = await searchUsers(searchTerm, ["agent", "landlord"]);
+      setSearchResults(results);
     } catch (error) {
-      console.error('Error searching users:', error)
-      toast.error('Failed to search users')
+      console.error("Error searching users:", error);
+      toast.error("Failed to search users");
     } finally {
-      setIsSearching(false)
+      setIsSearching(false);
     }
-  }
+  };
 
   // Create new conversation
   const handleCreateConversation = async (otherUser: SearchUser) => {
-    if (!userData?.uid) return
+    if (!userData?.uid) return;
 
-    setIsCreatingConversation(true)
+    setIsCreatingConversation(true);
     try {
       const conversationId = await conversationService.createNewConversation(
         userData.uid,
         `${userData.firstName} ${userData.lastName}`,
         otherUser.uid,
         `${otherUser.firstName} ${otherUser.lastName}`,
-        otherUser.userType as 'agent' | 'landlord',
+        otherUser.userType as "agent" | "landlord",
         propertyId || undefined,
         propertyTitle || undefined
-      )
+      );
 
       // Refresh conversations and select the new one
-      await loadConversations()
-      const newConversation = conversations.find(c => c.id === conversationId)
+      await loadConversations();
+      const newConversation = conversations.find(
+        (c) => c.id === conversationId
+      );
       if (newConversation) {
-        setSelectedConversation(newConversation)
+        setSelectedConversation(newConversation);
       }
-      
-      setShowNewConversation(false)
-      setUserSearchTerm('')
-      setSearchResults([])
-      toast.success('Conversation created successfully')
+
+      setShowNewConversation(false);
+      setUserSearchTerm("");
+      setSearchResults([]);
+      toast.success("Conversation created successfully");
     } catch (error) {
-      console.error('Error creating conversation:', error)
-      toast.error('Failed to create conversation')
+      console.error("Error creating conversation:", error);
+      toast.error("Failed to create conversation");
     } finally {
-      setIsCreatingConversation(false)
+      setIsCreatingConversation(false);
     }
-  }
+  };
 
   // Get other participant in conversation
-  const getOtherParticipant = (conversation: Conversation): Participant | undefined => {
-    return conversation.participants.find(p => p.id !== userData?.uid)
-  }
+  const getOtherParticipant = (
+    conversation: Conversation
+  ): Participant | undefined => {
+    return conversation.participants.find((p) => p.id !== userData?.uid);
+  };
 
   // Filter conversations based on search
-  const filteredConversations = conversations.filter(conversation => {
-    const otherParticipant = getOtherParticipant(conversation)
-    return otherParticipant?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           conversation.propertyTitle?.toLowerCase().includes(searchTerm.toLowerCase())
-  })
+  const filteredConversations = conversations.filter((conversation) => {
+    const otherParticipant = getOtherParticipant(conversation);
+    return (
+      otherParticipant?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      conversation.propertyTitle
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+  });
 
   // Delete conversation (dual-deletion logic)
   const handleDeleteConversation = async (conversationId: string) => {
-    if (!userData?.uid) return
-    
+    if (!userData?.uid) return;
+
     try {
-      await conversationService.deleteConversation(conversationId, userData.uid, 'tenant')
-      
+      await conversationService.deleteConversation(
+        conversationId,
+        userData.uid,
+        "tenant"
+      );
+
       // Clear selected conversation if it was deleted
       if (selectedConversation?.id === conversationId) {
-        setSelectedConversation(null)
-        setMessages([])
+        setSelectedConversation(null);
+        setMessages([]);
       }
-      
+
       // Refresh conversations list
-      const updatedConversations = await conversationService.getUserConversations(userData.uid)
-      setConversations(updatedConversations)
+      const updatedConversations =
+        await conversationService.getUserConversations(userData.uid);
+      setConversations(updatedConversations);
       // Conversation deleted silently without showing success message
     } catch (error) {
-      console.error('Error deleting conversation:', error)
-      toast.error('Failed to delete conversation')
+      console.error("Error deleting conversation:", error);
+      toast.error("Failed to delete conversation");
     }
-  }
+  };
 
   // Delete message (unsend)
   const handleDeleteMessage = async (messageId: string) => {
-    if (!userData?.uid) return
-    
+    if (!userData?.uid) return;
+
     try {
-      await messageService.deleteMessage(messageId, userData.uid)
-      
+      await messageService.deleteMessage(messageId, userData.uid);
+
       // Refresh messages
       if (selectedConversation) {
-        const updatedMessages = await messageService.getMessages(selectedConversation.id)
-        setMessages(updatedMessages)
+        const updatedMessages = await messageService.getMessages(
+          selectedConversation.id
+        );
+        setMessages(updatedMessages);
       }
-      
+
       // Refresh conversations list to update lastMessage display
-      const updatedConversations = await conversationService.getUserConversations(userData.uid)
-      setConversations(updatedConversations)
-      toast.success('Message deleted successfully')
+      const updatedConversations =
+        await conversationService.getUserConversations(userData.uid);
+      setConversations(updatedConversations);
+      toast.success("Message deleted successfully");
     } catch (error) {
-      console.error('Error deleting message:', error)
-      toast.error('Failed to delete message')
+      console.error("Error deleting message:", error);
+      toast.error("Failed to delete message");
     }
-  }
+  };
 
   if (authLoading || isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -510,7 +540,10 @@ function TenantMessagesContent() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Conversations</CardTitle>
-              <Dialog open={showNewConversation} onOpenChange={setShowNewConversation}>
+              <Dialog
+                open={showNewConversation}
+                onOpenChange={setShowNewConversation}
+              >
                 <DialogTrigger asChild>
                   <Button size="sm" className="h-8 w-8 p-0">
                     <Plus className="h-4 w-4" />
@@ -530,19 +563,19 @@ function TenantMessagesContent() {
                         placeholder="Search users..."
                         value={userSearchTerm}
                         onChange={(e) => {
-                          setUserSearchTerm(e.target.value)
-                          handleUserSearch(e.target.value)
+                          setUserSearchTerm(e.target.value);
+                          handleUserSearch(e.target.value);
                         }}
                         className="pl-10"
                       />
                     </div>
-                    
+
                     {isSearching && (
                       <div className="flex items-center justify-center py-4">
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                       </div>
                     )}
-                    
+
                     {searchResults.length > 0 && (
                       <div className="space-y-2 max-h-60 overflow-y-auto">
                         {searchResults.map((user) => (
@@ -557,7 +590,8 @@ function TenantMessagesContent() {
                                   <AvatarImage src={user.profilePicture} />
                                 )}
                                 <AvatarFallback>
-                                  {user.firstName?.charAt(0)?.toUpperCase() || 'U'}
+                                  {user.firstName?.charAt(0)?.toUpperCase() ||
+                                    "U"}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
@@ -569,19 +603,19 @@ function TenantMessagesContent() {
                                 </p>
                               </div>
                             </div>
-                            <Badge variant="outline">
-                              {user.userType}
-                            </Badge>
+                            <Badge variant="outline">{user.userType}</Badge>
                           </div>
                         ))}
                       </div>
                     )}
-                    
-                    {userSearchTerm && !isSearching && searchResults.length === 0 && (
-                      <p className="text-center text-muted-foreground py-4">
-                        No users found
-                      </p>
-                    )}
+
+                    {userSearchTerm &&
+                      !isSearching &&
+                      searchResults.length === 0 && (
+                        <p className="text-center text-muted-foreground py-4">
+                          No users found
+                        </p>
+                      )}
                   </div>
                 </DialogContent>
               </Dialog>
@@ -600,34 +634,45 @@ function TenantMessagesContent() {
             <ScrollArea className="h-full">
               {filteredConversations.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
-                  {conversations.length === 0 ? 'No conversations yet' : 'No conversations match your search'}
+                  {conversations.length === 0
+                    ? "No conversations yet"
+                    : "No conversations match your search"}
                 </div>
               ) : (
                 <div className="space-y-1">
                   {filteredConversations.map((conversation) => {
-                    const otherParticipant = getOtherParticipant(conversation)
-                    const isSelected = selectedConversation?.id === conversation.id
-                    const hasUnreadMessages = conversation.unreadCount && conversation.unreadCount > 0
-                    
+                    const otherParticipant = getOtherParticipant(conversation);
+                    const isSelected =
+                      selectedConversation?.id === conversation.id;
+                    const hasUnreadMessages =
+                      conversation.unreadCount && conversation.unreadCount > 0;
+
                     return (
                       <div
                         key={conversation.id}
                         className={cn(
                           "flex items-center space-x-3 p-3 hover:bg-muted/50 cursor-pointer border-l-2 transition-colors overflow-hidden min-w-0",
-                          isSelected ? "bg-muted border-l-primary" : "border-l-transparent",
-                          hasUnreadMessages && !isSelected ? "bg-blue-50 border-l-blue-500" : ""
+                          isSelected
+                            ? "bg-muted border-l-primary"
+                            : "border-l-transparent",
+                          hasUnreadMessages && !isSelected
+                            ? "bg-blue-50 border-l-blue-500"
+                            : ""
                         )}
                         onClick={() => {
-                          setSelectedConversation(conversation)
+                          setSelectedConversation(conversation);
                           // Update the conversation's unread count to 0 immediately
-                          if (conversation.unreadCount && conversation.unreadCount > 0) {
-                            setConversations(prevConversations => 
-                              prevConversations.map(conv => 
-                                conv.id === conversation.id 
+                          if (
+                            conversation.unreadCount &&
+                            conversation.unreadCount > 0
+                          ) {
+                            setConversations((prevConversations) =>
+                              prevConversations.map((conv) =>
+                                conv.id === conversation.id
                                   ? { ...conv, unreadCount: 0 }
                                   : conv
                               )
-                            )
+                            );
                           }
                         }}
                       >
@@ -636,23 +681,34 @@ function TenantMessagesContent() {
                             <AvatarImage src={otherParticipant.avatar} />
                           )}
                           <AvatarFallback>
-                            {otherParticipant?.name?.charAt(0)?.toUpperCase() || 'U'}
+                            {otherParticipant?.name?.charAt(0)?.toUpperCase() ||
+                              "U"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between min-w-0">
-                            <p className={cn(
-                              "font-medium flex-1 min-w-0 mr-2",
-                              hasUnreadMessages ? "font-bold text-blue-900" : ""
-                            )}>
+                            <p
+                              className={cn(
+                                "font-medium flex-1 min-w-0 mr-2",
+                                hasUnreadMessages
+                                  ? "font-bold text-blue-900"
+                                  : ""
+                              )}
+                            >
                               {(() => {
-                                const name = otherParticipant?.name || 'Unknown User';
-                                return name.length > 20 ? `${name.substring(0, 20)}...` : name;
+                                const name =
+                                  otherParticipant?.name || "Unknown User";
+                                return name.length > 20
+                                  ? `${name.substring(0, 20)}...`
+                                  : name;
                               })()}
                             </p>
                             <div className="flex items-center space-x-2 flex-shrink-0">
                               {conversation.unreadCount > 0 && !isSelected && (
-                                <Badge variant="default" className="bg-blue-600 text-white text-xs px-2 py-1">
+                                <Badge
+                                  variant="default"
+                                  className="bg-blue-600 text-white text-xs px-2 py-1"
+                                >
                                   {conversation.unreadCount}
                                 </Badge>
                               )}
@@ -683,15 +739,24 @@ function TenantMessagesContent() {
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                       <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+                                        <AlertDialogTitle>
+                                          Delete Conversation
+                                        </AlertDialogTitle>
                                         <AlertDialogDescription>
-                                          Are you sure you want to delete this conversation?.
+                                          Are you sure you want to delete this
+                                          conversation?.
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogCancel>
+                                          Cancel
+                                        </AlertDialogCancel>
                                         <AlertDialogAction
-                                          onClick={() => handleDeleteConversation(conversation.id)}
+                                          onClick={() =>
+                                            handleDeleteConversation(
+                                              conversation.id
+                                            )
+                                          }
                                           className="bg-red-600 hover:bg-red-700"
                                         >
                                           Delete
@@ -705,29 +770,43 @@ function TenantMessagesContent() {
                           </div>
                           {conversation.propertyTitle && (
                             <p className="text-xs text-muted-foreground">
-                              Property: {conversation.propertyTitle.length > 20 
-                                ? `${conversation.propertyTitle.substring(0, 20)}...` 
+                              Property:{" "}
+                              {conversation.propertyTitle.length > 20
+                                ? `${conversation.propertyTitle.substring(
+                                    0,
+                                    20
+                                  )}...`
                                 : conversation.propertyTitle}
                             </p>
                           )}
                           {conversation.lastMessage && (
-                            <p className={cn(
-                              "text-sm",
-                              hasUnreadMessages ? "text-blue-800 font-medium" : "text-muted-foreground"
-                            )}>
-                              {conversation.lastMessage.content.length > 20 
-                                ? `${conversation.lastMessage.content.substring(0, 20)}...` 
+                            <p
+                              className={cn(
+                                "text-sm",
+                                hasUnreadMessages
+                                  ? "text-blue-800 font-medium"
+                                  : "text-muted-foreground"
+                              )}
+                            >
+                              {conversation.lastMessage.content.length > 20
+                                ? `${conversation.lastMessage.content.substring(
+                                    0,
+                                    20
+                                  )}...`
                                 : conversation.lastMessage.content}
                             </p>
                           )}
                           {conversation.lastMessageTime && (
                             <p className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(conversation.lastMessageTime, { addSuffix: true })}
+                              {formatDistanceToNow(
+                                conversation.lastMessageTime,
+                                { addSuffix: true }
+                              )}
                             </p>
                           )}
                         </div>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               )}
@@ -745,17 +824,23 @@ function TenantMessagesContent() {
                   <div className="flex items-center space-x-3">
                     <Avatar className="w-8 h-8">
                       {(() => {
-                        const otherParticipant = getOtherParticipant(selectedConversation);
+                        const otherParticipant =
+                          getOtherParticipant(selectedConversation);
                         const avatarSrc = otherParticipant?.avatar;
-                        return avatarSrc ? <AvatarImage src={avatarSrc} /> : null;
+                        return avatarSrc ? (
+                          <AvatarImage src={avatarSrc} />
+                        ) : null;
                       })()}
                       <AvatarFallback>
-                        {getOtherParticipant(selectedConversation)?.name?.charAt(0)?.toUpperCase() || 'U'}
+                        {getOtherParticipant(selectedConversation)
+                          ?.name?.charAt(0)
+                          ?.toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <h3 className="font-semibold">
-                        {getOtherParticipant(selectedConversation)?.name || 'Unknown User'}
+                        {getOtherParticipant(selectedConversation)?.name ||
+                          "Unknown User"}
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         {getOtherParticipant(selectedConversation)?.type}
@@ -775,8 +860,8 @@ function TenantMessagesContent() {
                 <ScrollArea className="h-full pr-4">
                   <div className="space-y-4">
                     {messages.map((message) => {
-                      const isOwnMessage = message.senderId === userData?.uid
-                      
+                      const isOwnMessage = message.senderId === userData?.uid;
+
                       return (
                         <div
                           key={message.id}
@@ -793,14 +878,22 @@ function TenantMessagesContent() {
                           >
                             <Avatar className="w-8 h-8 flex-shrink-0">
                               {(() => {
-                                const avatarSrc = isOwnMessage ? userData?.profilePicture : getOtherParticipant(selectedConversation)?.avatar;
-                                return avatarSrc ? <AvatarImage src={avatarSrc} /> : null;
+                                const avatarSrc = isOwnMessage
+                                  ? userData?.profilePicture
+                                  : getOtherParticipant(selectedConversation)
+                                      ?.avatar;
+                                return avatarSrc ? (
+                                  <AvatarImage src={avatarSrc} />
+                                ) : null;
                               })()}
                               <AvatarFallback>
-                                {isOwnMessage 
-                                  ? userData?.firstName?.charAt(0)?.toUpperCase() || 'T'
-                                  : getOtherParticipant(selectedConversation)?.name?.charAt(0)?.toUpperCase() || 'U'
-                                }
+                                {isOwnMessage
+                                  ? userData?.firstName
+                                      ?.charAt(0)
+                                      ?.toUpperCase() || "T"
+                                  : getOtherParticipant(selectedConversation)
+                                      ?.name?.charAt(0)
+                                      ?.toUpperCase() || "U"}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col min-w-0 flex-1">
@@ -812,53 +905,65 @@ function TenantMessagesContent() {
                                     : "bg-muted text-muted-foreground rounded-tl-none"
                                 )}
                               >
-                                {message.type === 'image' && message.attachmentUrl ? (
+                                {message.type === "image" &&
+                                message.attachmentUrl ? (
                                   <div className="space-y-2">
                                     <Image
                                       src={message.attachmentUrl}
-                                      alt={message.attachmentName || 'Image'}
+                                      alt={message.attachmentName || "Image"}
                                       width={300}
                                       height={200}
                                       className="rounded-lg cursor-pointer"
-                                      onClick={() => setSelectedImage({
-                                        url: message.attachmentUrl!,
-                                        name: message.attachmentName || 'Image'
-                                      })}
+                                      onClick={() =>
+                                        setSelectedImage({
+                                          url: message.attachmentUrl!,
+                                          name:
+                                            message.attachmentName || "Image",
+                                        })
+                                      }
                                     />
-                                    {message.content !== 'Image' && (
-                                      <p className="text-sm">{message.content}</p>
+                                    {message.content !== "Image" && (
+                                      <p className="text-sm">
+                                        {message.content}
+                                      </p>
                                     )}
                                   </div>
-                                ) : message.type === 'file' && message.attachmentUrl ? (
+                                ) : message.type === "file" &&
+                                  message.attachmentUrl ? (
                                   <div className="space-y-2">
                                     <div className="flex items-center space-x-2 p-3 bg-white/10 rounded-lg border hover:bg-white/20 transition-colors">
                                       <FileText className="h-5 w-5 flex-shrink-0" />
                                       <div className="flex-1 min-w-0">
-                                        <a 
-                                          href={message.attachmentUrl} 
-                                          target="_blank" 
+                                        <a
+                                          href={message.attachmentUrl}
+                                          target="_blank"
                                           rel="noopener noreferrer"
                                           className="text-sm font-medium hover:underline truncate block"
                                         >
-                                          {message.attachmentName || 'File'}
+                                          {message.attachmentName || "File"}
                                         </a>
                                       </div>
-                                      <a 
-                                        href={message.attachmentUrl} 
+                                      <a
+                                        href={message.attachmentUrl}
                                         download={message.attachmentName}
                                         className="p-1 hover:bg-white/10 rounded transition-colors"
                                       >
                                         <Download className="h-4 w-4" />
                                       </a>
                                     </div>
-                                    {message.content !== `File: ${message.attachmentName}` && (
-                                      <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{wrapText(message.content)}</p>
+                                    {message.content !==
+                                      `File: ${message.attachmentName}` && (
+                                      <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                                        {wrapText(message.content)}
+                                      </p>
                                     )}
                                   </div>
                                 ) : (
-                                  <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{wrapText(message.content)}</p>
+                                  <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                                    {wrapText(message.content)}
+                                  </p>
                                 )}
-                                
+
                                 {/* Message options */}
                                 {isOwnMessage && (
                                   <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -877,7 +982,9 @@ function TenantMessagesContent() {
                                           <AlertDialogTrigger asChild>
                                             <DropdownMenuItem
                                               className="text-red-600 focus:text-red-600"
-                                              onSelect={(e) => e.preventDefault()}
+                                              onSelect={(e) =>
+                                                e.preventDefault()
+                                              }
                                             >
                                               <Trash2 className="h-4 w-4 mr-2" />
                                               Unsend Message
@@ -885,15 +992,25 @@ function TenantMessagesContent() {
                                           </AlertDialogTrigger>
                                           <AlertDialogContent>
                                             <AlertDialogHeader>
-                                              <AlertDialogTitle>Unsend Message</AlertDialogTitle>
+                                              <AlertDialogTitle>
+                                                Unsend Message
+                                              </AlertDialogTitle>
                                               <AlertDialogDescription>
-                                                Are you sure you want to unsend this message? This action cannot be undone.
+                                                Are you sure you want to unsend
+                                                this message? This action cannot
+                                                be undone.
                                               </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
-                                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                              <AlertDialogCancel>
+                                                Cancel
+                                              </AlertDialogCancel>
                                               <AlertDialogAction
-                                                onClick={() => handleDeleteMessage(message.id)}
+                                                onClick={() =>
+                                                  handleDeleteMessage(
+                                                    message.id
+                                                  )
+                                                }
                                                 className="bg-red-600 hover:bg-red-700"
                                               >
                                                 Unsend
@@ -912,12 +1029,14 @@ function TenantMessagesContent() {
                                   isOwnMessage ? "text-right" : "text-left"
                                 )}
                               >
-                                {formatDistanceToNow(message.timestamp, { addSuffix: true })}
+                                {formatDistanceToNow(message.timestamp, {
+                                  addSuffix: true,
+                                })}
                               </span>
                             </div>
                           </div>
                         </div>
-                      )
+                      );
                     })}
                     <div ref={messagesEndRef} />
                   </div>
@@ -934,9 +1053,9 @@ function TenantMessagesContent() {
                     accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
                     className="hidden"
                   />
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    size="sm"
+                    variant="outline"
                     onClick={handleAttachmentClick}
                     disabled={isUploading}
                   >
@@ -956,7 +1075,10 @@ function TenantMessagesContent() {
                       rows={1}
                     />
                   </div>
-                  <DropdownMenu open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                  <DropdownMenu
+                    open={showEmojiPicker}
+                    onOpenChange={setShowEmojiPicker}
+                  >
                     <DropdownMenuTrigger asChild>
                       <Button size="sm" variant="outline">
                         <Smile className="h-4 w-4" />
@@ -965,18 +1087,102 @@ function TenantMessagesContent() {
                     <DropdownMenuContent className="w-64 p-2">
                       <div className="grid grid-cols-8 gap-1">
                         {[
-                          '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣',
-                          '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰',
-                          '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜',
-                          '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏',
-                          '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
-                          '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠',
-                          '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨',
-                          '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥',
-                          '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙',
-                          '👈', '👉', '👆', '👇', '☝️', '✋', '🤚', '🖐️',
-                          '🖖', '👋', '🤝', '👏', '🙌', '👐', '🤲', '🙏',
-                          '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍'
+                          "😀",
+                          "😃",
+                          "😄",
+                          "😁",
+                          "😆",
+                          "😅",
+                          "😂",
+                          "🤣",
+                          "😊",
+                          "😇",
+                          "🙂",
+                          "🙃",
+                          "😉",
+                          "😌",
+                          "😍",
+                          "🥰",
+                          "😘",
+                          "😗",
+                          "😙",
+                          "😚",
+                          "😋",
+                          "😛",
+                          "😝",
+                          "😜",
+                          "🤪",
+                          "🤨",
+                          "🧐",
+                          "🤓",
+                          "😎",
+                          "🤩",
+                          "🥳",
+                          "😏",
+                          "😒",
+                          "😞",
+                          "😔",
+                          "😟",
+                          "😕",
+                          "🙁",
+                          "☹️",
+                          "😣",
+                          "😖",
+                          "😫",
+                          "😩",
+                          "🥺",
+                          "😢",
+                          "😭",
+                          "😤",
+                          "😠",
+                          "😡",
+                          "🤬",
+                          "🤯",
+                          "😳",
+                          "🥵",
+                          "🥶",
+                          "😱",
+                          "😨",
+                          "😰",
+                          "😥",
+                          "😓",
+                          "🤗",
+                          "🤔",
+                          "🤭",
+                          "🤫",
+                          "🤥",
+                          "👍",
+                          "👎",
+                          "👌",
+                          "✌️",
+                          "🤞",
+                          "🤟",
+                          "🤘",
+                          "🤙",
+                          "👈",
+                          "👉",
+                          "👆",
+                          "👇",
+                          "☝️",
+                          "✋",
+                          "🤚",
+                          "🖐️",
+                          "🖖",
+                          "👋",
+                          "🤝",
+                          "👏",
+                          "🙌",
+                          "👐",
+                          "🤲",
+                          "🙏",
+                          "❤️",
+                          "🧡",
+                          "💛",
+                          "💚",
+                          "💙",
+                          "💜",
+                          "🖤",
+                          "🤍",
                         ].map((emoji) => (
                           <button
                             key={emoji}
@@ -1020,13 +1226,16 @@ function TenantMessagesContent() {
       </div>
 
       {/* Image Preview Dialog */}
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+      <Dialog
+        open={!!selectedImage}
+        onOpenChange={() => setSelectedImage(null)}
+      >
         <DialogContent className="max-w-4xl">
           <DialogTitle className="mb-4">{selectedImage?.name}</DialogTitle>
           <div className="flex items-center justify-center">
             {selectedImage && (
               <Image
-                src={selectedImage.url} 
+                src={selectedImage.url}
                 alt={selectedImage.name}
                 width={800}
                 height={600}
@@ -1036,9 +1245,8 @@ function TenantMessagesContent() {
           </div>
         </DialogContent>
       </Dialog>
-
     </div>
-  )
+  );
 }
 
 export default function TenantMessagesPage() {
@@ -1046,5 +1254,5 @@ export default function TenantMessagesPage() {
     <Suspense fallback={<div>Loading...</div>}>
       <TenantMessagesContent />
     </Suspense>
-  )
+  );
 }

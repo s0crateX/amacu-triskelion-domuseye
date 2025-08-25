@@ -35,10 +35,10 @@ const AboutPage = () => {
             </h1>
             <p className="text-xl text-slate-200 dark:text-slate-300 mb-8 text-center xl:text-start">
               DomusEye is an innovative AI-powered website for rental property
-              management built with Next.js. Our intelligent platform
-              revolutionizes real estate operations by streamlining property
-              management, tenant relations, and maintenance automation with
-              cutting-edge artificial intelligence.
+              management. Our intelligent platform revolutionizes real estate
+              operations by streamlining property management, tenant relations,
+              and maintenance automation with cutting-edge artificial
+              intelligence.
             </p>
             <button className="px-6 py-3 bg-primary hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md font-medium transition-colors hidden xl:block">
               <Link href={"/contact"}>Contact Us</Link>
@@ -69,11 +69,11 @@ const AboutPage = () => {
               </h2>
               <p className="text-muted-foreground text-base leading-relaxed">
                 To revolutionize rental property management through AI-powered
-                technology built on Next.js. We empower property owners,
-                landlords, and tenants with intelligent automation, predictive
-                analytics, and seamless digital experiences that transform how
-                rental properties are managed, marketed, and maintained in the
-                modern real estate landscape.
+                technology. We empower property owners, landlords, and tenants
+                with intelligent automation, predictive analytics, and seamless
+                digital experiences that transform how rental properties are
+                managed, marketed, and maintained in the modern real estate
+                landscape.
               </p>
             </motion.div>
             <motion.div
@@ -96,7 +96,7 @@ const AboutPage = () => {
                 estate technology. We envision a future where property
                 management is fully automated, data-driven, and accessible to
                 everyone, creating smarter communities and more efficient rental
-                markets through innovative Next.js solutions.
+                markets solutions.
               </p>
             </motion.div>
           </div>

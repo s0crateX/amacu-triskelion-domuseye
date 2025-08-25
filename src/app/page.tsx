@@ -184,8 +184,8 @@ export default function Home() {
                       Eyebot AI
                     </h3>
                     <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
-                      Meet your intelligent assistant, ready to help you
-                      navigate and explore with advanced AI capabilities.
+                      Meet your intelligent assistant, here to help you
+                      calculate and manage with ease using smart AI.
                     </p>
                   </div>
 
@@ -258,7 +258,7 @@ export default function Home() {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                      <span>Helpful Navigator</span>
+                      <span>Smart Calculator</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-blue-400 rounded-full"></div>

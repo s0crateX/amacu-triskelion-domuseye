@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { NotificationProvider } from "@/contexts/notification-context";
 import { Toaster } from "sonner";
-import { Navbar } from "@/components/layout/navbar";
+import { ConditionalNavbar } from "@/components/layout/conditional-navbar";
 
 const poppins = localFont({
   src: [
@@ -232,7 +232,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <NotificationProvider>
-              <Navbar />
+              <ConditionalNavbar />
               {children}
               <Toaster />
             </NotificationProvider>
