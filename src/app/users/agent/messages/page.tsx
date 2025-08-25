@@ -43,39 +43,7 @@ import { formatDistanceToNow } from "date-fns"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
-// Helper function to wrap text at specified character limit
-const wrapText = (text: string, maxCharsPerLine: number = 30): string => {
-  const words = text.split(' ');
-  const lines: string[] = [];
-  let currentLine = '';
 
-  for (const word of words) {
-    // If word is longer than maxCharsPerLine, break it
-    if (word.length > maxCharsPerLine) {
-      if (currentLine) {
-        lines.push(currentLine);
-        currentLine = '';
-      }
-      // Break long word into chunks
-      for (let i = 0; i < word.length; i += maxCharsPerLine) {
-        lines.push(word.substring(i, i + maxCharsPerLine));
-      }
-    } else if (currentLine.length + word.length + 1 <= maxCharsPerLine) {
-      currentLine += (currentLine ? ' ' : '') + word;
-    } else {
-      if (currentLine) {
-        lines.push(currentLine);
-      }
-      currentLine = word;
-    }
-  }
-  
-  if (currentLine) {
-    lines.push(currentLine);
-  }
-  
-  return lines.join('\n');
-};
 
 // Helper function to truncate text with ellipsis
 const truncateText = (text: string, maxLength: number = 20): string => {
@@ -138,7 +106,7 @@ function AgentMessagesContent() {
   useEffect(() => {
     if (conversationId && conversations.length > 0) {
       const targetConversation = conversations.find(conv => conv.id === conversationId)
-      if (targetConversation) {
+      if (targetConversation && (!selectedConversation || selectedConversation.id !== conversationId)) {
         setSelectedConversation(targetConversation)
         // Immediately clear unread count for selected conversation
         if (targetConversation.unreadCount > 0) {
@@ -152,18 +120,21 @@ function AgentMessagesContent() {
         }
       }
     }
-  }, [conversationId, conversations])
+  }, [conversationId, conversations.length])
 
   // Clear unread count when conversation is selected
   useEffect(() => {
     if (selectedConversation && userData?.uid) {
-      setConversations(prevConversations => 
-        prevConversations.map(conv => 
-          conv.id === selectedConversation.id 
-            ? { ...conv, unreadCount: 0 }
-            : conv
+      const currentConv = conversations.find(conv => conv.id === selectedConversation.id)
+      if (currentConv && currentConv.unreadCount > 0) {
+        setConversations(prevConversations => 
+          prevConversations.map(conv => 
+            conv.id === selectedConversation.id 
+              ? { ...conv, unreadCount: 0 }
+              : conv
+          )
         )
-      )
+      }
     }
   }, [selectedConversation?.id, userData?.uid])
 
@@ -186,18 +157,21 @@ function AgentMessagesContent() {
     if (userData?.uid) {
       messageService.markMessagesAsRead(selectedConversation.id, userData.uid)
       
-      // Update local conversation state to set unread count to 0
-      setConversations(prevConversations => 
-        prevConversations.map(conv => 
-          conv.id === selectedConversation.id 
-            ? { ...conv, unreadCount: 0 }
-            : conv
+      // Update local conversation state to set unread count to 0 only if needed
+      const currentConv = conversations.find(conv => conv.id === selectedConversation.id)
+      if (currentConv && currentConv.unreadCount > 0) {
+        setConversations(prevConversations => 
+          prevConversations.map(conv => 
+            conv.id === selectedConversation.id 
+              ? { ...conv, unreadCount: 0 }
+              : conv
+          )
         )
-      )
+      }
     }
 
     return () => unsubscribe()
-  }, [selectedConversation, userData?.uid])
+  }, [selectedConversation?.id, userData?.uid])
 
   // Populate message input with draft message from URL
   useEffect(() => {
@@ -272,6 +246,10 @@ function AgentMessagesContent() {
     newSearchParams.delete('propertyId')
     newSearchParams.delete('propertyTitle')
     newSearchParams.delete('conversationId')
+    newSearchParams.delete('draftMessage')
+    
+    // Clear the message input field
+    setNewMessage('')
     
     const newUrl = `/users/agent/messages${newSearchParams.toString() ? '?' + newSearchParams.toString() : ''}`
     router.push(newUrl)
@@ -872,7 +850,7 @@ function AgentMessagesContent() {
                                           onClick={() => setSelectedImage({url: message.attachmentUrl!, name: message.attachmentName || 'Image'})}
                                         />
                                       {message.content !== 'Image' && (
-                                        <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{wrapText(message.content)}</p>
+                                        <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-[240px] word-break-break-all">{message.content}</p>
                                       )}
                                     </div>
                                   ) : message.type === 'file' && message.attachmentUrl ? (
@@ -893,11 +871,11 @@ function AgentMessagesContent() {
                                          <Download className="h-4 w-4 flex-shrink-0 opacity-75" />
                                        </div>
                                        {message.content !== `File: ${message.attachmentName}` && (
-                                         <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{wrapText(message.content)}</p>
+                                         <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-[240px] word-break-break-all">{message.content}</p>
                                        )}
                                      </div>
                                   ) : (
-                                    <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{wrapText(message.content)}</p>
+                                    <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-[240px] word-break-break-all">{message.content}</p>
                                   )}
                                 </div>
                                 {isOwn && (

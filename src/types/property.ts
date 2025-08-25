@@ -35,10 +35,22 @@ export interface Property {
   // Additional fields for internal use
   inquiries?: number;
   tenant?: string | null;
-  status?: "Available" | "Occupied";
+  status: "Available" | "Occupied" | "pending" | "approved" | "rejected" | "handling" | "verified";
   rating?: number;
   createdAt?: FieldValue | string;
   updatedAt?: FieldValue | string;
+  // Property handling fields
+  handledBy?: string;
+  handledByName?: string;
+  handledAt?: string;
+  // Property verification fields
+  verifiedBy?: string;
+  verifiedByName?: string;
+  verifiedAt?: string;
+  // Property rejection fields
+  rejectedBy?: string;
+  rejectedByName?: string;
+  rejectedAt?: string;
 }
 
 export interface PropertyFormData {

@@ -22,7 +22,7 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { Property } from "@/types/property";
 import { PropertiesLoadingSkeleton } from "@/components/loadings";
 
@@ -52,8 +52,15 @@ const PropertiesPage = () => {
 
   //Fetch properties from Firebase
   useEffect(() => {
+    const propertiesRef = collection(db, "properties");
+    const q = query(
+      propertiesRef,
+      where("available", "==", true),
+      where("isVerified", "==", true)
+    );
+    
     const unsubscribe = onSnapshot(
-      collection(db, "properties"),
+      q,
       (querySnapshot) => {
         try {
           const propertyList: Property[] = querySnapshot.docs.map((doc) => {

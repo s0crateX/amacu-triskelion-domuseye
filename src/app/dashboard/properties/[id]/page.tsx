@@ -41,11 +41,12 @@ import {
 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import Image from "next/image";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { Property } from "@/types/property";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth/auth-context";
 import { conversationService } from "@/lib/database/messages";
 import dynamic from "next/dynamic";
@@ -133,6 +134,15 @@ const PropertyDetailPage = () => {
     phone?: string;
     email?: string;
   } | null>(null);
+  const [agentProfile, setAgentProfile] = useState<{
+    displayName?: string;
+    firstName?: string;
+    lastName?: string;
+    profilePicture?: string;
+    role?: string;
+    phone?: string;
+    email?: string;
+  } | null>(null);
   const [nearbyPlaces, setNearbyPlaces] = useState<
     Array<{
       name: string;
@@ -142,10 +152,11 @@ const PropertyDetailPage = () => {
   >([]);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
 
-  // Property Management states (UI only)
+  // Property Management states
   const [propertyStatus, setPropertyStatus] = useState<
     "pending" | "handling" | "approved" | "rejected"
   >("pending");
+  const [isUpdatingProperty, setIsUpdatingProperty] = useState(false);
 
   // Icon mapping functions
   const getFeatureIcon = (feature: string) => {
@@ -191,7 +202,7 @@ const PropertyDetailPage = () => {
   };
 
   // Function to set up real-time landlord profile data listener
-  const setupLandlordProfileListener = (uid: string) => {
+  const setupLandlordProfileListener = useCallback((uid: string) => {
     const userDocRef = doc(db, "users", uid);
 
     const unsubscribe = onSnapshot(
@@ -218,7 +229,37 @@ const PropertyDetailPage = () => {
     );
 
     return unsubscribe;
-  };
+  }, []);
+
+  // Function to set up real-time agent profile data listener
+  const setupAgentProfileListener = useCallback((uid: string) => {
+    const userDocRef = doc(db, "users", uid);
+
+    const unsubscribe = onSnapshot(
+      userDocRef,
+      (userDoc) => {
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setAgentProfile({
+            displayName:
+              userData.displayName ||
+              `${userData.firstName || ""} ${userData.lastName || ""}`.trim(),
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            profilePicture: userData.profilePicture,
+            role: userData.role || "Agent",
+            phone: userData.phone,
+            email: userData.email,
+          });
+        }
+      },
+      (error) => {
+        console.error("Error listening to agent profile:", error);
+      }
+    );
+
+    return unsubscribe;
+  }, []);
 
   // Function to calculate distance between two coordinates
   const calculateDistance = (
@@ -504,6 +545,91 @@ const PropertyDetailPage = () => {
     }, 3000);
   };
 
+  // Function to handle property status change to "handling"
+  const handlePropertyHandling = async () => {
+    if (!property || !userData) {
+      console.error("Missing property or user data");
+      return;
+    }
+
+    setIsUpdatingProperty(true);
+    try {
+      const propertyRef = doc(db, "properties", property.id);
+      const updateData: Partial<Property> = {
+        status: "handling" as const,
+        handledBy: userData.uid,
+        handledByName: `${userData.firstName || ""} ${userData.lastName || ""}`.trim() || userData.email,
+        handledAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await updateDoc(propertyRef, updateData);
+      
+      // Update local property state
+      setProperty(prev => prev ? { ...prev, ...updateData } : null);
+      setPropertyStatus("handling");
+      
+      console.log("Property set to handling by agent:", userData.email);
+    } catch (error) {
+      console.error("Error setting property to handling:", error);
+      // Reset status on error
+      setPropertyStatus("pending");
+    } finally {
+      setIsUpdatingProperty(false);
+    }
+  };
+
+  // Function to handle property approval
+  const handlePropertyApproval = async (action: "approved" | "rejected") => {
+    if (!property || !userData) {
+      console.error("Missing property or user data");
+      return;
+    }
+
+    // Prevent resetting status if property is already verified by another agent
+    if (property.isVerified && property.verifiedBy && property.verifiedBy !== userData.uid) {
+      console.error("Cannot modify property status - already verified by another agent");
+      alert("This property has already been verified by another agent and cannot be modified.");
+      return;
+    }
+
+    setIsUpdatingProperty(true);
+    try {
+      const propertyRef = doc(db, "properties", property.id);
+      const updateData: Partial<Property> = {
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (action === "approved") {
+        updateData.isVerified = true;
+        updateData.verifiedBy = userData.uid;
+        updateData.verifiedByName = `${userData.firstName || ""} ${userData.lastName || ""}`.trim() || userData.email;
+        updateData.verifiedAt = new Date().toISOString();
+        updateData.status = "verified" as const;
+      } else {
+        updateData.isVerified = false;
+        updateData.rejectedBy = userData.uid;
+        updateData.rejectedByName = `${userData.firstName || ""} ${userData.lastName || ""}`.trim() || userData.email;
+        updateData.rejectedAt = new Date().toISOString();
+        updateData.status = "rejected" as const;
+      }
+
+      await updateDoc(propertyRef, updateData);
+      
+      // Update local property state
+      setProperty(prev => prev ? { ...prev, ...updateData } : null);
+      setPropertyStatus(action);
+      
+      console.log(`Property ${action} successfully by agent:`, userData.email);
+    } catch (error) {
+      console.error(`Error ${action === "approved" ? "approving" : "rejecting"} property:`, error);
+      // Reset status on error
+      setPropertyStatus("handling");
+    } finally {
+      setIsUpdatingProperty(false);
+    }
+  };
+
   // Function to handle opening property messages with automatic conversation creation
   const handleOpenPropertyMessages = async () => {
     if (!property || !landlordProfile || !userData) {
@@ -559,6 +685,7 @@ const PropertyDetailPage = () => {
   // Firebase data fetching effect
   useEffect(() => {
     let landlordUnsubscribe: (() => void) | null = null;
+    let agentUnsubscribe: (() => void) | null = null;
 
     async function fetchProperty() {
       try {
@@ -606,14 +733,44 @@ const PropertyDetailPage = () => {
             tenant: data.tenant,
             status: data.status,
             rating: data.rating,
+            // Property handling fields
+            handledBy: data.handledBy,
+            handledByName: data.handledByName,
+            handledAt: data.handledAt,
+            // Property verification fields
+            verifiedBy: data.verifiedBy,
+            verifiedByName: data.verifiedByName,
+            verifiedAt: data.verifiedAt,
+            // Property rejection fields
+            rejectedBy: data.rejectedBy,
+            rejectedByName: data.rejectedByName,
+            rejectedAt: data.rejectedAt,
           };
 
           setProperty(propertyData);
+
+          // Initialize property status based on database values
+          if (propertyData.isVerified === true) {
+            setPropertyStatus("approved");
+          } else if (propertyData.status && propertyData.status === "rejected") {
+            setPropertyStatus("rejected");
+          } else if (propertyData.status && propertyData.status === "handling") {
+            setPropertyStatus("handling");
+          } else {
+            setPropertyStatus("pending");
+          }
 
           // Set up real-time landlord profile listener using property's uid (which is the landlord's uid)
           if (propertyData.uid) {
             landlordUnsubscribe = setupLandlordProfileListener(
               propertyData.uid
+            );
+          }
+
+          // Set up real-time agent profile listener if property is verified
+          if (propertyData.verifiedBy) {
+            agentUnsubscribe = setupAgentProfileListener(
+              propertyData.verifiedBy
             );
           }
 
@@ -639,8 +796,11 @@ const PropertyDetailPage = () => {
       if (landlordUnsubscribe) {
         landlordUnsubscribe();
       }
+      if (agentUnsubscribe) {
+        agentUnsubscribe();
+      }
     };
-  }, [id, setupLandlordProfileListener, fetchNearbyPlaces]);
+  }, [id]);
 
   // Keyboard navigation for image modal
   useEffect(() => {
@@ -1030,47 +1190,51 @@ const PropertyDetailPage = () => {
                   </div>
                 </CardContent>
               </Card>
-              {/* Reviews Section - Only show for tenants */}
-              {userData?.userType === "tenant" && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Reviews</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {propertyinfo.reviews.map((review) => (
-                      <div
-                        key={review.id}
-                        className="border-b border-border pb-4 mb-4 last:border-0"
+
+              {/* Property Location Map */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Property Location</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {property?.latitude && property?.longitude ? (
+                    <div className="h-64 w-full rounded-lg overflow-hidden">
+                      <MapContainer
+                        center={[property.latitude, property.longitude]}
+                        zoom={15}
+                        style={{ height: "100%", width: "100%" }}
                       >
-                        <div className="flex justify-between mb-2">
-                          <div className="font-medium text-foreground">
-                            {review.user}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {review.date}
-                          </div>
-                        </div>
-                        <div className="flex items-center mb-2">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              size={16}
-                              className={
-                                i < review.rating
-                                  ? "text-[#cdb323] fill-[#cdb323]"
-                                  : "text-muted-foreground"
-                              }
-                            />
-                          ))}
-                        </div>
-                        <p className="text-sm sm:text-base text-muted-foreground">
-                          {review.comment}
-                        </p>
+                        <TileLayer
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        />
+                        <Marker position={[property.latitude, property.longitude]}>
+                          <Popup>
+                            <div className="text-center">
+                              <h3 className="font-semibold">{property.title}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {property.address}
+                              </p>
+                            </div>
+                          </Popup>
+                        </Marker>
+                      </MapContainer>
+                    </div>
+                  ) : (
+                    <div className="h-64 w-full rounded-lg bg-muted flex items-center justify-center">
+                      <div className="text-center text-muted-foreground">
+                        <MapPin className="h-8 w-8 mx-auto mb-2" />
+                        <p>Location not available</p>
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
+                    </div>
+                  )}
+                  <div className="mt-4 flex items-center text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    {property?.address}
+                  </div>
+                </CardContent>
+              </Card>
+
             </div>
             {/* Right Column - Contact & Scheduling */}
             <div className="lg:col-span-1">
@@ -1153,7 +1317,8 @@ const PropertyDetailPage = () => {
               )}
 
               {/* Property Management Card - Only for Agents */}
-              {userData?.userType === "agent" && (
+              {userData?.userType === "agent" && 
+                !(property.isVerified && property.verifiedBy && property.verifiedBy !== userData.uid) && (
                 <Card className="mb-6">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -1178,9 +1343,9 @@ const PropertyDetailPage = () => {
                         {propertyStatus === "handling" && (
                           <Badge
                             variant="default"
-                            className="flex items-center gap-1"
+                            className="bg-blue-500 hover:bg-blue-600 flex items-center gap-1"
                           >
-                            <AlertCircle className="h-3 w-3" />
+                            <Clock className="h-3 w-3" />
                             Under Review
                           </Badge>
                         )}
@@ -1210,37 +1375,54 @@ const PropertyDetailPage = () => {
                       {propertyStatus === "pending" && (
                         <Button
                           className="w-full"
-                          onClick={() => {
-                            setPropertyStatus("handling");
-                          }}
+                          onClick={handlePropertyHandling}
+                          disabled={isUpdatingProperty}
                         >
-                          <FileText className="h-4 w-4 mr-2" />
+                          {isUpdatingProperty ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <FileText className="h-4 w-4 mr-2" />
+                          )}
                           Handle Property
                         </Button>
                       )}
 
-                      {propertyStatus === "handling" && (
+                      {propertyStatus === "handling" &&
+                        // Only show approve/reject buttons if property is not already verified by another agent
+                        !(property?.isVerified && property?.verifiedBy && property?.verifiedBy !== userData?.uid) && (
                         <div className="grid grid-cols-2 gap-3">
                           <Button
                             variant="default"
                             className="bg-green-500 hover:bg-green-600"
-                            onClick={() => setPropertyStatus("approved")}
+                            onClick={() => handlePropertyApproval("approved")}
+                            disabled={isUpdatingProperty}
                           >
-                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            {isUpdatingProperty ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4 mr-2" />
+                            )}
                             Approve
                           </Button>
                           <Button
                             variant="destructive"
-                            onClick={() => setPropertyStatus("rejected")}
+                            onClick={() => handlePropertyApproval("rejected")}
+                            disabled={isUpdatingProperty}
                           >
-                            <XCircle className="h-4 w-4 mr-2" />
+                            {isUpdatingProperty ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <XCircle className="h-4 w-4 mr-2" />
+                            )}
                             Reject
                           </Button>
                         </div>
                       )}
 
                       {(propertyStatus === "approved" ||
-                        propertyStatus === "rejected") && (
+                        propertyStatus === "rejected") &&
+                        // Only show reset button if property is not verified by another agent
+                        !(property?.isVerified && property?.verifiedBy && property?.verifiedBy !== userData?.uid) && (
                         <Button
                           variant="outline"
                           className="w-full"
@@ -1328,6 +1510,80 @@ const PropertyDetailPage = () => {
                 </CardContent>
               </Card>
 
+              {/* Agent Verification Card */}
+              {property.isVerified && property.verifiedByName && (
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
+                      Property Verified
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <div className="w-10 h-10 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mr-3">
+                          <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-green-800 dark:text-green-200">
+                            Verified by Agent
+                          </div>
+                          <div className="text-xs text-green-600 dark:text-green-400">
+                            This property has been approved and verified
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="flex items-center">
+                          <Avatar className="w-8 h-8 mr-3">
+                            <AvatarImage 
+                              src={agentProfile?.profilePicture} 
+                              alt={property.verifiedByName || "Agent"}
+                            />
+                            <AvatarFallback className="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
+                              {agentProfile?.firstName?.[0] || agentProfile?.displayName?.[0] || property.verifiedByName?.[0] || "A"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="text-sm font-medium text-foreground">
+                              {property.verifiedByName}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Verification Agent
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {property.verifiedAt && (
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3">
+                              <Calendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-foreground">
+                                {new Date(property.verifiedAt).toLocaleDateString()}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Verification Date
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="pt-3 border-t border-border">
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <AlertCircle className="w-3 h-3 mr-1" />
+                          This property meets all verification standards
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Actions Card */}
               <Card className="mb-6">
                 <CardContent className="p-6">
@@ -1365,51 +1621,7 @@ const PropertyDetailPage = () => {
                 </CardContent>
               </Card>
 
-              {/* Property Location Map */}
-              <Card className="mb-6 relative z-0">
-                <CardHeader>
-                  <CardTitle>Property Location</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64 w-full rounded-lg overflow-hidden relative z-0">
-                    {property?.latitude && property?.longitude ? (
-                      <MapContainer
-                        center={[property.latitude, property.longitude]}
-                        zoom={15}
-                        style={{ height: "100%", width: "100%", zIndex: 0 }}
-                        attributionControl={true}
-                      >
-                        <TileLayer
-                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                          maxZoom={19}
-                        />
-                        <Marker
-                          position={[property.latitude, property.longitude]}
-                        >
-                          <Popup>
-                            <div className="text-center">
-                              <h3 className="font-semibold text-sm mb-1">
-                                {property.title}
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                {property.address || property.location}
-                              </p>
-                            </div>
-                          </Popup>
-                        </Marker>
-                      </MapContainer>
-                    ) : (
-                      <div className="h-full w-full bg-muted rounded-lg flex items-center justify-center">
-                        <div className="text-center text-muted-foreground">
-                          <MapPin className="h-8 w-8 mx-auto mb-2" />
-                          <p className="text-sm">Location not available</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+
             </div>
           </div>
         </div>

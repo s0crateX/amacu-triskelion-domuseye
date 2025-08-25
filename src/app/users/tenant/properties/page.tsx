@@ -85,11 +85,12 @@ const PropertiesPage = () => {
   useEffect(() => {
     const propertiesRef = collection(db, "properties");
     
-    // Create query to only fetch available properties
+    // Create query to only fetch available and verified properties
     // Note: We'll sort in memory since datePosted might not be indexed
     const q = query(
       propertiesRef,
-      where("available", "==", true)
+      where("available", "==", true),
+      where("isVerified", "==", true)
     );
 
     const unsubscribe = onSnapshot(
@@ -687,10 +688,22 @@ const PropertiesPage = () => {
                         <span>Landlord: {detailsProperty.landlordName}</span>
                       </div>
                     )}
+                    {detailsProperty.verifiedByName && (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle size={16} className="text-green-600 flex-shrink-0" />
+                        <span>Verified by: {detailsProperty.verifiedByName}</span>
+                      </div>
+                    )}
                     {detailsProperty.area && (
                       <div className="flex items-center gap-2">
                         <Home size={16} className="text-muted-foreground flex-shrink-0" />
                         <span>Area: {detailsProperty.area} sq m</span>
+                      </div>
+                    )}
+                    {detailsProperty.verifiedAt && (
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} className="text-green-600 flex-shrink-0" />
+                        <span>Verified on: {formatDate(detailsProperty.verifiedAt)}</span>
                       </div>
                     )}
                   </div>

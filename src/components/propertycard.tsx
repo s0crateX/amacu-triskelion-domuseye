@@ -27,6 +27,8 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Property } from "@/types/property";
+import { db } from "@/lib/firebase";
+import { doc, updateDoc } from "firebase/firestore";
 
 interface PropertyCardProps {
   property: Property;
@@ -52,8 +54,39 @@ export const PropertyCard = ({
   const router = useRouter();
   const [currentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
+  const [viewCount, setViewCount] = useState(property.views || 0);
+
+  const incrementViewCount = async () => {
+    // Only increment view count for verified properties
+    if (!property.isVerified) {
+      console.log('View count not incremented - property is not verified');
+      return;
+    }
+
+    try {
+      // Increment local view count immediately for better UX
+      const newViewCount = viewCount + 1;
+      setViewCount(newViewCount);
+      
+      // Update the view count in the database
+      const propertyRef = doc(db, "properties", property.id);
+      await updateDoc(propertyRef, {
+        views: newViewCount,
+        updatedAt: new Date().toISOString()
+      });
+      
+      console.log(`View count incremented for verified property ${property.id}`);
+    } catch (error) {
+      console.error('Failed to increment view count:', error);
+      // Revert the local count if the API call fails
+      setViewCount(prev => prev - 1);
+    }
+  };
 
   const handleViewDetails = () => {
+    // Increment view count when property details are viewed
+    incrementViewCount();
+    
     if (onViewDetails) {
       onViewDetails(property);
     } else {
@@ -214,12 +247,18 @@ export const PropertyCard = ({
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <Eye size={10} />
-              <span>{property.views || 0}</span>
+              <span>{viewCount}</span>
             </div>
             {property.datePosted && (
               <div className="flex items-center gap-1">
                 <Calendar size={10} />
                 <span>{formatDate(property.datePosted)}</span>
+              </div>
+            )}
+            {property.verifiedByName && (
+              <div className="flex items-center gap-1 text-green-600">
+                <CheckCircle size={10} />
+                <span>Verified</span>
               </div>
             )}
           </div>

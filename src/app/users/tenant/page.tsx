@@ -152,6 +152,9 @@ interface Property {
   landlordEmail?: string;
   landlordPhone?: string;
   description: string;
+  verifiedBy?: string;
+  verifiedByName?: string;
+  verifiedAt?: string;
 }
 
 interface MaintenanceRequest {
@@ -398,6 +401,9 @@ export default function ModernTenantDashboard() {
               landlordEmail: landlordEmail,
               landlordPhone: landlordPhone,
               description: propertyData.description || "",
+              verifiedBy: propertyData.verifiedBy || "",
+              verifiedByName: propertyData.verifiedByName || "",
+              verifiedAt: propertyData.verifiedAt || "",
             });
           }
         }
@@ -842,6 +848,24 @@ export default function ModernTenantDashboard() {
                                       Contact information not available
                                     </p>
                                   )}
+                                {property.verifiedByName && (
+                                  <div className="mt-2 pt-2 border-t border-muted">
+                                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                                      Property Verification
+                                    </p>
+                                    <div className="flex items-center gap-1">
+                                      <CheckCircle className="w-3 h-3 text-green-600" />
+                                      <p className="text-xs sm:text-sm text-green-600 font-medium">
+                                        Verified by {property.verifiedByName}
+                                      </p>
+                                    </div>
+                                    {property.verifiedAt && (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        Verified on {new Date(property.verifiedAt).toLocaleDateString()}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                               <div className="flex gap-2 w-full sm:w-auto">
                                 <Button
