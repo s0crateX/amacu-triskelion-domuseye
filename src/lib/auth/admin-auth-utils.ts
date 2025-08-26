@@ -6,7 +6,14 @@ import {
 } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { doc, getDoc, setDoc, deleteDoc, collection, getDocs } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  collection,
+  getDocs,
+} from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 export interface AdminData {
@@ -39,6 +46,8 @@ export interface AgentData {
   lastSeen: string;
   profilePicture: string;
   propertyCount: string;
+  experience?: string;
+  specialities?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +60,14 @@ export interface CreateAgentData {
   password: string;
   companyName?: string;
   dateOfBirth?: string;
+  businessAddress?: string;
+  businessLatitude?: number;
+  businessLongitude?: number;
+  reviews?: number;
+  rating?: number;
+  properties?: number;
+  experience?: string;
+  specialities?: string[];
 }
 
 export interface UserDocument {
@@ -227,13 +244,15 @@ export const createAgentAccount = async (
       lastName: agentData.lastName,
       phone: agentData.phone,
       userType: "agent",
-      businessAddress: "Purok 4, Saliganan St. Brgy. Apopong G.S.C",
+      businessAddress: agentData.businessAddress || "",
       companyName: agentData.companyName || "",
       dateOfBirth: agentData.dateOfBirth || "",
       isOnline: false,
       lastSeen: "",
       profilePicture: "",
       propertyCount: "",
+      experience: agentData.experience,
+      specialities: agentData.specialities,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -307,18 +326,20 @@ export const deleteAgentAccount = async (
   try {
     // Security check: Ensure confirmation text matches
     if (confirmationText !== "DELETE AGENT") {
-      throw new Error("Invalid confirmation text. Please type 'DELETE AGENT' to confirm.");
+      throw new Error(
+        "Invalid confirmation text. Please type 'DELETE AGENT' to confirm."
+      );
     }
 
     // Verify the user exists and is an agent
     const userDoc = await getDoc(doc(db, "users", agentId));
-    
+
     if (!userDoc.exists()) {
       throw new Error("Agent account not found");
     }
 
     const userData = userDoc.data() as UserDocument;
-    
+
     if (userData.userType !== "agent") {
       throw new Error("Cannot delete: User is not an agent account");
     }
@@ -326,7 +347,9 @@ export const deleteAgentAccount = async (
     // Delete the agent document from Firestore
     await deleteDoc(doc(db, "users", agentId));
 
-    console.log(`Agent account ${userData.email} has been successfully deleted`);
+    console.log(
+      `Agent account ${userData.email} has been successfully deleted`
+    );
   } catch (error: unknown) {
     console.error("Agent deletion error:", error);
     const errorMessage =

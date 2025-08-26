@@ -82,7 +82,7 @@ const landlordNavigation = [
     icon: Users,
   },
   { name: "Messages", href: "/users/landlord/messages", icon: MessageSquare },
-  { name: "Requests", href: "/users/landlord/requests", icon: MessageSquare },
+  { name: "Agents", href: "/users/landlord/agents", icon: Users },
 ];
 
 const agentNavigation = [
@@ -95,10 +95,10 @@ const agentNavigation = [
 // Notification Badge Component
 const NotificationBadge: React.FC<{ count: number }> = ({ count }) => {
   if (count === 0) return null;
-  
+
   return (
     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-      {count > 99 ? '99+' : count}
+      {count > 99 ? "99+" : count}
     </span>
   );
 };
@@ -325,7 +325,9 @@ export function Navbar() {
                       }`}
                     >
                       {item.name}
-                      {isMessagesTab && <NotificationBadge count={unreadCount} />}
+                      {isMessagesTab && (
+                        <NotificationBadge count={unreadCount} />
+                      )}
                     </Link>
                   );
                 })
@@ -590,7 +592,9 @@ export function Navbar() {
                             >
                               <div className="relative">
                                 <Icon className="h-4 w-4 flex-shrink-0" />
-                                {isMessagesTab && <NotificationBadge count={unreadCount} />}
+                                {isMessagesTab && (
+                                  <NotificationBadge count={unreadCount} />
+                                )}
                               </div>
                               <span className="text-sm">{item.name}</span>
                             </Link>

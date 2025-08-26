@@ -1,19 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { useState, useEffect, useRef, Suspense } from "react";
+import Image from "next/image";
 import { useAuth } from "@/lib/auth/auth-context";
-import { messageService, conversationService } from "@/lib/database/messages";
-import { Message, Conversation, Participant } from "@/types/message";
-import { searchUsers, SearchUser } from "@/lib/database/users";
-import { formatDistanceToNow } from "date-fns";
+import { useNotifications } from "@/contexts/notification-context";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +20,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,64 +38,43 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Search,
+  MessageSquare,
+  Inbox,
   Send,
+  Users,
+  Search,
   Plus,
   MoreVertical,
-  Trash2,
   Paperclip,
   Smile,
-  MessageSquare,
+  Clock,
+  Check,
+  CheckCheck,
+  Trash2,
+  X,
   FileText,
   Download,
 } from "lucide-react";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
+import {
+  messageService,
+  conversationService,
+  createNewConversation,
+} from "@/lib/database/messages";
+import { Message, Conversation, Participant } from "@/types/message";
+import { searchUsers, SearchUser } from "@/lib/database/users";
+import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
-// Helper function to wrap text at specified character limit
-const wrapText = (text: string, maxCharsPerLine: number = 30): string => {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let currentLine = "";
-
-  for (const word of words) {
-    // If word is longer than maxCharsPerLine, break it
-    if (word.length > maxCharsPerLine) {
-      if (currentLine) {
-        lines.push(currentLine);
-        currentLine = "";
-      }
-      // Break long word into chunks
-      for (let i = 0; i < word.length; i += maxCharsPerLine) {
-        lines.push(word.substring(i, i + maxCharsPerLine));
-      }
-    } else if (currentLine.length + word.length + 1 <= maxCharsPerLine) {
-      currentLine += (currentLine ? " " : "") + word;
-    } else {
-      if (currentLine) {
-        lines.push(currentLine);
-      }
-      currentLine = word;
-    }
-  }
-
-  if (currentLine) {
-    lines.push(currentLine);
-  }
-
-  return lines.join("\n");
+// Helper function to truncate text with ellipsis
+const truncateText = (text: string, maxLength: number = 20): string => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + "...";
 };
 
 function TenantMessagesContent() {
   const { userData, loading: authLoading } = useAuth();
-
+  const { unreadCount } = useNotifications();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const propertyId = searchParams.get("propertyId");
   const propertyTitle = searchParams.get("propertyTitle");
@@ -122,7 +105,12 @@ function TenantMessagesContent() {
     name: string;
   } | null>(null);
 
-  // Load conversations with real-time updates
+  // Scroll to bottom of messages
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Load conversations
   useEffect(() => {
     if (!userData?.uid) return;
 
@@ -138,14 +126,19 @@ function TenantMessagesContent() {
     return () => unsubscribe();
   }, [userData?.uid]);
 
-  // Handle URL parameters
+  // Auto-select conversation when conversationId is provided
   useEffect(() => {
     if (conversationId && conversations.length > 0) {
-      const conversation = conversations.find((c) => c.id === conversationId);
-      if (conversation) {
-        setSelectedConversation(conversation);
+      const targetConversation = conversations.find(
+        (conv) => conv.id === conversationId
+      );
+      if (
+        targetConversation &&
+        (!selectedConversation || selectedConversation.id !== conversationId)
+      ) {
+        setSelectedConversation(targetConversation);
         // Immediately clear unread count for selected conversation
-        if (conversation.unreadCount > 0) {
+        if (targetConversation.unreadCount > 0) {
           setConversations((prevConversations) =>
             prevConversations.map((conv) =>
               conv.id === conversationId ? { ...conv, unreadCount: 0 } : conv
@@ -154,29 +147,27 @@ function TenantMessagesContent() {
         }
       }
     }
-  }, [conversationId, conversations]);
+  }, [conversationId, conversations.length]);
 
   // Clear unread count when conversation is selected
   useEffect(() => {
     if (selectedConversation && userData?.uid) {
-      setConversations((prevConversations) =>
-        prevConversations.map((conv) =>
-          conv.id === selectedConversation.id
-            ? { ...conv, unreadCount: 0 }
-            : conv
-        )
+      const currentConv = conversations.find(
+        (conv) => conv.id === selectedConversation.id
       );
+      if (currentConv && currentConv.unreadCount > 0) {
+        setConversations((prevConversations) =>
+          prevConversations.map((conv) =>
+            conv.id === selectedConversation.id
+              ? { ...conv, unreadCount: 0 }
+              : conv
+          )
+        );
+      }
     }
   }, [selectedConversation?.id, userData?.uid]);
 
-  // Set draft message
-  useEffect(() => {
-    if (draftMessage) {
-      setNewMessage(decodeURIComponent(draftMessage));
-    }
-  }, [draftMessage]);
-
-  // Load messages with real-time updates when conversation is selected
+  // Load messages for selected conversation
   useEffect(() => {
     if (!selectedConversation) {
       setMessages([]);
@@ -195,60 +186,70 @@ function TenantMessagesContent() {
     if (userData?.uid) {
       messageService.markMessagesAsRead(selectedConversation.id, userData.uid);
 
-      // Update local conversation state to set unread count to 0
-      setConversations((prevConversations) =>
-        prevConversations.map((conv) =>
-          conv.id === selectedConversation.id
-            ? { ...conv, unreadCount: 0 }
-            : conv
-        )
+      // Update local conversation state to set unread count to 0 only if needed
+      const currentConv = conversations.find(
+        (conv) => conv.id === selectedConversation.id
       );
+      if (currentConv && currentConv.unreadCount > 0) {
+        setConversations((prevConversations) =>
+          prevConversations.map((conv) =>
+            conv.id === selectedConversation.id
+              ? { ...conv, unreadCount: 0 }
+              : conv
+          )
+        );
+      }
     }
 
     return () => unsubscribe();
-  }, [selectedConversation, userData?.uid]);
+  }, [selectedConversation?.id, userData?.uid]);
 
-  // Auto-scroll to bottom of messages
+  // Populate message input with draft message from URL
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const loadConversations = async () => {
-    if (!userData?.uid) return;
-
-    try {
-      const userConversations = await conversationService.getUserConversations(
-        userData.uid
-      );
-      setConversations(userConversations);
-    } catch (error) {
-      console.error("Error loading conversations:", error);
-      toast.error("Failed to load conversations");
-    } finally {
-      setIsLoading(false);
+    if (draftMessage) {
+      setNewMessage(decodeURIComponent(draftMessage));
     }
-  };
+  }, [draftMessage]);
 
-  const loadMessages = async (conversationId: string) => {
-    try {
-      const conversationMessages = await messageService.getMessages(
-        conversationId
-      );
-      setMessages(conversationMessages);
-
-      // Mark messages as read
-      if (userData?.uid) {
-        await messageService.markMessagesAsRead(conversationId, userData.uid);
+  // Filter conversations based on search term and property context
+  const filteredConversations = conversations.filter((conversation) => {
+    if (!searchTerm) {
+      // If coming from a property page, prioritize property-related conversations
+      if (propertyId) {
+        return (
+          conversation.propertyId === propertyId || !conversation.propertyId
+        );
       }
-    } catch (error) {
-      console.error("Error loading messages:", error);
-      toast.error("Failed to load messages");
+      return true;
     }
-  };
+
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      conversation.participants.some(
+        (participant) =>
+          participant.name.toLowerCase().includes(searchLower) ||
+          participant.email.toLowerCase().includes(searchLower)
+      ) || conversation.propertyTitle?.toLowerCase().includes(searchLower)
+    );
+  });
+
+  // Sort conversations to show property-related ones first when coming from property page
+  const sortedConversations = propertyId
+    ? filteredConversations.sort((a, b) => {
+        if (a.propertyId === propertyId && b.propertyId !== propertyId)
+          return -1;
+        if (b.propertyId === propertyId && a.propertyId !== propertyId)
+          return 1;
+        return (
+          new Date(b.lastMessageTime).getTime() -
+          new Date(a.lastMessageTime).getTime()
+        );
+      })
+    : filteredConversations.sort(
+        (a, b) =>
+          new Date(b.lastMessageTime).getTime() -
+          new Date(a.lastMessageTime).getTime()
+      );
 
   // Send message
   const handleSendMessage = async () => {
@@ -269,10 +270,8 @@ function TenantMessagesContent() {
         }
       );
       setNewMessage("");
-      toast.success("Message sent successfully");
     } catch (error) {
       console.error("Error sending message:", error);
-      toast.error("Failed to send message");
     } finally {
       setIsSending(false);
     }
@@ -286,143 +285,60 @@ function TenantMessagesContent() {
     }
   };
 
-  // Handle file upload
-  const handleFileUpload = async (file: File) => {
-    if (!selectedConversation || !userData) return;
+  // Remove property attachment
+  const handleRemovePropertyAttachment = () => {
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.delete("propertyId");
+    newSearchParams.delete("propertyTitle");
+    newSearchParams.delete("conversationId");
+    newSearchParams.delete("draftMessage");
 
-    // Validate file type
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/gif",
-      "image/webp",
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "application/vnd.ms-excel",
-    ];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error(
-        "Please select a valid file type (images, PDF, DOCX, or Excel files)"
-      );
-      return;
-    }
+    // Clear the message input field
+    setNewMessage("");
 
-    // Validate file size (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("File size must be less than 10MB");
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      // Upload to ImageKit
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("fileName", file.name);
-      formData.append("folder", "/chatMedia");
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const uploadResult = await response.json();
-
-      // Determine message type
-      const messageType = file.type.startsWith("image/") ? "image" : "file";
-
-      // Send message with attachment
-      const messageInput = {
-        content: messageType === "image" ? "Image" : `File: ${file.name}`,
-        type: messageType as "image" | "file",
-        attachmentUrl: uploadResult.url,
-        attachmentName: file.name,
-      };
-
-      await messageService.sendMessage(
-        selectedConversation.id,
-        userData.uid,
-        `${userData.firstName} ${userData.lastName}` ||
-          userData.email ||
-          "Tenant",
-        "tenant",
-        messageInput
-      );
-
-      toast.success("File uploaded successfully");
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      toast.error("Failed to upload file. Please try again.");
-    } finally {
-      setIsUploading(false);
-    }
+    const newUrl = `/users/agent/messages${
+      newSearchParams.toString() ? "?" + newSearchParams.toString() : ""
+    }`;
+    router.push(newUrl);
   };
 
-  // Handle attachment button click
-  const handleAttachmentClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  // Handle file input change
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-    // Reset input value to allow selecting the same file again
-    e.target.value = "";
-  };
-
-  // Handle emoji insertion
-  const handleEmojiSelect = (emoji: string) => {
-    setNewMessage((prev) => prev + emoji);
-    setShowEmojiPicker(false);
-  };
-
-  // Search users for new conversation
-  const handleUserSearch = async (searchTerm: string) => {
-    if (!searchTerm.trim()) {
+  // Handle user search
+  const handleUserSearch = async (term: string) => {
+    setUserSearchTerm(term);
+    if (!term.trim()) {
       setSearchResults([]);
       return;
     }
 
     setIsSearching(true);
     try {
-      // Tenants can message agents and landlords
-      const results = await searchUsers(searchTerm, ["agent", "landlord"]);
+      const results = await searchUsers(term, ["agent", "landlord"], 10);
       setSearchResults(results);
     } catch (error) {
       console.error("Error searching users:", error);
-      toast.error("Failed to search users");
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
   };
 
-  // Create new conversation
-  const handleCreateConversation = async (otherUser: SearchUser) => {
-    if (!userData?.uid) return;
+  // Handle creating new conversation
+  const handleCreateConversation = async (user: SearchUser) => {
+    if (!userData) return;
 
     setIsCreatingConversation(true);
     try {
-      const conversationId = await conversationService.createNewConversation(
+      const conversationId = await createNewConversation(
         userData.uid,
         `${userData.firstName} ${userData.lastName}`,
-        otherUser.uid,
-        `${otherUser.firstName} ${otherUser.lastName}`,
-        otherUser.userType as "agent" | "landlord",
+        user.uid,
+        `${user.firstName} ${user.lastName}`,
+        user.userType as "tenant" | "landlord",
         propertyId || undefined,
-        propertyTitle || undefined
+        propertyTitle ? decodeURIComponent(propertyTitle) : undefined
       );
 
-      // Refresh conversations and select the new one
-      await loadConversations();
+      // Find and select the new conversation
       const newConversation = conversations.find(
         (c) => c.id === conversationId
       );
@@ -430,13 +346,12 @@ function TenantMessagesContent() {
         setSelectedConversation(newConversation);
       }
 
+      // Close the new conversation modal
       setShowNewConversation(false);
       setUserSearchTerm("");
       setSearchResults([]);
-      toast.success("Conversation created successfully");
     } catch (error) {
       console.error("Error creating conversation:", error);
-      toast.error("Failed to create conversation");
     } finally {
       setIsCreatingConversation(false);
     }
@@ -445,20 +360,24 @@ function TenantMessagesContent() {
   // Get other participant in conversation
   const getOtherParticipant = (
     conversation: Conversation
-  ): Participant | undefined => {
-    return conversation.participants.find((p) => p.id !== userData?.uid);
+  ): Participant | null => {
+    return (
+      conversation.participants.find((p) => p.id !== userData?.uid) || null
+    );
   };
 
-  // Filter conversations based on search
-  const filteredConversations = conversations.filter((conversation) => {
-    const otherParticipant = getOtherParticipant(conversation);
-    return (
-      otherParticipant?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      conversation.propertyTitle
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
-  });
+  // Format message time
+  const formatMessageTime = (timestamp: Date) => {
+    if (!timestamp || isNaN(timestamp.getTime())) {
+      return "Just now";
+    }
+    try {
+      return formatDistanceToNow(timestamp, { addSuffix: true });
+    } catch (error) {
+      console.error("Error formatting time:", error);
+      return "Just now";
+    }
+  };
 
   // Delete conversation (dual-deletion logic)
   const handleDeleteConversation = async (conversationId: string) => {
@@ -507,17 +426,128 @@ function TenantMessagesContent() {
       const updatedConversations =
         await conversationService.getUserConversations(userData.uid);
       setConversations(updatedConversations);
-      toast.success("Message deleted successfully");
     } catch (error) {
       console.error("Error deleting message:", error);
-      toast.error("Failed to delete message");
+      // You could add a toast notification here
     }
   };
 
-  if (authLoading || isLoading) {
+  // Handle file upload
+  const handleFileUpload = async (file: File) => {
+    if (!selectedConversation || !userData) return;
+
+    // Validate file type
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      alert(
+        "Please select a valid file type (images, PDF, DOCX, or Excel files)"
+      );
+      return;
+    }
+
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size must be less than 10MB");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Upload to ImageKit
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("fileName", file.name);
+      formData.append("folder", "/chatMedia");
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const uploadResult = await response.json();
+
+      // Determine message type
+      const messageType = file.type.startsWith("image/") ? "image" : "file";
+
+      // Send message with attachment
+      const messageInput = {
+        content: messageType === "image" ? "Image" : `File: ${file.name}`,
+        type: messageType as "image" | "file",
+        attachmentUrl: uploadResult.url,
+        attachmentName: file.name,
+      };
+
+      await messageService.sendMessage(
+        selectedConversation.id,
+        userData.uid,
+        `${userData.firstName} ${userData.lastName}`,
+        "tenant",
+        messageInput
+      );
+
+      // Refresh messages
+      const updatedMessages = await messageService.getMessages(
+        selectedConversation.id
+      );
+      setMessages(updatedMessages);
+
+      // Refresh conversations to update last message
+      const updatedConversations =
+        await conversationService.getUserConversations(userData.uid);
+      setConversations(updatedConversations);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("Failed to upload file. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Handle attachment button click
+  const handleAttachmentClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Handle file input change
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+    // Reset input value to allow selecting the same file again
+    e.target.value = "";
+  };
+
+  // Handle emoji insertion
+  const handleEmojiSelect = (emoji: string) => {
+    setNewMessage((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+  };
+
+  if (authLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="h-96 bg-gray-200 rounded"></div>
+            <div className="lg:col-span-2 h-96 bg-gray-200 rounded"></div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -526,102 +556,119 @@ function TenantMessagesContent() {
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Messages
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Messages
+          </h1>
+          {unreadCount > 0 && (
+            <Badge variant="destructive" className="text-sm px-2 py-1">
+              {unreadCount} unread
+            </Badge>
+          )}
+        </div>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Communicate with your agents and landlords
+          Communicate with tenants and landlord
         </p>
       </div>
 
+      {/* Messages Interface */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
         {/* Conversations List */}
         <Card className="flex flex-col overflow-hidden">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Conversations</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Inbox className="h-5 w-5 mr-2" />
+                Conversations
+              </div>
               <Dialog
                 open={showNewConversation}
                 onOpenChange={setShowNewConversation}
               >
                 <DialogTrigger asChild>
-                  <Button size="sm" className="h-8 w-8 p-0">
+                  <Button size="sm" className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
+                    New
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Start New Conversation</DialogTitle>
                     <DialogDescription>
-                      Search for agents or landlords to start a conversation
+                      Search for tenants or landlords to start a conversation.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input
-                        placeholder="Search users..."
+                        placeholder="Search by name or email..."
                         value={userSearchTerm}
-                        onChange={(e) => {
-                          setUserSearchTerm(e.target.value);
-                          handleUserSearch(e.target.value);
-                        }}
+                        onChange={(e) => handleUserSearch(e.target.value)}
                         className="pl-10"
                       />
                     </div>
 
                     {isSearching && (
                       <div className="flex items-center justify-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          Searching...
+                        </div>
                       </div>
                     )}
 
                     {searchResults.length > 0 && (
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {searchResults.map((user) => (
-                          <div
-                            key={user.uid}
-                            className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                            onClick={() => handleCreateConversation(user)}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="w-8 h-8">
-                                {user.profilePicture && (
+                      <ScrollArea className="h-64">
+                        <div className="space-y-2">
+                          {searchResults.map((user) => (
+                            <div
+                              key={user.uid}
+                              className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                              onClick={() => handleCreateConversation(user)}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <Avatar className="w-8 h-8">
                                   <AvatarImage src={user.profilePicture} />
-                                )}
-                                <AvatarFallback>
-                                  {user.firstName?.charAt(0)?.toUpperCase() ||
-                                    "U"}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">
-                                  {user.firstName} {user.lastName}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  {user.userType}
-                                </p>
+                                  <AvatarFallback>
+                                    {user.firstName?.charAt(0)?.toUpperCase() ||
+                                      ""}
+                                    {user.lastName?.charAt(0)?.toUpperCase() ||
+                                      ""}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium text-sm">
+                                    {user.firstName} {user.lastName}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {user.userType} • {user.email}
+                                  </p>
+                                </div>
                               </div>
+                              {isCreatingConversation && (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                              )}
                             </div>
-                            <Badge variant="outline">{user.userType}</Badge>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
                     )}
 
                     {userSearchTerm &&
                       !isSearching &&
                       searchResults.length === 0 && (
-                        <p className="text-center text-muted-foreground py-4">
-                          No users found
-                        </p>
+                        <div className="text-center py-4 text-sm text-gray-500">
+                          No users found matching &quot;{userSearchTerm}&quot;
+                        </div>
                       )}
                   </div>
                 </DialogContent>
               </Dialog>
-            </div>
+            </CardTitle>
+            {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search conversations..."
                 value={searchTerm}
@@ -630,181 +677,208 @@ function TenantMessagesContent() {
               />
             </div>
           </CardHeader>
-          <CardContent className="flex-1 p-0">
-            <ScrollArea className="h-full">
-              {filteredConversations.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  {conversations.length === 0
-                    ? "No conversations yet"
-                    : "No conversations match your search"}
+          <CardContent className="flex-1 p-0 overflow-hidden">
+            <ScrollArea className="h-[calc(100vh-300px)]">
+              {isLoading ? (
+                <div className="p-4 space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="flex items-center space-x-3 p-3">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredConversations.length === 0 ? (
+                <div className="text-center py-8 px-4">
+                  <MessageSquare className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">
+                    No Conversations
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    {searchTerm
+                      ? "No conversations match your search."
+                      : "Your conversations with clients will appear here."}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {filteredConversations.map((conversation) => {
+                  {propertyId && propertyTitle && (
+                    <div className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 mb-2 relative">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRemovePropertyAttachment}
+                        className="absolute top-1 right-1 h-6 w-6 p-0 hover:bg-blue-100 dark:hover:bg-blue-800"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                      <p className="text-sm font-medium text-blue-800 dark:text-blue-200 pr-8">
+                        Property: {decodeURIComponent(propertyTitle)}
+                      </p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400">
+                        Showing conversations for this property
+                      </p>
+                    </div>
+                  )}
+                  {sortedConversations.map((conversation) => {
                     const otherParticipant = getOtherParticipant(conversation);
                     const isSelected =
                       selectedConversation?.id === conversation.id;
                     const hasUnreadMessages =
                       conversation.unreadCount && conversation.unreadCount > 0;
 
+                    const isPropertyRelated =
+                      conversation.propertyId === propertyId;
+
                     return (
                       <div
                         key={conversation.id}
-                        className={cn(
-                          "flex items-center space-x-3 p-3 hover:bg-muted/50 cursor-pointer border-l-2 transition-colors overflow-hidden min-w-0",
+                        className={`flex items-center space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
                           isSelected
-                            ? "bg-muted border-l-primary"
-                            : "border-l-transparent",
-                          hasUnreadMessages && !isSelected
-                            ? "bg-blue-50 border-l-blue-500"
+                            ? "bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-500"
                             : ""
-                        )}
-                        onClick={() => {
-                          setSelectedConversation(conversation);
-                          // Update the conversation's unread count to 0 immediately
-                          if (
-                            conversation.unreadCount &&
-                            conversation.unreadCount > 0
-                          ) {
-                            setConversations((prevConversations) =>
-                              prevConversations.map((conv) =>
-                                conv.id === conversation.id
-                                  ? { ...conv, unreadCount: 0 }
-                                  : conv
-                              )
-                            );
-                          }
-                        }}
+                        } ${
+                          isPropertyRelated
+                            ? "bg-green-50 dark:bg-green-900/20 border-l-2 border-green-500"
+                            : ""
+                        } ${
+                          hasUnreadMessages && !isSelected && !isPropertyRelated
+                            ? "bg-orange-50 dark:bg-orange-900/20 border-l-2 border-orange-500"
+                            : ""
+                        }`}
                       >
-                        <Avatar className="w-10 h-10">
-                          {otherParticipant?.avatar && (
-                            <AvatarImage src={otherParticipant.avatar} />
-                          )}
-                          <AvatarFallback>
-                            {otherParticipant?.name?.charAt(0)?.toUpperCase() ||
-                              "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between min-w-0">
-                            <p
-                              className={cn(
-                                "font-medium flex-1 min-w-0 mr-2",
-                                hasUnreadMessages
-                                  ? "font-bold text-blue-900"
-                                  : ""
-                              )}
-                            >
-                              {(() => {
-                                const name =
-                                  otherParticipant?.name || "Unknown User";
-                                return name.length > 20
-                                  ? `${name.substring(0, 20)}...`
-                                  : name;
-                              })()}
-                            </p>
-                            <div className="flex items-center space-x-2 flex-shrink-0">
+                        <div
+                          onClick={() => {
+                            setSelectedConversation(conversation);
+                            // Update the conversation's unread count to 0 immediately
+                            if (
+                              conversation.unreadCount &&
+                              conversation.unreadCount > 0
+                            ) {
+                              setConversations((prevConversations) =>
+                                prevConversations.map((conv) =>
+                                  conv.id === conversation.id
+                                    ? { ...conv, unreadCount: 0 }
+                                    : conv
+                                )
+                              );
+                            }
+                          }}
+                          className="flex items-center space-x-3 flex-1 cursor-pointer"
+                        >
+                          <Avatar className="w-10 h-10">
+                            {(() => {
+                              const avatarSrc = otherParticipant?.avatar;
+                              return avatarSrc ? (
+                                <AvatarImage src={avatarSrc} />
+                              ) : null;
+                            })()}
+                            <AvatarFallback>
+                              {otherParticipant?.name
+                                ?.charAt(0)
+                                ?.toUpperCase() || "U"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <h4
+                                className={`font-medium text-sm truncate ${
+                                  hasUnreadMessages
+                                    ? "font-bold text-orange-900 dark:text-orange-100"
+                                    : ""
+                                }`}
+                              >
+                                {truncateText(
+                                  otherParticipant?.name || "Unknown User",
+                                  20
+                                )}
+                              </h4>
+                              <span className="text-xs text-gray-500">
+                                {conversation.lastMessage &&
+                                  formatMessageTime(
+                                    conversation.lastMessage.timestamp
+                                  )}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <p
+                                className={`text-sm truncate ${
+                                  hasUnreadMessages
+                                    ? "text-orange-800 dark:text-orange-200 font-medium"
+                                    : "text-gray-600 dark:text-gray-400"
+                                }`}
+                              >
+                                {truncateText(
+                                  conversation.lastMessage?.content ||
+                                    "No messages yet",
+                                  20
+                                )}
+                              </p>
                               {conversation.unreadCount > 0 && !isSelected && (
                                 <Badge
-                                  variant="default"
-                                  className="bg-blue-600 text-white text-xs px-2 py-1"
+                                  variant="destructive"
+                                  className="text-xs px-1.5 py-0.5 min-w-[20px] h-5 bg-orange-600 hover:bg-orange-700"
                                 >
                                   {conversation.unreadCount}
                                 </Badge>
                               )}
-                              <Badge variant="outline" className="text-xs">
-                                {otherParticipant?.type}
-                              </Badge>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <MoreVertical className="h-3 w-3" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <DropdownMenuItem
-                                        className="text-red-600 focus:text-red-600"
-                                        onSelect={(e) => e.preventDefault()}
-                                      >
-                                        <Trash2 className="h-4 w-4 mr-2" />
-                                        Delete Conversation
-                                      </DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>
-                                          Delete Conversation
-                                        </AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Are you sure you want to delete this
-                                          conversation?.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>
-                                          Cancel
-                                        </AlertDialogCancel>
-                                        <AlertDialogAction
-                                          onClick={() =>
-                                            handleDeleteConversation(
-                                              conversation.id
-                                            )
-                                          }
-                                          className="bg-red-600 hover:bg-red-700"
-                                        >
-                                          Delete
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
                             </div>
+                            {conversation.propertyTitle && (
+                              <p className="text-xs text-blue-600 dark:text-blue-400 truncate mt-1">
+                                Re:{" "}
+                                {truncateText(conversation.propertyTitle, 20)}
+                              </p>
+                            )}
                           </div>
-                          {conversation.propertyTitle && (
-                            <p className="text-xs text-muted-foreground">
-                              Property:{" "}
-                              {conversation.propertyTitle.length > 20
-                                ? `${conversation.propertyTitle.substring(
-                                    0,
-                                    20
-                                  )}...`
-                                : conversation.propertyTitle}
-                            </p>
-                          )}
-                          {conversation.lastMessage && (
-                            <p
-                              className={cn(
-                                "text-sm",
-                                hasUnreadMessages
-                                  ? "text-blue-800 font-medium"
-                                  : "text-muted-foreground"
-                              )}
-                            >
-                              {conversation.lastMessage.content.length > 20
-                                ? `${conversation.lastMessage.content.substring(
-                                    0,
-                                    20
-                                  )}...`
-                                : conversation.lastMessage.content}
-                            </p>
-                          )}
-                          {conversation.lastMessageTime && (
-                            <p className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(
-                                conversation.lastMessageTime,
-                                { addSuffix: true }
-                              )}
-                            </p>
-                          )}
                         </div>
+                        <AlertDialog>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-red-600 focus:text-red-600">
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete Conversation
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Delete Conversation
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this
+                                conversation with {otherParticipant?.name}?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() =>
+                                  handleDeleteConversation(conversation.id)
+                                }
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     );
                   })}
@@ -842,204 +916,213 @@ function TenantMessagesContent() {
                         {getOtherParticipant(selectedConversation)?.name ||
                           "Unknown User"}
                       </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {getOtherParticipant(selectedConversation)?.type}
+                      <p className="text-sm text-gray-500">
+                        {getOtherParticipant(selectedConversation)?.type ||
+                          "User"}
                       </p>
                     </div>
                   </div>
-                  {selectedConversation.propertyTitle && (
-                    <Badge variant="outline">
-                      {selectedConversation.propertyTitle}
-                    </Badge>
-                  )}
                 </div>
+                {selectedConversation.propertyTitle && (
+                  <div className="mt-2">
+                    <Badge variant="outline" className="text-xs">
+                      Property: {selectedConversation.propertyTitle}
+                    </Badge>
+                  </div>
+                )}
               </CardHeader>
 
               {/* Messages */}
-              <CardContent className="flex-1 p-4 overflow-hidden">
-                <ScrollArea className="h-full pr-4">
-                  <div className="space-y-4">
-                    {messages.map((message) => {
-                      const isOwnMessage = message.senderId === userData?.uid;
+              <CardContent className="flex-1 p-0 overflow-hidden">
+                <ScrollArea className="h-full p-4">
+                  {messages.length === 0 ? (
+                    <div className="text-center py-8">
+                      <MessageSquare className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                      <p className="text-gray-600 dark:text-gray-400">
+                        No messages yet. Start the conversation!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {messages.map((message) => {
+                        const isOwn = message.senderId === userData?.uid;
 
-                      return (
-                        <div
-                          key={message.id}
-                          className={cn(
-                            "flex w-full",
-                            isOwnMessage ? "justify-end" : "justify-start"
-                          )}
-                        >
+                        return (
                           <div
-                            className={cn(
-                              "flex max-w-[70%] items-start space-x-2",
-                              isOwnMessage && "flex-row-reverse space-x-reverse"
-                            )}
+                            key={message.id}
+                            className={`flex ${
+                              isOwn ? "justify-end" : "justify-start"
+                            } group`}
                           >
-                            <Avatar className="w-8 h-8 flex-shrink-0">
-                              {(() => {
-                                const avatarSrc = isOwnMessage
-                                  ? userData?.profilePicture
-                                  : getOtherParticipant(selectedConversation)
-                                      ?.avatar;
-                                return avatarSrc ? (
-                                  <AvatarImage src={avatarSrc} />
-                                ) : null;
-                              })()}
-                              <AvatarFallback>
-                                {isOwnMessage
-                                  ? userData?.firstName
-                                      ?.charAt(0)
-                                      ?.toUpperCase() || "T"
-                                  : getOtherParticipant(selectedConversation)
-                                      ?.name?.charAt(0)
-                                      ?.toUpperCase() || "U"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col min-w-0 flex-1">
-                              <div
-                                className={cn(
-                                  "rounded-2xl px-4 py-2 shadow-sm relative group overflow-hidden",
-                                  isOwnMessage
-                                    ? "bg-primary text-primary-foreground rounded-tr-none"
-                                    : "bg-muted text-muted-foreground rounded-tl-none"
-                                )}
-                              >
-                                {message.type === "image" &&
-                                message.attachmentUrl ? (
-                                  <div className="space-y-2">
-                                    <Image
-                                      src={message.attachmentUrl}
-                                      alt={message.attachmentName || "Image"}
-                                      width={300}
-                                      height={200}
-                                      className="rounded-lg cursor-pointer"
-                                      onClick={() =>
-                                        setSelectedImage({
-                                          url: message.attachmentUrl!,
-                                          name:
-                                            message.attachmentName || "Image",
-                                        })
-                                      }
-                                    />
-                                    {message.content !== "Image" && (
-                                      <p className="text-sm">
-                                        {message.content}
-                                      </p>
-                                    )}
-                                  </div>
-                                ) : message.type === "file" &&
+                            <div
+                              className={`max-w-[70%] ${
+                                isOwn ? "order-2" : "order-1"
+                              } relative`}
+                            >
+                              {!isOwn && (
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <Avatar className="w-6 h-6">
+                                    {(() => {
+                                      const sender =
+                                        selectedConversation?.participants.find(
+                                          (p) => p.id === message.senderId
+                                        );
+                                      const avatarSrc = sender?.avatar;
+                                      return avatarSrc ? (
+                                        <AvatarImage src={avatarSrc} />
+                                      ) : null;
+                                    })()}
+                                    <AvatarFallback className="text-xs">
+                                      {message.senderName
+                                        ?.charAt(0)
+                                        ?.toUpperCase() || "U"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="text-xs text-gray-500">
+                                    {message.senderName}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="flex items-start space-x-2">
+                                <div
+                                  className={`rounded-lg px-3 py-2 flex-1 ${
+                                    isOwn
+                                      ? "bg-blue-500 text-white"
+                                      : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                  }`}
+                                >
+                                  {message.type === "image" &&
                                   message.attachmentUrl ? (
-                                  <div className="space-y-2">
-                                    <div className="flex items-center space-x-2 p-3 bg-white/10 rounded-lg border hover:bg-white/20 transition-colors">
-                                      <FileText className="h-5 w-5 flex-shrink-0" />
-                                      <div className="flex-1 min-w-0">
-                                        <a
-                                          href={message.attachmentUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-sm font-medium hover:underline truncate block"
-                                        >
-                                          {message.attachmentName || "File"}
-                                        </a>
-                                      </div>
-                                      <a
-                                        href={message.attachmentUrl}
-                                        download={message.attachmentName}
-                                        className="p-1 hover:bg-white/10 rounded transition-colors"
-                                      >
-                                        <Download className="h-4 w-4" />
-                                      </a>
+                                    <div className="space-y-2">
+                                      <Image
+                                        src={message.attachmentUrl}
+                                        alt={message.attachmentName || "Image"}
+                                        width={256}
+                                        height={192}
+                                        className="w-64 h-48 object-cover rounded-lg cursor-pointer"
+                                        onClick={() =>
+                                          setSelectedImage({
+                                            url: message.attachmentUrl!,
+                                            name:
+                                              message.attachmentName || "Image",
+                                          })
+                                        }
+                                      />
+                                      {message.content !== "Image" && (
+                                        <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-[240px] word-break-break-all">
+                                          {message.content}
+                                        </p>
+                                      )}
                                     </div>
-                                    {message.content !==
-                                      `File: ${message.attachmentName}` && (
-                                      <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
-                                        {wrapText(message.content)}
-                                      </p>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
-                                    {wrapText(message.content)}
-                                  </p>
-                                )}
-
-                                {/* Message options */}
-                                {isOwnMessage && (
-                                  <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-6 w-6 p-0 bg-background border shadow-sm"
-                                        >
-                                          <MoreVertical className="h-3 w-3" />
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                        <AlertDialog>
-                                          <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem
-                                              className="text-red-600 focus:text-red-600"
-                                              onSelect={(e) =>
-                                                e.preventDefault()
-                                              }
-                                            >
-                                              <Trash2 className="h-4 w-4 mr-2" />
+                                  ) : message.type === "file" &&
+                                    message.attachmentUrl ? (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center space-x-2 p-3 bg-white/10 rounded-lg border hover:bg-white/20 transition-colors">
+                                        <FileText className="h-5 w-5 flex-shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                          <a
+                                            href={message.attachmentUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-sm hover:underline block truncate font-medium"
+                                          >
+                                            {message.attachmentName || "File"}
+                                          </a>
+                                          <p className="text-xs opacity-75">
+                                            Click to download
+                                          </p>
+                                        </div>
+                                        <Download className="h-4 w-4 flex-shrink-0 opacity-75" />
+                                      </div>
+                                      {message.content !==
+                                        `File: ${message.attachmentName}` && (
+                                        <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-[240px] word-break-break-all">
+                                          {message.content}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-[240px] word-break-break-all">
+                                      {message.content}
+                                    </p>
+                                  )}
+                                </div>
+                                {isOwn && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      >
+                                        <MoreVertical className="h-3 w-3" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <DropdownMenuItem
+                                            onSelect={(e) => e.preventDefault()}
+                                          >
+                                            <Trash2 className="h-4 w-4 mr-2" />
+                                            Unsend Message
+                                          </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>
                                               Unsend Message
-                                            </DropdownMenuItem>
-                                          </AlertDialogTrigger>
-                                          <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                              <AlertDialogTitle>
-                                                Unsend Message
-                                              </AlertDialogTitle>
-                                              <AlertDialogDescription>
-                                                Are you sure you want to unsend
-                                                this message? This action cannot
-                                                be undone.
-                                              </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                              <AlertDialogCancel>
-                                                Cancel
-                                              </AlertDialogCancel>
-                                              <AlertDialogAction
-                                                onClick={() =>
-                                                  handleDeleteMessage(
-                                                    message.id
-                                                  )
-                                                }
-                                                className="bg-red-600 hover:bg-red-700"
-                                              >
-                                                Unsend
-                                              </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                          </AlertDialogContent>
-                                        </AlertDialog>
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              Are you sure you want to unsend
+                                              this message? This action cannot
+                                              be undone.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>
+                                              Cancel
+                                            </AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() =>
+                                                handleDeleteMessage(message.id)
+                                              }
+                                              className="bg-red-600 hover:bg-red-700"
+                                            >
+                                              Unsend
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                )}
+                              </div>
+                              <div
+                                className={`flex items-center mt-1 space-x-1 ${
+                                  isOwn ? "justify-end" : "justify-start"
+                                }`}
+                              >
+                                <span className="text-xs text-gray-500">
+                                  {formatMessageTime(message.timestamp)}
+                                </span>
+                                {isOwn && (
+                                  <div className="text-gray-500">
+                                    {message.read ? (
+                                      <CheckCheck className="h-3 w-3" />
+                                    ) : (
+                                      <Check className="h-3 w-3" />
+                                    )}
                                   </div>
                                 )}
                               </div>
-                              <span
-                                className={cn(
-                                  "text-xs text-muted-foreground mt-1",
-                                  isOwnMessage ? "text-right" : "text-left"
-                                )}
-                              >
-                                {formatDistanceToNow(message.timestamp, {
-                                  addSuffix: true,
-                                })}
-                              </span>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                    <div ref={messagesEndRef} />
-                  </div>
+                        );
+                      })}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  )}
                 </ScrollArea>
               </CardContent>
 
@@ -1060,7 +1143,7 @@ function TenantMessagesContent() {
                     disabled={isUploading}
                   >
                     {isUploading ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      <Clock className="h-4 w-4 animate-spin" />
                     ) : (
                       <Paperclip className="h-4 w-4" />
                     )}
@@ -1071,8 +1154,19 @@ function TenantMessagesContent() {
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      className="min-h-[40px] max-h-32 resize-none"
+                      className="min-h-[40px] max-h-32 resize-none overflow-y-auto"
                       rows={1}
+                      style={{
+                        height: "auto",
+                        minHeight: "40px",
+                        maxHeight: "128px",
+                      }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = "auto";
+                        target.style.height =
+                          Math.min(target.scrollHeight, 128) + "px";
+                      }}
                     />
                   </div>
                   <DropdownMenu
@@ -1198,10 +1292,10 @@ function TenantMessagesContent() {
                   <Button
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim() || isSending}
-                    size="sm"
+                    className="px-4"
                   >
                     {isSending ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <Clock className="h-4 w-4 animate-spin" />
                     ) : (
                       <Send className="h-4 w-4" />
                     )}
@@ -1210,17 +1304,17 @@ function TenantMessagesContent() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center">
+            <CardContent className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                  Select a conversation
+                <Users className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-xl font-semibold mb-2">
+                  Select a Conversation
                 </h3>
-                <p className="text-sm text-muted-foreground">
-                  Choose a conversation from the list to start messaging
+                <p className="text-gray-600 dark:text-gray-400">
+                  Choose a conversation from the list to start messaging.
                 </p>
               </div>
-            </div>
+            </CardContent>
           )}
         </Card>
       </div>
@@ -1230,9 +1324,13 @@ function TenantMessagesContent() {
         open={!!selectedImage}
         onOpenChange={() => setSelectedImage(null)}
       >
-        <DialogContent className="max-w-4xl">
-          <DialogTitle className="mb-4">{selectedImage?.name}</DialogTitle>
-          <div className="flex items-center justify-center">
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-0 flex-shrink-0">
+            <DialogTitle className="truncate pr-8 text-sm">
+              {selectedImage?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-4 pt-2 flex-1 overflow-hidden flex items-center justify-center">
             {selectedImage && (
               <Image
                 src={selectedImage.url}
@@ -1249,7 +1347,7 @@ function TenantMessagesContent() {
   );
 }
 
-export default function TenantMessagesPage() {
+export default function AgentMessagesPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <TenantMessagesContent />
