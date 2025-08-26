@@ -39,6 +39,7 @@ interface Agent {
   profilePicture: string;
   isOnline: boolean;
   propertyCount: string;
+  verifiedPropertyCount: number;
   userType: string;
   createdAt: Date | { seconds: number; nanoseconds: number };
   updatedAt: Date | { seconds: number; nanoseconds: number };
@@ -79,6 +80,22 @@ const toDate = (
     return timestamp;
   }
   return new Date(timestamp.seconds * 1000);
+};
+
+// Function to fetch verified property count for an agent
+const fetchVerifiedPropertyCount = async (agentId: string): Promise<number> => {
+  try {
+    const propertiesQuery = query(
+      collection(db, "properties"),
+      where("verifiedBy", "==", agentId),
+      where("status", "==", "verified")
+    );
+    const querySnapshot = await getDocs(propertiesQuery);
+    return querySnapshot.size;
+  } catch (error) {
+    console.error(`Error fetching property count for agent ${agentId}:`, error);
+    return 0;
+  }
 };
 
 export default function AgentPage() {
@@ -126,8 +143,11 @@ export default function AgentPage() {
         const querySnapshot = await getDocs(agentsQuery);
         const agentsData: Agent[] = [];
 
-        querySnapshot.forEach((doc) => {
+        // Process each agent and fetch their verified property count
+        for (const doc of querySnapshot.docs) {
           const data = doc.data();
+          const verifiedPropertyCount = await fetchVerifiedPropertyCount(doc.id);
+          
           agentsData.push({
             uid: doc.id,
             firstName: data.firstName || "",
@@ -139,11 +159,12 @@ export default function AgentPage() {
             profilePicture: data.profilePicture || "",
             isOnline: data.isOnline || false,
             propertyCount: data.propertyCount || "0",
+            verifiedPropertyCount: verifiedPropertyCount,
             userType: data.userType,
             createdAt: data.createdAt,
             updatedAt: data.updatedAt,
           });
-        });
+        }
 
         // Sort agents by creation date (newest first) on client side
         const sortedAgents = agentsData.sort((a, b) => {
@@ -193,7 +214,7 @@ export default function AgentPage() {
       case "experience":
         return 0; // No experience data from Firebase
       case "properties":
-        return parseInt(b.propertyCount) - parseInt(a.propertyCount);
+        return b.verifiedPropertyCount - a.verifiedPropertyCount;
       case "reviews":
         return 0; // No reviews data from Firebase
       default:
@@ -403,10 +424,10 @@ export default function AgentPage() {
                           <Home className="h-4 w-4 text-primary mr-1" />
                         </div>
                         <div className="text-lg font-semibold text-foreground">
-                          {agent.propertyCount}
+                          {agent.verifiedPropertyCount}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Properties
+                          Verified
                         </div>
                       </div>
                       <div className="text-center">

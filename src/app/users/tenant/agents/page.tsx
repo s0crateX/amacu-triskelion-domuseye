@@ -51,6 +51,7 @@ interface Agent {
   profilePicture: string;
   isOnline: boolean;
   propertyCount: string;
+  verifiedPropertyCount: number;
   userType: string;
   createdAt: Date | { seconds: number; nanoseconds: number };
   updatedAt: Date | { seconds: number; nanoseconds: number };
@@ -82,6 +83,22 @@ const locationOptions = [
   "Ortigas",
   "Alabang",
 ];
+
+// Function to fetch verified property count for a specific agent
+const fetchVerifiedPropertyCount = async (agentId: string): Promise<number> => {
+  try {
+    const propertiesQuery = query(
+      collection(db, "properties"),
+      where("verifiedBy", "==", agentId),
+      where("status", "==", "verified")
+    );
+    const querySnapshot = await getDocs(propertiesQuery);
+    return querySnapshot.size;
+  } catch (error) {
+    console.error("Error fetching verified property count:", error);
+    return 0;
+  }
+};
 
 export default function AgentsPage() {
   const router = useRouter();
@@ -191,20 +208,21 @@ export default function AgentsPage() {
             profilePicture: data.profilePicture || "",
             isOnline: data.isOnline || false,
             propertyCount: data.propertyCount || "0",
+            verifiedPropertyCount: 0, // Initialize with 0
             userType: data.userType,
             createdAt: data.createdAt,
             updatedAt: data.updatedAt,
           });
         });
 
-        // Sort agents by creation date (newest first) on client side
+        // Fetch verified property counts for all agents
+        for (const agent of agentsData) {
+          agent.verifiedPropertyCount = await fetchVerifiedPropertyCount(agent.uid);
+        }
+
+        // Sort agents by verified property count (highest first) on client side
         const sortedAgents = agentsData.sort((a, b) => {
-          if (a.createdAt && b.createdAt) {
-            return (
-              toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime()
-            );
-          }
-          return 0;
+          return b.verifiedPropertyCount - a.verifiedPropertyCount;
         });
 
         setAgents(sortedAgents);
@@ -462,10 +480,10 @@ export default function AgentsPage() {
                           <Home className="h-4 w-4 text-primary mr-1" />
                         </div>
                         <div className="text-lg font-semibold text-foreground">
-                          {agent.propertyCount}
+                          {agent.verifiedPropertyCount}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Properties
+                          Verified
                         </div>
                       </div>
                       <div className="text-center">
