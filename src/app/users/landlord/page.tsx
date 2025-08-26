@@ -8,17 +8,17 @@ import {
   PiggyBank,
   Eye,
   Edit,
-  BarChart3,
   Calendar,
   Building,
   Star,
   Search,
   ArrowUpRight,
   Wrench,
-  CreditCard,
   MapPin,
   User,
   LucideIcon,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -40,10 +40,8 @@ import {
 import {
   DashboardStatSkeleton,
   PropertyCardSkeleton,
-  MaintenanceRequestSkeleton,
   ApplicationSkeleton,
   TaskSkeleton,
-  QuickActionSkeleton,
   LoadingGrid,
   LoadingList,
   StaggeredSkeleton,
@@ -174,6 +172,10 @@ export default function LandlordDashboard() {
   const [selectedProperty, setSelectedProperty] =
     useState<PropertyWithTenants | null>(null);
   const [showTenantsModal, setShowTenantsModal] = useState(false);
+
+  // Pagination state for properties
+  const [currentPage, setCurrentPage] = useState(1);
+  const propertiesPerPage = 2;
 
   useEffect(() => {
     if (!loading && !user) {
@@ -511,6 +513,11 @@ export default function LandlordDashboard() {
     calculateStats();
   }, [calculateStats]);
 
+  // Reset to first page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   // Removed circular loading spinner - now using skeleton components for better UX
 
   if (!user || !userData) {
@@ -524,6 +531,21 @@ export default function LandlordDashboard() {
       property.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredProperties.length / propertiesPerPage);
+  const startIndex = (currentPage - 1) * propertiesPerPage;
+  const endIndex = startIndex + propertiesPerPage;
+  const currentProperties = filteredProperties.slice(startIndex, endIndex);
+
+  // Pagination handlers
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
   // Handle view property with tenants
   const handleViewProperty = (property: PropertyWithTenants) => {
     setSelectedProperty(property);
@@ -536,22 +558,31 @@ export default function LandlordDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Header Section */}
-      <div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-              Welcome back, {userData.firstName}! 👋
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground mt-1">
-              Here&apos;s what&apos;s happening with your properties today
-            </p>
+      <div className="border-b border-border/40 bg-gradient-to-r from-background to-muted/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 overflow-x-hidden">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-semibold text-foreground flex items-center gap-2">
+                <span className="text-2xl">🏠</span>
+                Welcome back, {userData.firstName}!
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                Manage your properties with ease
+              </p>
+            </div>
+            <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>Live Dashboard</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 overflow-x-hidden">
         {/* Enhanced Stats Cards - Mobile Optimized */}
         <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 mb-6">
           {dataLoading
@@ -561,7 +592,19 @@ export default function LandlordDashboard() {
                 </StaggeredSkeleton>
               ))
             : dashboardStats.map((stat, index) => (
-                <Card key={index} className="relative overflow-hidden">
+                <Card
+                  key={index}
+                  className={`relative overflow-hidden ${
+                    stat.title === "Maintenances"
+                      ? "cursor-pointer hover:shadow-md transition-shadow"
+                      : ""
+                  }`}
+                  onClick={
+                    stat.title === "Maintenances"
+                      ? () => router.push("/users/landlord/requests")
+                      : undefined
+                  }
+                >
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
                     <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground truncate pr-1">
                       {stat.title}
@@ -589,9 +632,9 @@ export default function LandlordDashboard() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-12 mb-8">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-12 mb-8">
           {/* Left Column - 8 cols */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="col-span-1 lg:col-span-8 space-y-6">
             {/* Properties Overview with Search */}
             <Card>
               <CardHeader>
@@ -638,183 +681,242 @@ export default function LandlordDashboard() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {filteredProperties.map((property, index) => (
-                      <Card
-                        key={`property-${property.id}-${index}`}
-                        className="border hover:border-primary/50 transition-colors"
-                      >
-                        <CardHeader className="pb-3">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <CardTitle className="text-lg flex items-center gap-2">
-                                {property.title}
-                                {property.rating && (
-                                  <div className="flex items-center">
-                                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                                    <span className="text-sm text-muted-foreground ml-1">
-                                      {property.rating}
-                                    </span>
-                                  </div>
-                                )}
-                              </CardTitle>
-                              <CardDescription className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                {property.address || property.location}
-                              </CardDescription>
+                  <>
+                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                      {currentProperties.map((property, index) => (
+                        <Card
+                          key={`property-${property.id}-${index}`}
+                          className="border hover:border-primary/50 transition-colors"
+                        >
+                          <CardHeader className="pb-3">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                  {property.title}
+                                  {property.rating && (
+                                    <div className="flex items-center">
+                                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                                      <span className="text-sm text-muted-foreground ml-1">
+                                        {property.rating}
+                                      </span>
+                                    </div>
+                                  )}
+                                </CardTitle>
+                                <CardDescription className="flex items-center gap-1">
+                                  <MapPin className="h-3 w-3" />
+                                  {property.address || property.location}
+                                </CardDescription>
+                              </div>
+                              <Badge
+                                variant={
+                                  property.status === "Occupied"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                              >
+                                {property.status || "Available"}
+                              </Badge>
                             </div>
-                            <Badge
-                              variant={
-                                property.status === "Occupied"
-                                  ? "default"
-                                  : "secondary"
-                              }
-                            >
-                              {property.status || "Available"}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="text-muted-foreground">
-                                Monthly Rent
-                              </span>
-                              <p className="font-semibold text-lg">
-                                {property.price}
-                              </p>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <span className="text-muted-foreground">
+                                  Monthly Rent
+                                </span>
+                                <p className="font-semibold text-lg">
+                                  {property.price}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">
+                                  Tenants
+                                </span>
+                                <p className="font-medium">
+                                  {property.tenants?.length || 0} tenant
+                                  {property.tenants?.length !== 1 ? "s" : ""}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <span className="text-muted-foreground">
-                                Tenants
-                              </span>
-                              <p className="font-medium">
-                                {property.tenants?.length || 0} tenant
-                                {property.tenants?.length !== 1 ? "s" : ""}
-                              </p>
-                            </div>
-                          </div>
 
-                          <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground bg-muted p-2 rounded">
-                            <span>
-                              {property.beds} bed
-                              {property.beds !== 1 ? "s" : ""}
-                            </span>
-                            <span>
-                              {property.baths} bath
-                              {property.baths !== 1 ? "s" : ""}
-                            </span>
-                            <span>{property.sqft} sqft</span>
-                          </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-muted-foreground bg-muted p-2 rounded">
+                              <span>
+                                {property.beds} bed
+                                {property.beds !== 1 ? "s" : ""}
+                              </span>
+                              <span>
+                                {property.baths} bath
+                                {property.baths !== 1 ? "s" : ""}
+                              </span>
+                              <span>{property.sqft} sqft</span>
+                            </div>
 
-                          <div className="flex gap-2 pt-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1"
-                              onClick={() => handleViewProperty(property)}
-                            >
-                              <Eye className="mr-2 h-3 w-3" />
-                              View
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1"
-                            >
-                              <Edit className="mr-2 h-3 w-3" />
-                              Edit
-                            </Button>
+                            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => handleViewProperty(property)}
+                              >
+                                <Eye className="mr-2 h-3 w-3" />
+                                View
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                              >
+                                <Edit className="mr-2 h-3 w-3" />
+                                Edit
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                        <div className="text-sm text-muted-foreground">
+                          Showing {startIndex + 1}-
+                          {Math.min(endIndex, filteredProperties.length)} of{" "}
+                          {filteredProperties.length} properties
+                        </div>
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8"
+                            onClick={handlePreviousPage}
+                            disabled={currentPage === 1}
+                          >
+                            <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                            <span className="hidden sm:inline">Previous</span>
+                          </Button>
+                          <div className="flex items-center gap-0.5 sm:gap-1">
+                            {Array.from(
+                              { length: totalPages },
+                              (_, i) => i + 1
+                            ).map((page) => (
+                              <Button
+                                key={page}
+                                variant={
+                                  currentPage === page ? "default" : "outline"
+                                }
+                                size="sm"
+                                className="w-6 h-6 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
+                                onClick={() => setCurrentPage(page)}
+                              >
+                                {page}
+                              </Button>
+                            ))}
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8"
+                            onClick={handleNextPage}
+                            disabled={currentPage === totalPages}
+                          >
+                            <span className="hidden sm:inline">Next</span>
+                            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 sm:ml-1" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
 
-            {/* Maintenance Requests */}
+            {/* Maintenance Requests Summary */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Wrench className="h-5 w-5" />
-                  Maintenance Requests
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Wrench className="h-5 w-5" />
+                    <CardTitle>Maintenance Overview</CardTitle>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push("/users/landlord/requests")}
+                  >
+                    View All
+                  </Button>
+                </div>
                 <CardDescription>
-                  Track and manage property maintenance issues
+                  Quick overview of maintenance requests
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {maintenanceLoading ? (
-                  <LoadingList count={5}>
-                    <StaggeredSkeleton>
-                      <MaintenanceRequestSkeleton />
-                    </StaggeredSkeleton>
-                  </LoadingList>
-                ) : maintenanceRequests.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
-                      No maintenance requests at the moment.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {maintenanceRequests.slice(0, 5).map((request, index) => (
+                  <div className="space-y-3">
+                    {[...Array(3)].map((_, i) => (
                       <div
-                        key={`${request.propertyId}-${request.id}-${index}`}
-                        className="flex items-center justify-between p-4 border rounded-lg bg-card"
+                        key={i}
+                        className="flex items-center gap-3 p-3 border rounded"
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full">
-                            <Wrench className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div>
-                            <p className="font-medium">{request.title}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {request.propertyTitle} • {request.requesterName}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {request.createdAt instanceof Date
-                                ? request.createdAt.toLocaleDateString()
-                                : new Date(
-                                    request.createdAt
-                                  ).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Badge
-                            variant={
-                              request.status === "completed"
-                                ? "default"
-                                : request.status === "in-progress"
-                                ? "secondary"
-                                : "destructive"
-                            }
-                          >
-                            {request.status}
-                          </Badge>
-                          <Badge
-                            variant={
-                              request.priority === "high" ||
-                              request.priority === "emergency"
-                                ? "destructive"
-                                : request.priority === "medium"
-                                ? "secondary"
-                                : "outline"
-                            }
-                          >
-                            {request.priority}
-                          </Badge>
+                        <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
+                        <div className="flex-1 space-y-1">
+                          <div className="h-4 bg-muted rounded animate-pulse" />
+                          <div className="h-3 bg-muted rounded w-2/3 animate-pulse" />
                         </div>
                       </div>
                     ))}
-                    {maintenanceRequests.length > 5 && (
-                      <div className="text-center pt-4">
-                        <Button variant="outline" size="sm">
-                          View All Requests ({maintenanceRequests.length})
+                  </div>
+                ) : maintenanceRequests.length === 0 ? (
+                  <div className="text-center py-6">
+                    <Wrench className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      No maintenance requests
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {maintenanceRequests.slice(0, 3).map((request, index) => (
+                      <div
+                        key={`${request.propertyId}-${request.id}-${index}`}
+                        className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer min-w-0"
+                        onClick={() => router.push("/users/landlord/requests")}
+                      >
+                        <div className="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex-shrink-0">
+                          <Wrench className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">
+                            {request.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {request.propertyTitle}
+                          </p>
+                        </div>
+                        <Badge
+                          variant={
+                            request.priority === "high" ||
+                            request.priority === "emergency"
+                              ? "destructive"
+                              : request.priority === "medium"
+                              ? "secondary"
+                              : "outline"
+                          }
+                        >
+                          {request.priority}
+                        </Badge>
+                      </div>
+                    ))}
+                    {maintenanceRequests.length > 3 && (
+                      <div className="text-center pt-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs"
+                          onClick={() =>
+                            router.push("/users/landlord/requests")
+                          }
+                        >
+                          +{maintenanceRequests.length - 3} more requests
                         </Button>
                       </div>
                     )}
@@ -825,7 +927,7 @@ export default function LandlordDashboard() {
           </div>
 
           {/* Right Column - 4 cols */}
-          <div className="lg:col-span-4 space-y-6">
+          <div className="col-span-1 lg:col-span-4 space-y-6">
             {/* Upcoming Tasks */}
             <Card>
               <CardHeader>
@@ -901,9 +1003,9 @@ export default function LandlordDashboard() {
                     {applications.slice(0, 5).map((application, index) => (
                       <div
                         key={`${application.propertyId}-${application.id}-${index}`}
-                        className="flex items-center justify-between p-3 border rounded-lg"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-lg min-w-0"
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
                             <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                           </div>
@@ -919,89 +1021,44 @@ export default function LandlordDashboard() {
                             </p>
                           </div>
                         </div>
-                        <Badge
-                          variant={
-                            application.status === "completed" ||
-                            application.status === "approved"
-                              ? "default"
-                              : application.status === "pending" ||
-                                application.status ===
+                        <div className="flex-shrink-0 self-start sm:self-center">
+                          <Badge
+                            variant={
+                              application.status === "completed" ||
+                              application.status === "approved"
+                                ? "default"
+                                : application.status === "pending" ||
+                                  application.status ===
+                                    "awaiting_tenant_confirmation"
+                                ? "secondary"
+                                : application.status === "rejected" ||
+                                  application.status === "declined_by_tenant"
+                                ? "destructive"
+                                : "secondary"
+                            }
+                            className={
+                              application.status === "completed"
+                                ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+                                : application.status === "approved"
+                                ? "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                                : application.status === "pending"
+                                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
+                                : application.status ===
                                   "awaiting_tenant_confirmation"
-                              ? "secondary"
-                              : application.status === "rejected" ||
-                                application.status === "declined_by_tenant"
-                              ? "destructive"
-                              : "secondary"
-                          }
-                          className={
-                            application.status === "completed"
-                              ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                              : application.status === "approved"
-                              ? "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
-                              : application.status === "pending"
-                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
-                              : application.status ===
-                                "awaiting_tenant_confirmation"
-                              ? "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400"
-                              : application.status === "rejected" ||
-                                application.status === "declined_by_tenant"
-                              ? "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-                              : ""
-                          }
-                        >
-                          {application.status
-                            .replace(/_/g, " ")
-                            .replace(/\b\w/g, (l) => l.toUpperCase())}
-                        </Badge>
+                                ? "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400"
+                                : application.status === "rejected" ||
+                                  application.status === "declined_by_tenant"
+                                ? "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
+                                : ""
+                            }
+                          >
+                            {application.status
+                              .replace(/_/g, " ")
+                              .replace(/\b\w/g, (l) => l.toUpperCase())}
+                          </Badge>
+                        </div>
                       </div>
                     ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-                <CardDescription>Common tasks and shortcuts</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {dataLoading ? (
-                  <LoadingList count={4}>
-                    <StaggeredSkeleton>
-                      <QuickActionSkeleton />
-                    </StaggeredSkeleton>
-                  </LoadingList>
-                ) : (
-                  <div className="grid gap-2">
-                    <Button variant="outline" className="justify-start h-12">
-                      <Plus className="mr-3 h-4 w-4" />
-                      <div className="text-left">
-                        <div className="font-medium">Add New Property</div>
-                        <div className="text-xs text-muted-foreground">
-                          List a new rental
-                        </div>
-                      </div>
-                    </Button>
-                    <Button variant="outline" className="justify-start h-12">
-                      <CreditCard className="mr-3 h-4 w-4" />
-                      <div className="text-left">
-                        <div className="font-medium">Payment Tracking</div>
-                        <div className="text-xs text-muted-foreground">
-                          Monitor rent payments
-                        </div>
-                      </div>
-                    </Button>
-                    <Button variant="outline" className="justify-start h-12">
-                      <BarChart3 className="mr-3 h-4 w-4" />
-                      <div className="text-left">
-                        <div className="font-medium">Financial Reports</div>
-                        <div className="text-xs text-muted-foreground">
-                          View income & expenses
-                        </div>
-                      </div>
-                    </Button>
                   </div>
                 )}
               </CardContent>

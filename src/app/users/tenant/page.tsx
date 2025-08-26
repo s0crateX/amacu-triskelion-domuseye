@@ -224,8 +224,6 @@ export default function ModernTenantDashboard() {
 
   const fetchCommunityPosts = useCallback(async (properties: Property[]) => {
     try {
-  
-
       for (const property of properties) {
         const postsQuery = query(
           collection(db, "properties", property.id, "community-board"),
@@ -401,9 +399,6 @@ export default function ModernTenantDashboard() {
               landlordEmail: landlordEmail,
               landlordPhone: landlordPhone,
               description: propertyData.description || "",
-              verifiedBy: propertyData.verifiedBy || "",
-              verifiedByName: propertyData.verifiedByName || "",
-              verifiedAt: propertyData.verifiedAt || "",
             });
           }
         }
@@ -427,7 +422,12 @@ export default function ModernTenantDashboard() {
     if (user) {
       fetchConfirmedProperties();
     }
-  }, [user, fetchConfirmedProperties, fetchMaintenanceRequests, fetchCommunityPosts]);
+  }, [
+    user,
+    fetchConfirmedProperties,
+    fetchMaintenanceRequests,
+    fetchCommunityPosts,
+  ]);
 
   const handleMaintenanceSubmit = async (formData: {
     title: string;
@@ -635,15 +635,15 @@ export default function ModernTenantDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
+      <main className="max-w-6xl mx-auto px-4 lg:px-6 py-4 lg:py-6">
         {/* Welcome Section */}
-        <div className="mb-6 sm:mb-8">
+        <div className="mb-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mb-2">
+              <h1 className="text-xl lg:text-2xl font-bold text-foreground mb-1">
                 Welcome home, {user?.displayName || user?.email || "Tenant"}! 👋
-              </h2>
-              <p className="text-sm sm:text-base text-muted-foreground">
+              </h1>
+              <p className="text-sm text-muted-foreground">
                 Here&apos;s everything you need to know about your rental
               </p>
             </div>
@@ -651,24 +651,24 @@ export default function ModernTenantDashboard() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
           {getQuickStats().map((stat, index) => (
             <Card
               key={index}
-              className="hover:shadow-lg transition-all duration-300"
+              className="hover:shadow-md transition-all duration-200 border-0 shadow-sm"
             >
-              <CardContent className="p-4 sm:p-5 lg:p-6">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                    <p className="text-xs text-muted-foreground mb-1">
                       {stat.title}
                     </p>
-                    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
+                    <p className="text-lg font-bold text-foreground">
                       {stat.value}
                     </p>
                   </div>
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-xl flex items-center justify-center">
-                    <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
+                  <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <stat.icon className="w-4 h-4 text-primary" />
                   </div>
                 </div>
               </CardContent>
@@ -676,22 +676,22 @@ export default function ModernTenantDashboard() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
           {/* Main Content */}
-          <div className="xl:col-span-2 space-y-4 sm:space-y-6 lg:space-y-8">
+          <div className="xl:col-span-2 space-y-5">
             {/* Property Overview */}
-            <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
-              <CardHeader className="border-b p-4 sm:p-6">
+            <Card className="overflow-hidden hover:shadow-md transition-all duration-200 border-0 shadow-sm">
+              <CardHeader className="border-b p-4">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center text-base sm:text-lg">
-                    <Building className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary" />
+                  <CardTitle className="flex items-center text-base font-semibold">
+                    <Building className="w-4 h-4 mr-2 text-primary" />
                     Your Current Property
                   </CardTitle>
                   {confirmedProperties.length > 0 && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-primary hover:text-primary text-xs sm:text-sm"
+                      className="text-primary hover:text-primary text-xs h-7 px-2"
                     >
                       View Details
                     </Button>
@@ -699,37 +699,37 @@ export default function ModernTenantDashboard() {
                 </div>
               </CardHeader>
 
-              <CardContent className="p-4 sm:p-6">
+              <CardContent className="p-4">
                 {loading ? (
-                  <div className="flex items-center justify-center py-8 sm:py-12">
-                    <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-primary" />
-                    <span className="ml-2 text-sm sm:text-base text-muted-foreground">
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    <span className="ml-2 text-sm text-muted-foreground">
                       Loading your property...
                     </span>
                   </div>
                 ) : confirmedProperties.length === 0 ? (
-                  <div className="text-center py-8 sm:py-12">
-                    <Home className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
-                    <h4 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                  <div className="text-center py-8">
+                    <Home className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                    <h4 className="text-base font-semibold text-foreground mb-2">
                       No Current Property
                     </h4>
-                    <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4 px-4">
+                    <p className="text-sm text-muted-foreground mb-3 px-4">
                       You don&apos;t have any confirmed rental applications yet.
                     </p>
-                    <Button variant="default" className="text-sm sm:text-base">
+                    <Button variant="default" className="text-sm">
                       Browse Properties
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-4 sm:space-y-6">
+                  <div className="space-y-4">
                     {confirmedProperties.map((property, index) => (
                       <div
                         key={property.id}
-                        className="flex flex-col lg:flex-row gap-4 sm:gap-6"
+                        className="flex flex-col lg:flex-row gap-4"
                       >
                         {/* Property Image */}
                         <div className="lg:w-1/3">
-                          <div className="aspect-video lg:aspect-square bg-muted rounded-lg sm:rounded-xl flex items-center justify-center overflow-hidden relative">
+                          <div className="aspect-video lg:aspect-square bg-muted rounded-lg flex items-center justify-center overflow-hidden relative">
                             {property.images && property.images.length > 0 ? (
                               <Image
                                 src={property.images[0]}
@@ -738,59 +738,59 @@ export default function ModernTenantDashboard() {
                                 className="object-cover"
                               />
                             ) : (
-                              <Home className="w-8 h-8 sm:w-12 sm:h-12 text-muted-foreground" />
+                              <Home className="w-8 h-8 text-muted-foreground" />
                             )}
                           </div>
                         </div>
 
-                        <div className="lg:w-2/3 space-y-3 sm:space-y-4">
+                        <div className="lg:w-2/3 space-y-3">
                           <div>
-                            <h4 className="text-lg sm:text-xl font-semibold text-foreground">
+                            <h4 className="text-lg font-semibold text-foreground">
                               {property.title}
                             </h4>
                             <div className="flex items-center text-muted-foreground mt-1">
-                              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                              <span className="text-sm sm:text-base">
+                              <MapPin className="w-3 h-3 mr-1" />
+                              <span className="text-sm">
                                 {property.location}
                               </span>
                             </div>
-                            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                            <p className="text-xs text-muted-foreground mt-1">
                               {property.address}
                             </p>
                           </div>
 
                           {/* Property Stats */}
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
-                            <div className="text-center p-2 sm:p-3 bg-muted/50 rounded-lg">
-                              <Bed className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1 text-primary" />
-                              <p className="text-xs sm:text-sm font-medium text-foreground">
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                            <div className="text-center p-2 bg-muted/30 rounded-md">
+                              <Bed className="w-4 h-4 mx-auto mb-1 text-primary" />
+                              <p className="text-xs font-medium text-foreground">
                                 {property.beds}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 Bedrooms
                               </p>
                             </div>
-                            <div className="text-center p-2 sm:p-3 bg-muted/50 rounded-lg">
-                              <Bath className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1 text-primary" />
-                              <p className="text-xs sm:text-sm font-medium text-foreground">
+                            <div className="text-center p-2 bg-muted/30 rounded-md">
+                              <Bath className="w-4 h-4 mx-auto mb-1 text-primary" />
+                              <p className="text-xs font-medium text-foreground">
                                 {property.baths}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 Bathrooms
                               </p>
                             </div>
-                            <div className="text-center p-2 sm:p-3 bg-muted/50 rounded-lg">
-                              <Home className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1 text-primary" />
-                              <p className="text-xs sm:text-sm font-medium text-foreground">
+                            <div className="text-center p-2 bg-muted/30 rounded-md">
+                              <Home className="w-4 h-4 mx-auto mb-1 text-primary" />
+                              <p className="text-xs font-medium text-foreground">
                                 {property.sqft} sqft
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 Area
                               </p>
                             </div>
-                            <div className="text-center p-2 sm:p-3 bg-muted/50 rounded-lg">
-                              <PhilippinePeso className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1 text-primary" />
-                              <p className="text-xs sm:text-sm font-medium text-foreground">
+                            <div className="text-center p-2 bg-muted/30 rounded-md">
+                              <PhilippinePeso className="w-4 h-4 mx-auto mb-1 text-primary" />
+                              <p className="text-xs font-medium text-foreground">
                                 {property.price}
                               </p>
                               <p className="text-xs text-muted-foreground">
@@ -803,16 +803,16 @@ export default function ModernTenantDashboard() {
                           {property.amenities &&
                             property.amenities.length > 0 && (
                               <div>
-                                <h5 className="text-sm sm:text-base font-medium text-foreground mb-2">
+                                <h5 className="text-sm font-medium text-foreground mb-2">
                                   Amenities
                                 </h5>
-                                <div className="flex flex-wrap gap-1 sm:gap-2">
+                                <div className="flex flex-wrap gap-1">
                                   {property.amenities.map(
                                     (amenity, amenityIndex) => (
                                       <Badge
                                         key={amenityIndex}
                                         variant="secondary"
-                                        className="text-xs sm:text-sm px-2 py-1"
+                                        className="text-xs px-2 py-1"
                                       >
                                         {amenity}
                                       </Badge>
@@ -823,28 +823,28 @@ export default function ModernTenantDashboard() {
                             )}
 
                           {/* Landlord Contact Info */}
-                          <div className="pt-3 sm:pt-4 border-t">
+                          <div className="pt-3 border-t">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                               <div className="mb-3 sm:mb-0">
-                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                                <p className="text-xs text-muted-foreground mb-1">
                                   Landlord Contact
                                 </p>
-                                <p className="text-sm sm:text-base font-medium text-foreground">
+                                <p className="text-sm font-medium text-foreground">
                                   {property.landlordName}
                                 </p>
                                 {property.landlordEmail && (
-                                  <p className="text-xs sm:text-sm text-muted-foreground">
+                                  <p className="text-xs text-muted-foreground">
                                     {property.landlordEmail}
                                   </p>
                                 )}
                                 {property.landlordPhone && (
-                                  <p className="text-xs sm:text-sm text-muted-foreground">
+                                  <p className="text-xs text-muted-foreground">
                                     {property.landlordPhone}
                                   </p>
                                 )}
                                 {!property.landlordEmail &&
                                   !property.landlordPhone && (
-                                    <p className="text-xs sm:text-sm text-muted-foreground">
+                                    <p className="text-xs text-muted-foreground">
                                       Contact information not available
                                     </p>
                                   )}
@@ -861,7 +861,10 @@ export default function ModernTenantDashboard() {
                                     </div>
                                     {property.verifiedAt && (
                                       <p className="text-xs text-muted-foreground mt-1">
-                                        Verified on {new Date(property.verifiedAt).toLocaleDateString()}
+                                        Verified on{" "}
+                                        {new Date(
+                                          property.verifiedAt
+                                        ).toLocaleDateString()}
                                       </p>
                                     )}
                                   </div>
@@ -871,20 +874,20 @@ export default function ModernTenantDashboard() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="flex-1 sm:flex-none text-xs sm:text-sm text-green-600 border-green-600 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="flex-1 sm:flex-none text-xs text-green-600 border-green-600 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                   disabled={!property.landlordPhone}
                                   onClick={() =>
                                     property.landlordPhone &&
                                     window.open(`tel:${property.landlordPhone}`)
                                   }
                                 >
-                                  <Phone className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                  <Phone className="w-3 h-3 mr-1" />
                                   Call
                                 </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="flex-1 sm:flex-none text-xs sm:text-sm text-blue-600 border-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="flex-1 sm:flex-none text-xs text-blue-600 border-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                   disabled={!property.landlordEmail}
                                   onClick={() =>
                                     property.landlordEmail &&
@@ -893,7 +896,7 @@ export default function ModernTenantDashboard() {
                                     )
                                   }
                                 >
-                                  <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                  <MessageSquare className="w-3 h-3 mr-1" />
                                   Email
                                 </Button>
                               </div>
@@ -1095,24 +1098,24 @@ export default function ModernTenantDashboard() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-5">
             {/* Outstanding Dues */}
             <Card className="hover:shadow-lg transition-all duration-300">
-              <CardHeader className="border-b p-4 sm:p-6">
-                <CardTitle className="flex items-center text-base sm:text-lg">
-                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-600" />
+              <CardHeader className="border-b p-3">
+                <CardTitle className="flex items-center text-sm font-semibold">
+                  <AlertCircle className="w-4 h-4 mr-2 text-blue-600" />
                   Outstanding Dues
                 </CardTitle>
-                <p className="text-xl sm:text-2xl font-bold text-blue-700 mt-2">
+                <p className="text-base font-bold text-blue-700 mt-1">
                   ₱{totalOutstanding.toLocaleString()}
                 </p>
               </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                <div className="space-y-3 sm:space-y-4">
+              <CardContent className="p-3">
+                <div className="space-y-2">
                   {outstandingDues.map((due) => (
                     <div
                       key={due.id}
-                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all hover:shadow-md ${
+                      className={`p-2 rounded-md border transition-all hover:shadow-sm ${
                         due.status === "overdue"
                           ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800"
                           : due.status === "pending"
@@ -1120,21 +1123,21 @@ export default function ModernTenantDashboard() {
                           : "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-800"
                       }`}
                     >
-                      <div className="flex justify-between items-start mb-2">
+                      <div className="flex justify-between items-start mb-1">
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-xs sm:text-sm truncate">
+                          <p className="font-medium text-xs truncate">
                             {due.type}
                           </p>
                           <p className="text-xs opacity-75">
                             Due: {due.dueDate}
                           </p>
                         </div>
-                        <p className="font-bold text-sm sm:text-base ml-2 flex-shrink-0">
+                        <p className="font-bold text-xs ml-2 flex-shrink-0">
                           {due.amount}
                         </p>
                       </div>
                       {due.status === "overdue" && (
-                        <p className="text-xs font-medium mb-2">
+                        <p className="text-xs font-medium mb-1">
                           ⚠️ {due.daysOverdue} days overdue
                         </p>
                       )}
@@ -1160,14 +1163,14 @@ export default function ModernTenantDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 sm:p-6">
-                <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-3">
                   {recentPayments.map((payment) => (
                     <div
                       key={payment.id}
-                      className="flex items-center justify-between p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200 dark:bg-green-950/20 dark:border-green-800"
+                      className="flex items-center justify-between p-3 bg-green-50 rounded-md border border-green-200 dark:bg-green-950/20 dark:border-green-800"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-xs sm:text-sm text-green-900 dark:text-green-400 truncate">
+                        <p className="font-medium text-sm text-green-900 dark:text-green-400 truncate">
                           {payment.type}
                         </p>
                         <p className="text-xs text-green-700 dark:text-green-500">
@@ -1175,7 +1178,7 @@ export default function ModernTenantDashboard() {
                         </p>
                       </div>
                       <div className="text-right flex-shrink-0 ml-2">
-                        <p className="font-bold text-xs sm:text-sm text-green-900 dark:text-green-400">
+                        <p className="font-bold text-sm text-green-900 dark:text-green-400">
                           {payment.amount}
                         </p>
                         <Badge
@@ -1190,7 +1193,7 @@ export default function ModernTenantDashboard() {
                 </div>
                 <Button
                   variant="outline"
-                  className="w-full mt-3 sm:mt-4 text-xs sm:text-sm text-green-600 hover:text-green-700 border-green-200 hover:bg-green-50 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-950/20"
+                  className="w-full mt-3 text-xs sm:text-sm h-8 text-green-600 hover:text-green-700 border-green-200 hover:bg-green-50 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-950/20"
                 >
                   View Payment History
                 </Button>
@@ -1199,33 +1202,33 @@ export default function ModernTenantDashboard() {
 
             {/* Quick Actions */}
             <Card className="hover:shadow-lg transition-all duration-300">
-              <CardHeader className="border-b p-4 sm:p-6">
-                <CardTitle className="flex items-center text-base sm:text-lg">
+              <CardHeader className="border-b p-3">
+                <CardTitle className="flex items-center text-sm font-semibold">
                   Quick Actions
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                <div className="space-y-2 sm:space-y-3">
+              <CardContent className="p-3">
+                <div className="space-y-2">
                   <OnlinePaymentDialog onSubmit={handlePaymentSubmit} />
                   <Button
                     variant="ghost"
-                    className="w-full justify-between p-2 sm:p-3 h-auto text-xs sm:text-sm"
+                    className="w-full justify-between p-2 h-8 text-xs"
                   >
                     <div className="flex items-center">
-                      <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-2 sm:mr-3 text-primary" />
+                      <FileText className="w-3 h-3 mr-2 text-primary" />
                       <span className="font-medium">Download Receipt</span>
                     </div>
-                    <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+                    <ChevronRight className="w-3 h-3 text-muted-foreground" />
                   </Button>
                   <Button
                     variant="ghost"
-                    className="w-full justify-between p-2 sm:p-3 h-auto text-xs sm:text-sm"
+                    className="w-full justify-between p-2 h-8 text-xs"
                   >
                     <div className="flex items-center">
-                      <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-2 sm:mr-3 text-primary" />
+                      <Settings className="w-3 h-3 mr-2 text-primary" />
                       <span className="font-medium">Report Issue</span>
                     </div>
-                    <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+                    <ChevronRight className="w-3 h-3 text-muted-foreground" />
                   </Button>
                 </div>
               </CardContent>

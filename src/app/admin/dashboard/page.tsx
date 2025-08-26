@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+
 import {
   Users,
   UserPlus,
@@ -17,6 +18,7 @@ import {
   Calendar,
   Trash2,
   AlertTriangle,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +55,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+
 import { useAdminAuth } from "@/lib/auth/admin-auth-context";
 import {
   getAllUsers,
@@ -71,6 +81,22 @@ interface UserStats {
   landlords: number;
   agents: number;
 }
+
+// Property specialties options
+const PROPERTY_SPECIALTIES = [
+  "Residential",
+  "Commercial",
+  "Luxury Homes",
+  "Condominiums",
+  "Apartments",
+  "Townhouses",
+  "Investment Properties",
+  "New Construction",
+  "Foreclosures",
+  "Rental Properties",
+  "Land/Lots",
+  "Vacation Homes",
+];
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -95,6 +121,11 @@ export default function AdminDashboard() {
     password: "",
     companyName: "",
     dateOfBirth: "",
+    businessAddress: "",
+    businessLatitude: undefined,
+    businessLongitude: undefined,
+    experience: "",
+    specialities: [],
   });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [agentToDelete, setAgentToDelete] = useState<UserDocument | null>(null);
@@ -194,6 +225,11 @@ export default function AdminDashboard() {
         password: "",
         companyName: "",
         dateOfBirth: "",
+        businessAddress: "",
+        businessLatitude: undefined,
+        businessLongitude: undefined,
+        experience: "",
+        specialities: [],
       });
       // Refresh users list
       fetchUsersAndStats();
@@ -409,135 +445,411 @@ export default function AdminDashboard() {
                     Create Agent
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Create New Agent Account</DialogTitle>
-                    <DialogDescription>
+                <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col shadow-2xl border-0 rounded-xl">
+                  <DialogHeader className="pb-6 border-b border-border/50 shrink-0">
+                    <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                      Create New Agent Account
+                    </DialogTitle>
+                    <DialogDescription className="text-sm text-muted-foreground mt-2 leading-relaxed">
                       Create a new real estate agent account with access to the
-                      platform.
+                      platform. Fill in the required information below.
                     </DialogDescription>
                   </DialogHeader>
 
-                  <form onSubmit={handleCreateAgent} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="firstName">First Name *</Label>
-                        <Input
-                          id="firstName"
-                          value={agentFormData.firstName}
-                          onChange={(e) =>
-                            setAgentFormData((prev) => ({
-                              ...prev,
-                              firstName: e.target.value,
-                            }))
-                          }
-                          required
-                        />
+                  <ScrollArea className="flex-1 overflow-y-auto px-1">
+                    <form
+                      id="agent-form"
+                      onSubmit={handleCreateAgent}
+                      className="space-y-8 p-6"
+                    >
+                      {/* Personal Information */}
+                      <div className="space-y-6">
+                        <div className="flex items-center space-x-3 pb-3 border-b border-muted">
+                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span className="text-primary font-semibold text-sm">
+                              1
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-foreground">
+                              Personal Information
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Basic agent details
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="firstName"
+                              className="text-sm font-medium text-foreground"
+                            >
+                              First Name{" "}
+                              <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                              id="firstName"
+                              value={agentFormData.firstName}
+                              onChange={(e) =>
+                                setAgentFormData((prev) => ({
+                                  ...prev,
+                                  firstName: e.target.value,
+                                }))
+                              }
+                              className="h-10"
+                              placeholder="Enter first name"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="lastName"
+                              className="text-sm font-medium text-foreground"
+                            >
+                              Last Name{" "}
+                              <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                              id="lastName"
+                              value={agentFormData.lastName}
+                              onChange={(e) =>
+                                setAgentFormData((prev) => ({
+                                  ...prev,
+                                  lastName: e.target.value,
+                                }))
+                              }
+                              className="h-10"
+                              placeholder="Enter last name"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="email"
+                              className="text-sm font-medium text-foreground"
+                            >
+                              Email Address{" "}
+                              <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                              id="email"
+                              type="email"
+                              value={agentFormData.email}
+                              onChange={(e) =>
+                                setAgentFormData((prev) => ({
+                                  ...prev,
+                                  email: e.target.value,
+                                }))
+                              }
+                              className="h-10"
+                              placeholder="Enter email address"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="phone"
+                              className="text-sm font-medium text-foreground"
+                            >
+                              Phone Number
+                            </Label>
+                            <Input
+                              id="phone"
+                              type="tel"
+                              value={agentFormData.phone}
+                              onChange={(e) =>
+                                setAgentFormData((prev) => ({
+                                  ...prev,
+                                  phone: e.target.value,
+                                }))
+                              }
+                              className="h-10"
+                              placeholder="Enter phone number"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="password"
+                              className="text-sm font-medium text-foreground"
+                            >
+                              Password{" "}
+                              <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                              id="password"
+                              type="password"
+                              value={agentFormData.password}
+                              onChange={(e) =>
+                                setAgentFormData((prev) => ({
+                                  ...prev,
+                                  password: e.target.value,
+                                }))
+                              }
+                              className="h-10"
+                              placeholder="Enter secure password"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="dateOfBirth"
+                              className="text-sm font-medium text-foreground"
+                            >
+                              Date of Birth
+                            </Label>
+                            <Input
+                              id="dateOfBirth"
+                              type="date"
+                              value={agentFormData.dateOfBirth}
+                              onChange={(e) =>
+                                setAgentFormData((prev) => ({
+                                  ...prev,
+                                  dateOfBirth: e.target.value,
+                                }))
+                              }
+                              className="h-10"
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <Label htmlFor="lastName">Last Name *</Label>
-                        <Input
-                          id="lastName"
-                          value={agentFormData.lastName}
-                          onChange={(e) =>
-                            setAgentFormData((prev) => ({
-                              ...prev,
-                              lastName: e.target.value,
-                            }))
-                          }
-                          required
-                        />
+
+                      {/* Business Information */}
+                      <div className="space-y-6">
+                        <div className="flex items-center space-x-3 pb-3 border-b border-muted">
+                          <div className="w-8 h-8 bg-blue-500/10 rounded-full flex items-center justify-center">
+                            <span className="text-blue-600 font-semibold text-sm">
+                              2
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-foreground">
+                              Business Information
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Company and location details
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="companyName"
+                            className="text-sm font-medium text-foreground"
+                          >
+                            Company Name
+                          </Label>
+                          <Input
+                            id="companyName"
+                            value={agentFormData.companyName}
+                            onChange={(e) =>
+                              setAgentFormData((prev) => ({
+                                ...prev,
+                                companyName: e.target.value,
+                              }))
+                            }
+                            className="h-10"
+                            placeholder="Enter company name"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <div>
-                      <Label htmlFor="email">Email *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={agentFormData.email}
-                        onChange={(e) =>
-                          setAgentFormData((prev) => ({
-                            ...prev,
-                            email: e.target.value,
-                          }))
-                        }
-                        required
-                      />
-                    </div>
+                      {/* Professional Information */}
+                      <div className="space-y-6">
+                        <div className="flex items-center space-x-3 pb-3 border-b border-muted">
+                          <div className="w-8 h-8 bg-green-500/10 rounded-full flex items-center justify-center">
+                            <span className="text-green-600 font-semibold text-sm">
+                              3
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-foreground">
+                              Professional Information
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Experience and specialties
+                            </p>
+                          </div>
+                        </div>
 
-                    <div>
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        value={agentFormData.phone}
-                        onChange={(e) =>
-                          setAgentFormData((prev) => ({
-                            ...prev,
-                            phone: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="experience"
+                            className="text-sm font-medium text-foreground"
+                          >
+                            Years of Experience
+                          </Label>
+                          <Input
+                            id="experience"
+                            type="number"
+                            min="0"
+                            max="50"
+                            value={agentFormData.experience}
+                            onChange={(e) =>
+                              setAgentFormData((prev) => ({
+                                ...prev,
+                                experience: e.target.value,
+                              }))
+                            }
+                            className="h-10"
+                            placeholder="Enter years of experience"
+                          />
+                        </div>
 
-                    <div>
-                      <Label htmlFor="password">Password *</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        value={agentFormData.password}
-                        onChange={(e) =>
-                          setAgentFormData((prev) => ({
-                            ...prev,
-                            password: e.target.value,
-                          }))
-                        }
-                        required
-                      />
-                    </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="specialities"
+                            className="text-sm font-medium text-foreground"
+                          >
+                            Property Specialties
+                          </Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-between h-10 text-left font-normal"
+                              >
+                                <span className="truncate">
+                                  {(agentFormData.specialities?.length ?? 0) > 0
+                                    ? `${
+                                        agentFormData.specialities?.length ?? 0
+                                      } specialt${
+                                        (agentFormData.specialities?.length ??
+                                          0) === 1
+                                          ? "y"
+                                          : "ies"
+                                      } selected`
+                                    : "Select property specialties"}
+                                </span>
+                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-full p-0"
+                              align="start"
+                            >
+                              <div className="p-3 border-b">
+                                <p className="text-sm font-medium">
+                                  Select Property Specialties
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Choose areas of expertise
+                                </p>
+                              </div>
+                              <ScrollArea className="h-48">
+                                <div className="p-3 space-y-3">
+                                  {PROPERTY_SPECIALTIES.map((specialty) => (
+                                    <div
+                                      key={specialty}
+                                      className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors"
+                                    >
+                                      <Checkbox
+                                        id={specialty}
+                                        checked={agentFormData.specialities?.includes(
+                                          specialty
+                                        )}
+                                        onCheckedChange={(checked) => {
+                                          setAgentFormData((prev) => {
+                                            const currentSpecialities =
+                                              prev.specialities || [];
+                                            if (checked) {
+                                              return {
+                                                ...prev,
+                                                specialities: [
+                                                  ...currentSpecialities,
+                                                  specialty,
+                                                ],
+                                              };
+                                            } else {
+                                              return {
+                                                ...prev,
+                                                specialities:
+                                                  currentSpecialities.filter(
+                                                    (s) => s !== specialty
+                                                  ),
+                                              };
+                                            }
+                                          });
+                                        }}
+                                      />
+                                      <Label
+                                        htmlFor={specialty}
+                                        className="text-sm font-medium cursor-pointer flex-1"
+                                      >
+                                        {specialty}
+                                      </Label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </ScrollArea>
+                            </PopoverContent>
+                          </Popover>
+                          {(agentFormData.specialities?.length ?? 0) > 0 && (
+                            <div className="mt-4 p-3 bg-muted/30 rounded-md">
+                              <p className="text-sm font-medium text-foreground mb-3">
+                                Selected Specialties (
+                                {agentFormData.specialities?.length ?? 0}):
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {agentFormData.specialities?.map(
+                                  (specialty) => (
+                                    <Badge
+                                      key={specialty}
+                                      variant="secondary"
+                                      className="text-xs px-2 py-1 bg-primary/10 text-primary border-primary/20"
+                                    >
+                                      {specialty}
+                                    </Badge>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </form>
+                  </ScrollArea>
 
-                    <div>
-                      <Label htmlFor="companyName">Company Name</Label>
-                      <Input
-                        id="companyName"
-                        value={agentFormData.companyName}
-                        onChange={(e) =>
-                          setAgentFormData((prev) => ({
-                            ...prev,
-                            companyName: e.target.value,
-                          }))
-                        }
-                      />
+                  {/* Action Buttons */}
+                  <div className="flex justify-between items-center pt-6 px-6 pb-2 border-t bg-background/50 shrink-0">
+                    <div className="text-xs text-muted-foreground">
+                      <span className="text-destructive">*</span> Required
+                      fields
                     </div>
-
-                    <div>
-                      <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                      <Input
-                        id="dateOfBirth"
-                        type="date"
-                        value={agentFormData.dateOfBirth}
-                        onChange={(e) =>
-                          setAgentFormData((prev) => ({
-                            ...prev,
-                            dateOfBirth: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-
-                    <div className="flex justify-end space-x-2 pt-4">
+                    <div className="flex space-x-3">
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => setShowCreateAgent(false)}
+                        className="h-10 px-6"
+                        disabled={creatingAgent}
                       >
                         Cancel
                       </Button>
-                      <Button type="submit" disabled={creatingAgent}>
-                        {creatingAgent ? "Creating..." : "Create Agent"}
+                      <Button
+                        type="submit"
+                        disabled={creatingAgent}
+                        form="agent-form"
+                        className="h-10 px-6 bg-primary hover:bg-primary/90"
+                      >
+                        {creatingAgent ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                            Creating...
+                          </>
+                        ) : (
+                          "Create Agent Account"
+                        )}
                       </Button>
                     </div>
-                  </form>
+                  </div>
                 </DialogContent>
               </Dialog>
             </div>
